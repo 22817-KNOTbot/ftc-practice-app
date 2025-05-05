@@ -1,0 +1,186 @@
+//noinspection GradleDependency
+buildscript {
+    ext.min_sdk_version = "8.2.0"
+}
+
+plugins {
+    id "com.github.node-gradle.node" version "2.2.4"
+}
+apply plugin: "com.android.library"
+
+android {
+    namespace = "com.knotbot.practiceapp"
+
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 23
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 26
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+node {
+    version = "22.15.0"
+    download = true
+    nodeModulesDir = file("${project.projectDir}/../app")
+}
+
+npm_run_build.dependsOn npmInstall
+
+task cleanAppAssets(type: Delete) {
+    delete "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
+}
+
+clean.dependsOn cleanAppAssets
+
+task copyAppAssets(type: Copy) {
+    from "${project.projectDir}/../app/dist"
+    into "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
+}
+
+copyAppAssets.dependsOn cleanAppAssets
+copyAppAssets.dependsOn npm_run_build
+
+android.libraryVariants.all { variant ->
+    variant.preBuildProvider.get().dependsOn copyAppAssets
+}
+
+// // I"d like to replace each() with collectMany() if only I knew how
+// // Also, the static suggestion here is wrong but I lack the incantation to suppress it
+// def javaSources() {
+//     def files = []
+//     android.sourceSets.each { sourceSet ->
+//         sourceSet.java.each { javaSource ->
+//             javaSource.getSrcDirs().each {
+//                 if (it.exists()) {
+//                     files.add(it)
+//                 }
+//             }
+//         }
+//     }
+//     return files
+// }
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
+    api "org.firstinspires.ftc:Hardware:$min_sdk_version"
+    api "org.firstinspires.ftc:RobotServer:$min_sdk_version"
+    api "org.firstinspires.ftc:FtcCommon:$min_sdk_version"
+
+    implementation "androidx.annotation:annotation:1.1.0"
+
+    implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
+        exclude module: "nanohttpd"
+    }
+}
+
+// def addPomDependencies(root) {
+//     def depsNode = root.appendNode("dependencies")
+
+//     // Apparently you can make closures but not "inner methods"
+//     def addDep = { groupId, artifactId, version ->
+//         def n = depsNode.appendNode("dependency")
+//         n.appendNode("groupId", groupId)
+//         n.appendNode("artifactId", artifactId)
+//         n.appendNode("version", version)
+//         return n
+//     }
+
+//     addDep("com.acmerobotics.dashboard", "core", dashboard_version)
+
+//     ["RobotCore", "Hardware", "RobotServer", "FtcCommon"].forEach {
+//         addDep("org.firstinspires.ftc", it, min_sdk_version)
+//     }
+
+//     addDep("androidx.annotation", "annotation", "1.1.0")
+
+//     addDep("org.nanohttpd", "nanohttpd-websocket", "2.3.1")
+//             .appendNode("exclusions")
+//             .appendNode("exclusion")
+//             .with {
+//                 appendNode("groupId", "org.nanohttpd")
+//                 appendNode("artifactId", "nanohttpd")
+//             }
+// }
+
+// task androidSourcesJar(type: Jar) {
+//     archiveClassifier = "sources"
+//     from android.sourceSets.main.java.srcDirs
+// }
+
+// task androidJavadocs(type: Javadoc) {
+//     failOnError = false
+//     source = android.sourceSets.main.java.srcDirs
+//     ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+//     classpath += files(ext.androidJar)
+// }
+
+// task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+//     archiveClassifier = "javadoc"
+//     from androidJavadocs.destinationDir
+// }
+
+// project.afterEvaluate {
+//     publishing {
+//         publications {
+//             maven(MavenPublication) {
+//                 artifact bundleReleaseAar
+//                 artifact androidSourcesJar
+//                 artifact androidJavadocsJar
+
+//                 groupId = "com.acmerobotics.dashboard"
+//                 artifactId = "dashboard"
+//                 version dashboard_version
+
+//                 pom {
+//                     description = "Web dashboard designed for FTC"
+//                     name = "FTC Dashboard"
+//                     url = "https://github.com/acmerobotics/ftc-dashboard"
+
+//                     licenses {
+//                         license {
+//                             name = "The MIT License"
+//                             url = "https://opensource.org/licenses/MIT"
+//                             distribution = "repo"
+//                         }
+//                     }
+
+//                     developers {
+//                         developer {
+//                             id = "rbrott"
+//                             name = "Ryan Brott"
+//                             email = "rcbrott@gmail.com"
+//                         }
+//                     }
+
+//                     scm {
+//                         url = "https://github.com/acmerobotics/ftc-dashboard"
+//                     }
+//                 }
+
+//                 // Seems like you can"t define ad hoc software components without a plugin.
+//                 // Remind me never to read the Gradle docs again.
+//                 pom.withXml {
+//                     // Android Studio complains here, but passing null straight up doesn't work
+//                     //noinspection GroovyImplicitNullArgumentCall
+//                     def root = asNode()
+//                     addPomDependencies(root)
+//                 }
+//             }
+//         }
+//     }
+// }

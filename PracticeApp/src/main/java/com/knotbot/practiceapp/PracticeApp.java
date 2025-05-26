@@ -138,12 +138,13 @@ public class PracticeApp {
 		}
 	}
 
-	private class WsHandler {
+	protected class WsHandler {
 		private Socket socket;
 		private boolean open = false;
 
 		public void register(Socket socket) {
 			this.socket = socket;
+			RobotEvent.registerWsHandler(this);
 		}
 
 		public void onOpen() {
@@ -157,6 +158,10 @@ public class PracticeApp {
 
 		public void onMessage(String message) {
 			// TODO: parse JSON and handle message
+		}
+
+		public void sendMessage(Message message) {
+			socket.send(message);
 		}
 	}
 

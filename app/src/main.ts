@@ -39,9 +39,6 @@ const timerLoop = (time: number) => {
 			sounds.playSound("endmatch");
 			break;
 	}
-	if (time == 120) {
-		sounds.playSound("autoend");
-	}
 };
 const transitionTimerLoop = (time: number) => {
 	switch (time) {
@@ -79,8 +76,6 @@ const handleMessage = (data: Message) => {
 			sounds.playSound("autobegin");
 			setTimer(timer, 150, timerLoop);
 			resetStopwatch(cycleTimer);
-			break;
-		case "end":
 			break;
 		case "abort":
 			sounds.playSound("abort");

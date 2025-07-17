@@ -82,3 +82,6 @@ lint/tmp/
 
 # VS Code folder
 .vscode/
+
+# Built files
+PracticeApp/src/main/assets/

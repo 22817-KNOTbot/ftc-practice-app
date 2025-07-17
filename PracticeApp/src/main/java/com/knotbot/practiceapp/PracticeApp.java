@@ -25,9 +25,19 @@ public class PracticeApp {
 
 	private static PracticeApp instance;
 
+	private PracticeApp() {
+		try {
+			wsServer.start(0);
+		} catch (Exception e) {
+			System.out.println("[FTC PracticeApp]: Error starting WS Server");
+			RobotLog.logStackTrace(e);
+		}
+	}
+
 	@OnCreate
 	public static void start(Context context) {
 		if (instance == null) instance = new PracticeApp();
+		System.out.println("[FTC PracticeApp]: STARTED");
 	}
 
 	/*
@@ -38,21 +48,45 @@ public class PracticeApp {
 	public static void registerWebHandler(Context context, WebHandlerManager manager) {
 		if (instance != null && manager != null) {
 			instance.attachWebHandler(manager);
+			instance.attachAssetWebHandlers(manager, "practice/assets");
 		}
 	}
 
 	private void attachWebHandler(WebHandlerManager manager) {
-		WebHandler webHandler = createWebHandler("practice/index.html");
-		manager.register(WEB_PATH, webHandler);
+		manager.register(WEB_PATH, createWebHandler("practice/index.html"));
+		manager.register(WEB_PATH + "/stats", createWebHandler("practice/stats.html"));
+	}
+
+	private void attachAssetWebHandlers(WebHandlerManager manager, String path) {
+		try {
+			AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
+			String[] pathList = assetManager.list(path);
+			
+			if (pathList == null) {
+				return;
+			}
+
+			if (pathList.length > 0) {
+				for (String file : pathList) {
+					attachAssetWebHandlers(manager, path + "/" + file);
+				}
+			} else {
+				manager.register(WEB_PATH + "/" + path, createWebHandler(path));
+			}
+		} catch (Exception e) {
+			System.out.println("[FTC PracticeApp]: " + e);
+		}
 	}
 
 	private WebHandler createWebHandler(String file) {
+		System.out.println("[FTC PracticeApp]: Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
 			@Override
 			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
 				if (session.getMethod() == NanoHTTPD.Method.GET) {
 					AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
 					String mimeType = MimeTypesUtil.determineMimeType(file);
+					System.out.println("[FTC PracticeApp]: WebHandler returned file \"" + file + "\"");
 					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, assetManager.open(file));
 				} else {
 					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
@@ -149,15 +183,25 @@ public class PracticeApp {
 
 		public void onOpen() {
 			open = true;
+			System.out.println("[FTC PracticeApp]: WS Opened");
 		}
 
 		public void onClose() {
 			this.socket = null;
 			open = false;
+			System.out.println("[FTC PracticeApp]: WS Closed");
 		}
 
 		public void onMessage(String message) {
 			// TODO: parse JSON and handle message
+
+			// Dev code to echo sent WS messages
+			if (message.startsWith("~")) {
+				try {
+					socket.send(message.substring(1));
+				} catch (Exception e) {}
+			}
+			System.out.println("[FTC PracticeApp]: Received WS message \"" + message + "\"");
 		}
 
 		public void sendMessage(Message message) {
@@ -165,10 +209,10 @@ public class PracticeApp {
 		}
 	}
 
-	private NanoWSD wsServer = new NanoWSD(80) {
-        @Override
-        protected NanoWSD.WebSocket openWebSocket(NanoHTTPD.IHTTPSession handshake) {
-            return new Socket(handshake);
-        }
-    };
+	private NanoWSD wsServer = new NanoWSD(8001) {
+		@Override
+		protected NanoWSD.WebSocket openWebSocket(NanoHTTPD.IHTTPSession handshake) {
+			return new Socket(handshake);
+		}
+	};
 }

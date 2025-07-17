@@ -1,4 +1,3 @@
-//noinspection GradleDependency
 buildscript {
     ext.min_sdk_version = "8.2.0"
 }
@@ -15,17 +14,12 @@ android {
 
     defaultConfig {
         minSdkVersion 23
-        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 26
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    lintOptions {
-        abortOnError false
     }
 }
 
@@ -144,42 +138,6 @@ dependencies {
 
 //                 groupId = "com.acmerobotics.dashboard"
 //                 artifactId = "dashboard"
-//                 version dashboard_version
-
-//                 pom {
-//                     description = "Web dashboard designed for FTC"
-//                     name = "FTC Dashboard"
-//                     url = "https://github.com/acmerobotics/ftc-dashboard"
-
-//                     licenses {
-//                         license {
-//                             name = "The MIT License"
-//                             url = "https://opensource.org/licenses/MIT"
-//                             distribution = "repo"
-//                         }
-//                     }
-
-//                     developers {
-//                         developer {
-//                             id = "rbrott"
-//                             name = "Ryan Brott"
-//                             email = "rcbrott@gmail.com"
-//                         }
-//                     }
-
-//                     scm {
-//                         url = "https://github.com/acmerobotics/ftc-dashboard"
-//                     }
-//                 }
-
-//                 // Seems like you can"t define ad hoc software components without a plugin.
-//                 // Remind me never to read the Gradle docs again.
-//                 pom.withXml {
-//                     // Android Studio complains here, but passing null straight up doesn't work
-//                     //noinspection GroovyImplicitNullArgumentCall
-//                     def root = asNode()
-//                     addPomDependencies(root)
-//                 }
 //             }
 //         }
 //     }

@@ -6,6 +6,10 @@ import { resetStopwatch, stopStopwatch, setTimer, stopTimer } from "./timer.ts";
 import { Message } from "./types.ts";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+<nav>
+	<a href="/practice">Timer</a>
+	<a href="/practice/stats">Stats</a>
+</nav>
 <div id="timer-section">
 	<div id="timer">2:30</div>
 	<input type="text" id="input">

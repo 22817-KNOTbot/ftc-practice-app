@@ -17,27 +17,31 @@ import fi.iki.elonen.NanoWSD;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 public class PracticeApp {
+	private static final String TAG = "PracticeApp";
 	private static final String WEB_PATH = "/practice";
 
-	private static PracticeApp instance;
+	protected static PracticeApp instance;
+	private static WebHandlerManager manager;
 
 	private PracticeApp() {
 		try {
 			wsServer.start(0);
-		} catch (Exception e) {
-			System.out.println("[FTC PracticeApp]: Error starting WS Server");
-			RobotLog.logStackTrace(e);
+		} catch (Exception err) {
+			Log.e(TAG, "Error starting WS Server", err);
 		}
 	}
 
 	@OnCreate
 	public static void start(Context context) {
 		if (instance == null) instance = new PracticeApp();
-		System.out.println("[FTC PracticeApp]: STARTED");
+		Log.i(TAG, "STARTED");
 	}
 
 	/*
@@ -47,8 +51,10 @@ public class PracticeApp {
 	@WebHandlerRegistrar
 	public static void registerWebHandler(Context context, WebHandlerManager manager) {
 		if (instance != null && manager != null) {
+			PracticeApp.manager = manager;
 			instance.attachWebHandler(manager);
 			instance.attachAssetWebHandlers(manager, "practice/assets");
+			instance.attachDataWebHandlers(manager);
 		}
 	}
 
@@ -73,21 +79,72 @@ public class PracticeApp {
 			} else {
 				manager.register(WEB_PATH + "/" + path, createWebHandler(path));
 			}
-		} catch (Exception e) {
-			System.out.println("[FTC PracticeApp]: " + e);
+		} catch (Exception err) {
+			Log.e(TAG, "Error attaching asset web handlers", err);
+		}
+	}
+
+	private void attachDataWebHandlers(WebHandlerManager manager) {
+		try {
+			File dataPath = new File(AppUtil.ROOT_FOLDER, "Practice/data");
+			if (!dataPath.exists()) {
+				dataPath.mkdirs();
+			}
+			
+			File[] fileList = dataPath.listFiles();
+			
+			if (fileList == null || fileList.length <= 0) {
+				return;
+			}
+
+			for (File file : fileList) {
+				manager.register(WEB_PATH + "/data/" + file.getName(), createDataWebHandler(file.getAbsolutePath()));
+			}
+		} catch (Exception err) {
+			Log.e(TAG, "Error attaching data web handlers", err);
+		}
+	}
+
+	protected void attachDataWebHandler(File file) {
+		if (manager == null) return;
+		try {
+			if (!file.exists() || !file.isFile()) {
+				Log.w(TAG, "Data file not found. Path: " + file.getAbsolutePath());
+				return;
+			}
+
+			PracticeApp.manager.register(WEB_PATH + "/data/" + file.getName(), createDataWebHandler(file.getAbsolutePath()));
+		} catch (Exception err) {
+			Log.e(TAG, "Error attaching data web handler \"" + file.getAbsolutePath() + "\"", err);
 		}
 	}
 
 	private WebHandler createWebHandler(String file) {
-		System.out.println("[FTC PracticeApp]: Created WebHandler \"" + file + "\"");
+		Log.d(TAG, "Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
 			@Override
 			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
 				if (session.getMethod() == NanoHTTPD.Method.GET) {
 					AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
 					String mimeType = MimeTypesUtil.determineMimeType(file);
-					System.out.println("[FTC PracticeApp]: WebHandler returned file \"" + file + "\"");
+					Log.d(TAG, "WebHandler returned file \"" + file + "\"");
 					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, assetManager.open(file));
+				} else {
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+				}
+			}
+		};
+	}
+	
+	private WebHandler createDataWebHandler(String file) {
+		Log.d(TAG, "Created WebHandler \"" + file + "\"");
+		return new WebHandler() {
+			@Override
+			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
+				if (session.getMethod() == NanoHTTPD.Method.GET) {
+					String mimeType = MimeTypesUtil.determineMimeType(file);
+					Log.d(TAG, "WebHandler returned file \"" + file + "\"");
+					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, new FileInputStream(file));
 				} else {
 					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
 				}
@@ -183,13 +240,13 @@ public class PracticeApp {
 
 		public void onOpen() {
 			open = true;
-			System.out.println("[FTC PracticeApp]: WS Opened");
+			Log.d(TAG, "WS Opened");
 		}
 
 		public void onClose() {
 			this.socket = null;
 			open = false;
-			System.out.println("[FTC PracticeApp]: WS Closed");
+			Log.d(TAG, "WS Closed");
 		}
 
 		public void onMessage(String message) {
@@ -201,7 +258,7 @@ public class PracticeApp {
 					socket.send(message.substring(1));
 				} catch (Exception e) {}
 			}
-			System.out.println("[FTC PracticeApp]: Received WS message \"" + message + "\"");
+			Log.d(TAG, "Received WS message \"" + message + "\"");
 		}
 
 		public void sendMessage(Message message) {

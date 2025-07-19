@@ -3,10 +3,10 @@ import { getData, getRunData } from "./stats/data";
 import "./style.css";
 import { Data, RunData } from "./types";
 
-let data: Data;
+let data: Data["data"];
 
 getData().then((d) => {
-	data = d;
+	data = d.data;
 	generateChart(document.getElementById("chart")! as HTMLCanvasElement);
 });
 
@@ -27,9 +27,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const generateChart = async (chartCanvas: HTMLCanvasElement) => {
-	const chartData: { time: number; score: number }[] = [];
-	Object.values(data).forEach((e) => {
-		chartData.push({ time: e.time, score: e.score });
+	const chartData: { name: string; time: number; score: number }[] = [];
+	data.sort((a, b) => {
+		return a.time - b.time;
+	});
+	data.forEach((e) => {
+		chartData.push({ name: e.name, time: e.time, score: e.score });
 	});
 
 	new Chart(chartCanvas, {
@@ -53,7 +56,15 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 					callbacks: {
 						title: (context) => {
 							let text = "";
-							if (context[0].parsed.y != null) {
+							if (context[0] != null) {
+								text = data[context[0].dataIndex].name;
+							}
+
+							return text;
+						},
+						afterTitle: (context) => {
+							let text = "";
+							if (context[0] != null) {
 								const timestamp = context[0].label;
 								const date: Date = new Date(
 									parseInt(timestamp) * 1000
@@ -73,17 +84,8 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 				},
 			},
 			onClick: (_e, elements) => {
-				// const canvasPosition = getRelativePosition(elements, chart);
-				// const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
-				// const dataY = chart.scales.y.getValueForPixel(canvasPosition.y);
-				// console.log(dataX);
-				// console.log(dataY);
 				if (elements.length > 0) {
-					showRunData(
-						getRunData(
-							parseInt(Object.keys(data)[elements[0].index])
-						)
-					);
+					showRunData(getRunData(data[elements[0].index].filename));
 				}
 			},
 			onHover: (event, elements) => {

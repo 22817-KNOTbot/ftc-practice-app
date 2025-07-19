@@ -80,6 +80,7 @@ dependencies {
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }
+	implementation("com.squareup.moshi:moshi:1.15.2")
 }
 
 // def addPomDependencies(root) {

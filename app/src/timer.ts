@@ -10,8 +10,10 @@ export function setTimer(
 	};
 	clearInterval(updateTimer);
 	updateTimer = setInterval(() => {
-		const remainingTime =
-			Math.round((startTime - Date.now()) / 1000) + time;
+		const remainingTime = Math.max(
+			0,
+			Math.round((startTime - Date.now()) / 1000) + time
+		);
 		if (remainingTime <= 0) {
 			clearInterval(updateTimer);
 		}

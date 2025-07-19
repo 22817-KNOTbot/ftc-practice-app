@@ -5,10 +5,12 @@ export type Message = {
 };
 
 export type Data = {
-	[key: string]: {
+	data: {
+		name: string;
 		time: number;
 		score: number;
-	};
+		filename: string;
+	}[];
 };
 
 export type RunData = {

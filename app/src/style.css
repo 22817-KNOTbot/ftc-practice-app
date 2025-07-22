@@ -112,7 +112,7 @@ nav>a {
 	width: 80vw;
 }
 
-#runModal {
+.modal {
 	position: fixed;
 	left: 50%;
 	top: 50%;
@@ -126,7 +126,6 @@ nav>a {
 
 	box-sizing: border-box;
 	width: 30vw;
-	height: 80vh;
 	padding: 3%;
 
 	border: 1px solid var(--text-colour);
@@ -137,7 +136,15 @@ nav>a {
 	transition: transform 250ms, opacity 250ms, filter 250ms;
 }
 
-#runModal.shownModal {
+.modal#saveModal {
+	height: 50vh;
+}
+
+.modal#runModal {
+	height: 80vh;
+}
+
+.modal.shownModal {
 	transform: translate(-50%, -50%) scale(1);
 	filter: none;
 	opacity: 1;
@@ -156,6 +163,40 @@ nav>a {
 	border-top: 1px solid var(--text-colour);
 	box-shadow: inset 0px 5px 5px -5px hsl(0, 0%, 25%);
 	padding: 5%;
+}
+
+#saveModal>#modalContent {
+	overflow-y: hidden;
+}
+
+#modalContent>form {
+	height: 100%;
+	overflow: hidden;
+}
+
+#runNameInputLabel {
+	display: block;
+	font-size: 1.5em;
+	margin: 0;
+	width: 100%;
+	text-align: center;
+}
+
+#runNameInput, #runNameSubmit {
+	box-sizing: border-box;
+	width: 100%;
+	height: 20%;
+	margin: 3% 0 0;
+	padding: 0 1em;
+	border-style: solid;
+	border-radius: 100vh;
+}
+
+#runNameNote {
+	margin: 0 0 5%;
+	font-size: 0.8em;
+	width: 100%;
+	text-align: center;
 }
 
 #modalContent .modalContentSubtitle {

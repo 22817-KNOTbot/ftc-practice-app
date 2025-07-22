@@ -1,8 +1,11 @@
 package com.knotbot.practiceapp;
 
+import com.qualcomm.ftccommon.FtcEventLoop;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.WebHandlerManager;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 
+import org.firstinspires.ftc.ftccommon.external.OnCreateEventLoop;
 import org.firstinspires.ftc.ftccommon.external.OnCreate;
 import org.firstinspires.ftc.ftccommon.external.WebHandlerRegistrar;
 
@@ -10,6 +13,10 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
 
 import org.firstinspires.ftc.robotserver.internal.webserver.MimeTypesUtil;
+
+import com.squareup.moshi.Moshi;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.JsonDataException;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
@@ -41,7 +48,21 @@ public class PracticeApp {
 	@OnCreate
 	public static void start(Context context) {
 		if (instance == null) instance = new PracticeApp();
+		if (RobotEvent.instance == null) RobotEvent.instance = new RobotEvent();
 		Log.i(TAG, "STARTED");
+	}
+
+	@OnCreateEventLoop
+	public static void registerOpModeNotifications(Context context, FtcEventLoop eventLoop) {
+		OpModeManagerImpl opModeManager = eventLoop.getOpModeManager();
+		if (RobotEvent.opModeManager != null) {
+			opModeManager.unregisterListener(RobotEvent.instance);
+		}
+		RobotEvent.opModeManager = opModeManager;
+		
+		if (RobotEvent.opModeManager != null) {
+			opModeManager.registerListener(RobotEvent.instance);
+		}
 	}
 
 	/*
@@ -175,16 +196,18 @@ public class PracticeApp {
 			this.value = value;
 		}
 
+		public Message(String event, String name, Integer value) {
+			this.event = event;
+			this.name = name;
+			this.value = value;
+		}
+
 		public String toJson() {
-			if (name == null && value == null) {
-				return String.format("{\"event\":\"%s\"}", event);
-			} else if (name != null) {
-				return String.format("{\"event\":\"%s\", \"name\":\"%s\"}", event, name);
-			} else if (value != null) {
-				return String.format("{\"event\":\"%s\", \"value\":\"%d\"}", event, value);
-			} else {
-				return "{\"event\":\"error\", \"name\":\"An illegal message was constructed\"}";
-			}
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<Message> jsonAdapter = moshi.adapter(Message.class);
+
+			String json = jsonAdapter.toJson(this);
+			return json;
 		}
 	}
 
@@ -245,20 +268,48 @@ public class PracticeApp {
 
 		public void onClose() {
 			this.socket = null;
+			RobotEvent.unregisterWsHandler();
 			open = false;
 			Log.d(TAG, "WS Closed");
 		}
 
-		public void onMessage(String message) {
-			// TODO: parse JSON and handle message
+		public void onMessage(String json) {
+			Log.d(TAG, "Received WS message \"" + json + "\"");
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<Message> jsonAdapter = moshi.adapter(Message.class);
+
+			Message message;
+			try {
+				message = jsonAdapter.fromJson(json);
+				// Log.v(TAG, runData.toString());
+			} catch (IOException | JsonDataException err) {
+				Log.e(TAG, "Error deserializing JSON", err);
+				return;
+			}
+
+			if (message == null) return;
+
+			switch (message.event) {
+				case "saveRun":
+					if (message.name == null || message.value == null) {
+						Log.e(TAG, "Malformed save run message. Given data \"" + json + "\"");
+						return;
+					}
+					if (message.name == "" || RobotEvent.runData == null) return;
+					RobotEvent.runData.name = message.name;
+					RobotEvent.runData.timestamp = message.value;
+					DataStorage.saveRun(RobotEvent.runData);
+					break;
+				default:
+					break;
+			}
 
 			// Dev code to echo sent WS messages
-			if (message.startsWith("~")) {
+			if (json.startsWith("~")) {
 				try {
-					socket.send(message.substring(1));
+					socket.send(json.substring(1));
 				} catch (Exception e) {}
 			}
-			Log.d(TAG, "Received WS message \"" + message + "\"");
 		}
 
 		public void sendMessage(Message message) {

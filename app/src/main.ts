@@ -1,3 +1,4 @@
+import ReconnectingWebSocket from "reconnecting-websocket";
 import { setScore } from "./score.ts";
 import { Sounds } from "./sfx.ts";
 import { createSocket } from "./socket.ts";
@@ -22,6 +23,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 	</div>
 	<div id="cycle-time-box">
 		<div id="cycle-timer">0.00</div>
+	</div>
+</div>
+<div id="saveModal" class="modal">
+	<h1 id="modalHeader">Modal</h1>
+	<div id="modalContent">
+		Modal content
 	</div>
 </div>
 `;
@@ -62,7 +69,64 @@ const cycleTimer = document.getElementById("cycle-timer")!;
 
 const score = document.getElementById("score")!;
 
-const socket = createSocket();
+const showSavePrompt = () => {
+	const modal = document.getElementById("saveModal")!;
+	const title = document.getElementById("modalHeader")!;
+	const content = document.getElementById("modalContent")!;
+	modal.classList.add("shownModal");
+
+	title.textContent = "Save run";
+
+	content.innerHTML = "";
+
+	const form = content.appendChild(document.createElement("form"));
+
+	const inputLabel = form.appendChild(document.createElement("label"));
+	inputLabel.id = "runNameInputLabel";
+	inputLabel.setAttribute("for", "runNameInput");
+	inputLabel.textContent = "Run name";
+
+	const input = form.appendChild(document.createElement("input"));
+	input.id = "runNameInput";
+	input.setAttribute("type", "text");
+	input.setAttribute("placeholder", "Run name");
+
+	const inputNote = form.appendChild(document.createElement("p"));
+	inputNote.id = "runNameNote";
+	inputNote.textContent = "Leave empty to discard run";
+
+	const submit = form.appendChild(document.createElement("input"));
+	submit.id = "runNameSubmit";
+	submit.setAttribute("type", "submit");
+	submit.value = "Submit";
+
+	submit.addEventListener("click", (event) => {
+		event.preventDefault();
+		saveRun(input.value);
+		hideSavePrompt();
+	});
+};
+
+const hideSavePrompt = () => {
+	const modal = document.getElementById("saveModal");
+	if (modal != null) modal.classList.remove("shownModal");
+};
+
+const saveRun = (name: string) => {
+	if (socket.readyState == WebSocket.OPEN) {
+		const timestamp = Math.floor(Date.now() / 1000);
+		const data: Message = {
+			event: "saveRun",
+			name: name,
+			value: timestamp,
+		};
+		socket.send(JSON.stringify(data));
+	} else {
+		console.error("Run could not be saved. Disconnected from WS");
+	}
+};
+
+const socket: ReconnectingWebSocket = createSocket();
 socket.onmessage = (event) => {
 	let jsonData: Message;
 	try {
@@ -94,13 +158,18 @@ const handleMessage = (data: Message) => {
 			break;
 		case "setScore":
 			if (data.value) {
-				setScore(score, data.value);
+				setScore(score, data.value, data.name);
 			}
 			break;
 		case "playSound":
 			if (data.name) {
 				sounds.playSound(data.name);
 			}
+			break;
+		case "end":
+			stopTimer();
+			stopStopwatch();
+			showSavePrompt();
 			break;
 		case "error":
 			if (data.name) {

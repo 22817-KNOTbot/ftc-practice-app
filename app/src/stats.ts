@@ -1,4 +1,5 @@
 import Chart from "chart.js/auto";
+import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
 import "./style.css";
 import { Data, RunData } from "./types";
@@ -18,7 +19,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <div id="chart-div">
 	<canvas id="chart"></canvas>
 </div>
-<div id="runModal">
+<div id="runModal" class="modal">
 	<h1 id="modalHeader">Modal</h1>
 	<div id="modalContent">
 		Modal content
@@ -29,10 +30,14 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 	const chartData: { name: string; time: number; score: number }[] = [];
 	data.sort((a, b) => {
-		return a.time - b.time;
+		return a.timestamp - b.timestamp;
 	});
 	data.forEach((e) => {
-		chartData.push({ name: e.name, time: e.time, score: e.score });
+		chartData.push({
+			name: e.name,
+			time: e.timestamp * 1000,
+			score: e.score,
+		});
 	});
 
 	new Chart(chartCanvas, {
@@ -65,10 +70,9 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 						afterTitle: (context) => {
 							let text = "";
 							if (context[0] != null) {
-								const timestamp = context[0].label;
-								const date: Date = new Date(
-									parseInt(timestamp) * 1000
-								);
+								const timestamp =
+									data[context[0].dataIndex].timestamp * 1000;
+								const date: Date = new Date(timestamp);
 								text = date.toLocaleString(undefined, {
 									month: "short",
 									day: "numeric",
@@ -85,7 +89,11 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 			},
 			onClick: (_e, elements) => {
 				if (elements.length > 0) {
-					showRunData(getRunData(data[elements[0].index].filename));
+					getRunData(data[elements[0].index].filename).then(
+						(data) => {
+							showRunData(data);
+						}
+					);
 				}
 			},
 			onHover: (event, elements) => {
@@ -107,8 +115,17 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 				},
 			},
 			scales: {
+				x: {
+					type: "timeseries",
+					time: {
+						minUnit: "minute",
+					},
+				},
 				y: {
 					beginAtZero: true,
+					ticks: {
+						precision: 0,
+					},
 				},
 			},
 		},
@@ -116,7 +133,6 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 };
 
 function showRunData(data: RunData) {
-	console.log(data);
 	const modal = document.getElementById("runModal")!;
 	const title = document.getElementById("modalHeader")!;
 	const content = document.getElementById("modalContent")!;
@@ -167,7 +183,7 @@ function showRunData(data: RunData) {
 	for (const cycle in data.cycles) {
 		const row = cycleTable.appendChild(document.createElement("tr"));
 		let tableData = row.appendChild(document.createElement("td"));
-		tableData.textContent = data.cycles[cycle].time.toString();
+		tableData.textContent = data.cycles[cycle].time.toFixed(3).toString();
 		tableData = row.appendChild(document.createElement("td"));
 		tableData.textContent = data.cycles[cycle].type;
 	}

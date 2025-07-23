@@ -4,6 +4,17 @@ export type Message = {
 	value?: number;
 };
 
+export type RunState =
+	| {
+			running: false;
+	  }
+	| {
+			running: true;
+			runTime: number;
+			score: number;
+			cycles: Cycle[];
+	  };
+
 export type Data = {
 	data: {
 		name: string;
@@ -20,9 +31,11 @@ export type RunData = {
 	info: {
 		[key: string]: number;
 	};
-	cycles: {
-		time: number;
-		type: string;
-		score: number;
-	}[];
+	cycles: Cycle[];
+};
+
+export type Cycle = {
+	time: number;
+	type: string;
+	score: number;
 };

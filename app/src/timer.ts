@@ -12,7 +12,7 @@ export function setTimer(
 	updateTimer = setInterval(() => {
 		const remainingTime = Math.max(
 			0,
-			Math.round((startTime - Date.now()) / 1000) + time
+			Math.round((startTime - Date.now()) / 1000 + time)
 		);
 		if (remainingTime <= 0) {
 			clearInterval(updateTimer);
@@ -23,7 +23,7 @@ export function setTimer(
 			loop(remainingTime);
 		}
 	}, 1000); // update about every second
-	setCounter(`${secsToMins(time)}`);
+	setCounter(`${secsToMins(Math.round(time))}`);
 }
 
 export function stopTimer() {
@@ -32,18 +32,20 @@ export function stopTimer() {
 
 let updateStopwatch: number;
 export function setupStopwatch(element: HTMLElement, time: number) {
+	clearInterval(updateStopwatch);
 	const startTime = Date.now();
 	const setCounter = (time: string) => {
 		element.innerHTML = time;
 	};
 	updateStopwatch = setInterval(() => {
-		const currentTime = +((Date.now() - startTime) / 1000).toFixed(3);
+		const currentTime =
+			Math.round(time * 1e3 + Date.now() - startTime) / 1000;
 		if (currentTime >= 9999) {
 			clearInterval(updateStopwatch);
 		}
 		setCounter(`${currentTime}`);
 	}, 1); // update about every second
-	setCounter(`${time.toFixed(3)}`);
+	setCounter(time.toFixed(3));
 }
 
 export function resetStopwatch(element: HTMLElement) {

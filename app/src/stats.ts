@@ -118,7 +118,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 				x: {
 					type: "timeseries",
 					time: {
-						minUnit: "minute",
+						minUnit: "day",
 					},
 				},
 				y: {

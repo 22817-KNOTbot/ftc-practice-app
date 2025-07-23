@@ -1,10 +1,16 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { setScore } from "./score.ts";
+import { displayChange, setScore } from "./score.ts";
 import { Sounds } from "./sfx.ts";
 import { createSocket } from "./socket.ts";
 import "./style.css";
-import { resetStopwatch, stopStopwatch, setTimer, stopTimer } from "./timer.ts";
-import { Message } from "./types.ts";
+import {
+	resetStopwatch,
+	stopStopwatch,
+	setTimer,
+	stopTimer,
+	setupStopwatch,
+} from "./timer.ts";
+import { Message, RunState } from "./types.ts";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <nav>
@@ -13,8 +19,6 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 </nav>
 <div id="timer-section">
 	<div id="timer">2:30</div>
-	<input type="text" id="input">
-	<input type="submit" id="send">
 </div>
 <div id="bottom-section">
 	<div id="changes-box">1</div>
@@ -36,6 +40,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 const sounds: Sounds = new Sounds();
 sounds.preload();
 
+// TODO: change timer system to store extra value instead of relying on time
+// to allow for directly starting in teleop, etc.
 const timer = document.getElementById("timer")!;
 const timerLoop = (time: number) => {
 	switch (time) {
@@ -126,32 +132,78 @@ const saveRun = (name: string) => {
 	}
 };
 
+const setState = (runState: RunState) => {
+	if (!runState.running) return;
+
+	// Set timer depending on stage of game
+	// (Will be changed after timer rework)
+	const time = runState.runTime;
+	if (time < 30) {
+		setTimer(timer, 150 - time, timerLoop);
+	} else if (time < 38) {
+		setTimer(timer, 38 - time, transitionTimerLoop);
+	} else if (time < 158) {
+		setTimer(timer, 158 - time, timerLoop);
+	} else {
+		setTimer(timer, 0);
+	}
+
+	setScore(score, runState.score);
+	runState.cycles.forEach((cycle) => {
+		displayChange(cycle.score, cycle.type);
+	});
+
+	const lastCycle = runState.cycles[runState.cycles.length - 1];
+	const lastCycleTime = lastCycle?.time ?? 0;
+	setupStopwatch(cycleTimer, time - lastCycleTime);
+};
+
 const socket: ReconnectingWebSocket = createSocket();
+socket.onopen = () => {
+	socket.send(JSON.stringify({ event: "getState" }));
+};
 socket.onmessage = (event) => {
 	let jsonData: Message;
 	try {
 		jsonData = JSON.parse(event.data) as Message;
 	} catch {
-		console.error("Invalid socket message received");
+		console.error(`Invalid socket message received. Got "${event.data}"`);
 		return;
 	}
 	handleMessage(jsonData);
 };
+socket.onclose = () => {
+	stopTimer();
+	stopStopwatch();
+};
 
 const handleMessage = (data: Message) => {
 	switch (data.event) {
+		case "setState":
+			if (data.name) {
+				console.log("Received run state, updating info");
+				let runState: RunState;
+				try {
+					runState = JSON.parse(data.name) as RunState;
+				} catch {
+					console.error(
+						`Invalid state JSON received. Got "${data.name}"`
+					);
+					break;
+				}
+				setState(runState);
+			}
+			break;
 		case "start":
 			sounds.playSound("autobegin");
 			setTimer(timer, 150, timerLoop);
 			resetStopwatch(cycleTimer);
+			hideSavePrompt();
 			break;
 		case "abort":
 			sounds.playSound("abort");
 			stopTimer();
 			stopStopwatch();
-			break;
-		case "resetTimer":
-			setTimer(timer, 150, timerLoop);
 			break;
 		case "resetCycle":
 			resetStopwatch(cycleTimer);
@@ -183,8 +235,3 @@ const handleMessage = (data: Message) => {
 			break;
 	}
 };
-
-// TESTING CODE
-document.getElementById("send")!.addEventListener("click", () => {
-	socket.send((document.getElementById("input") as HTMLInputElement)!.value);
-});

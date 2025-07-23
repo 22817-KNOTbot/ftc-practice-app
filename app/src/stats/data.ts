@@ -5,7 +5,6 @@ export async function getData(): Promise<Data> {
 		headers: {
 			Accept: "application/json",
 		},
-		mode: "no-cors",
 	});
 	return new Promise<Data>((resolve, reject) => {
 		if (!response.ok) {
@@ -30,7 +29,6 @@ export async function getRunData(run: string): Promise<RunData> {
 		headers: {
 			Accept: "application/json",
 		},
-		mode: "no-cors",
 	});
 	return new Promise<RunData>((resolve, reject) => {
 		if (!response.ok) {

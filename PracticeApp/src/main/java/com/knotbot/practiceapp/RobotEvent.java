@@ -45,19 +45,6 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		}
 	}
 
-	public static void resetTimer() {
-		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("resetTimer"));
-		}
-	}
-
-	public static void resetCycle() {
-		cycleTimer.reset();
-		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("resetCycle"));
-		}
-	}
-
 	public static void setScore(int score) {
 		RobotEvent.score = score;
 		if (wsHandler != null) {
@@ -79,11 +66,12 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			runData.info.put(type, count);
 
 			float time = (float) runTimer.time();
-			Data.RunData.Cycle cycle = new Data.RunData.Cycle(time, type, score);
+			Data.Cycle cycle = new Data.Cycle(time, type, score);
 			runData.cycles.add(cycle);
 		}
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("setScore", type, RobotEvent.score));
+			wsHandler.sendMessage(new PracticeApp.Message("resetCycle"));
 		}
 		return RobotEvent.score;
 	}

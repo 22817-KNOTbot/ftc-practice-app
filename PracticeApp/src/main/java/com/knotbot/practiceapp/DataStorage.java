@@ -65,7 +65,7 @@ public class DataStorage {
 	}
 
 	protected static void saveRun(Data.RunData runData, String name) {
-		String json = Data.runDataToJson(runData);
+		String json = Data.RunData.toJson(runData);
 		File file = writeString(name, json);
 
 		String fileName = file.getName();
@@ -74,7 +74,7 @@ public class DataStorage {
 	}
 
 	protected static void tempSaveRun(Data.RunData runData, String name) {
-		String json = Data.runDataToJson(runData);
+		String json = Data.RunData.toJson(runData);
 		File file = writeString(name, json);
 	}
 
@@ -95,7 +95,7 @@ public class DataStorage {
 		}
 
 		final String existingText = readString(file);
-		Data.MainData data = Data.jsonToMainData(existingText);
+		Data.MainData data = Data.MainData.toData(existingText);
 
 		Data.MainData.RunOverview newOverview = new Data.MainData.RunOverview();
 		newOverview.name = runData.name;
@@ -107,7 +107,7 @@ public class DataStorage {
 		}
 		data.data.add(newOverview);
 
-		String newText = Data.mainDataToJson(data);
+		String newText = Data.MainData.toJson(data);
 
 		writeString(file.getName().replaceFirst("[.][^.]+$", ""), newText);
 	}

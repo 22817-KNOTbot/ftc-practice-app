@@ -29,6 +29,9 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class PracticeApp {
 	private static final String TAG = "PracticeApp";
@@ -212,7 +215,7 @@ public class PracticeApp {
 	}
 
 	private class Socket extends NanoWSD.WebSocket {
-		WsHandler wsHandler;
+		private WsHandler wsHandler;
 
 		public Socket(NanoHTTPD.IHTTPSession handshake) {
 			super(handshake);
@@ -227,7 +230,7 @@ public class PracticeApp {
 
 		@Override
 		protected void onClose(NanoWSD.WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
-			wsHandler.onClose();
+			wsHandler.onClose(this);
 		}
 
 		@Override
@@ -252,12 +255,12 @@ public class PracticeApp {
 		}
 	}
 
-	protected class WsHandler {
-		private Socket socket;
+	protected static class WsHandler {
+		private static Set<Socket> sockets = new HashSet<Socket>();
 		private boolean open = false;
 
 		public void register(Socket socket) {
-			this.socket = socket;
+			this.sockets.add(socket);
 			RobotEvent.registerWsHandler(this);
 		}
 
@@ -266,10 +269,12 @@ public class PracticeApp {
 			Log.d(TAG, "WS Opened");
 		}
 
-		public void onClose() {
-			this.socket = null;
-			RobotEvent.unregisterWsHandler();
-			open = false;
+		public void onClose(Socket socket) {
+			this.sockets.remove(socket);
+			if (sockets.isEmpty()) {
+				RobotEvent.unregisterWsHandler();
+				open = false;
+			}
 			Log.d(TAG, "WS Closed");
 		}
 
@@ -290,6 +295,24 @@ public class PracticeApp {
 			if (message == null) return;
 
 			switch (message.event) {
+				case "getState":
+					Data.RunState runState;
+
+					if (!RobotEvent.running || RobotEvent.runData == null) {
+						runState = new Data.RunState(false);
+					} else {
+						runState = new Data.RunState(
+							RobotEvent.running,
+							(float) RobotEvent.runTimer.time(),
+							RobotEvent.score,
+							RobotEvent.runData.cycles
+						);
+					}
+
+					String runStateJson = Data.RunState.toJson(runState);
+					sendMessage(new Message("setState", runStateJson));
+					Log.v(TAG, "Sent run state: \"" + runStateJson + "\"");
+					break;
 				case "saveRun":
 					if (message.name == null || message.value == null) {
 						Log.e(TAG, "Malformed save run message. Given data \"" + json + "\"");
@@ -299,21 +322,19 @@ public class PracticeApp {
 					RobotEvent.runData.name = message.name;
 					RobotEvent.runData.timestamp = message.value;
 					DataStorage.saveRun(RobotEvent.runData);
+					RobotEvent.runData = null;
 					break;
 				default:
 					break;
 			}
-
-			// Dev code to echo sent WS messages
-			if (json.startsWith("~")) {
-				try {
-					socket.send(json.substring(1));
-				} catch (Exception e) {}
-			}
 		}
 
 		public void sendMessage(Message message) {
-			socket.send(message);
+			Iterator<Socket> socketIterator = sockets.iterator();
+			while (socketIterator.hasNext()) {
+				Socket socket = socketIterator.next();
+				socket.send(message);
+			}
 		}
 	}
 

@@ -3,6 +3,7 @@ import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
 import "./style.css";
 import { Data, RunData } from "./types";
+import { updateTextSize } from "auto-text-size";
 
 let data: Data["data"];
 
@@ -20,7 +21,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 	<canvas id="chart"></canvas>
 </div>
 <div id="runModal" class="modal">
-	<h1 id="modalHeader">Modal</h1>
+	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>
 	<div id="modalContent">
 		Modal content
 	</div>
@@ -134,6 +135,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 
 function showRunData(data: RunData) {
 	const modal = document.getElementById("runModal")!;
+	const titleContainer = document.getElementById("modalHeaderContainer")!;
 	const title = document.getElementById("modalHeader")!;
 	const content = document.getElementById("modalContent")!;
 	modal.classList.add("shownModal");
@@ -142,6 +144,11 @@ function showRunData(data: RunData) {
 	content.innerHTML = "";
 
 	title.textContent = `${data.name}`;
+	updateTextSize({
+		innerEl: title,
+		containerEl: titleContainer,
+		mode: "box",
+	});
 
 	const infoHeader = content
 		.appendChild(document.createElement("h2"))

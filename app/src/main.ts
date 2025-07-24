@@ -22,10 +22,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 </div>
 <div id="bottom-section">
 	<div id="changes-box">
-		<div class="change change-0"></div>
-		<div class="change change-1"></div>
-		<div class="change change-2"></div>
-		<div class="change change-3"></div>
+		<div class="change change-0"><div></div></div>
+		<div class="change change-1"><div></div></div>
+		<div class="change change-2"><div></div></div>
+		<div class="change change-3"><div></div></div>
 	</div>
 	<div id="score-box">
 		<div id="score">

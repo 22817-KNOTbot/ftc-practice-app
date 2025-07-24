@@ -1,3 +1,5 @@
+import { updateTextSize } from "auto-text-size";
+
 let oldScore = 0;
 let currentScore = 0;
 export function setScore(element: HTMLElement, score: number) {
@@ -32,11 +34,21 @@ export function displayChange(
 	score ??= currentScore - oldScore;
 	type ??= "Score";
 
-	element.getElementsByClassName("change-3")[0]!.textContent = `
+	const newChange = element.getElementsByClassName("change-3")[0]!
+		.children[0] as HTMLElement;
+
+	newChange.textContent = `
 		${score >= 0 ? "+" : "-"}${Math.abs(score)} - 
 		${type}
 		${time == undefined ? "" : " - " + time.toFixed(3)}
 	`;
+
+	updateTextSize({
+		innerEl: newChange,
+		containerEl: newChange.parentElement!,
+		mode: "boxoneline",
+	});
+
 	shiftChanges(element);
 
 	changes.push({ score: score, type: type, time: time ?? 0 });

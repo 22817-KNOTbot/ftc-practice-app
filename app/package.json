@@ -17,6 +17,7 @@
 		"vite-plugin-eslint": "^1.8.1"
 	},
 	"dependencies": {
+		"auto-text-size": "^0.2.3",
 		"chart.js": "^4.4.9",
 		"chartjs-adapter-date-fns": "^3.0.0",
 		"date-fns": "^4.1.0",

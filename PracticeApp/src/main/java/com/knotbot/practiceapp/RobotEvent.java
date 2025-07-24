@@ -57,6 +57,8 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	}
 
 	public static int addScore(int score, String type) {
+		int timeMs = (int) cycleTimer.milliseconds();
+		cycleTimer.reset();
 		RobotEvent.score += score;
 		if (runData != null) {
 			runData.score = RobotEvent.score;
@@ -65,13 +67,12 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			count++;
 			runData.info.put(type, count);
 
-			float time = (float) runTimer.time();
-			Data.Cycle cycle = new Data.Cycle(time, type, score);
+			Data.Cycle cycle = new Data.Cycle(timeMs/1000f, type, score);
 			runData.cycles.add(cycle);
 		}
 		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("setScore", type, RobotEvent.score));
-			wsHandler.sendMessage(new PracticeApp.Message("resetCycle"));
+			wsHandler.sendMessage(new PracticeApp.Message("setScore", RobotEvent.score));
+			wsHandler.sendMessage(new PracticeApp.Message("resetCycle", type, timeMs));
 		}
 		return RobotEvent.score;
 	}

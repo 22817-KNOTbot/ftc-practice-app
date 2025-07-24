@@ -1,5 +1,5 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { displayChange, setScore } from "./score.ts";
+import { clearChanges, displayChange, setScore } from "./score.ts";
 import { Sounds } from "./sfx.ts";
 import { createSocket } from "./socket.ts";
 import "./style.css";
@@ -21,9 +21,16 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 	<div id="timer">2:30</div>
 </div>
 <div id="bottom-section">
-	<div id="changes-box">1</div>
+	<div id="changes-box">
+		<div class="change change-0"></div>
+		<div class="change change-1"></div>
+		<div class="change change-2"></div>
+		<div class="change change-3"></div>
+	</div>
 	<div id="score-box">
-		<div id="score">0</div>
+		<div id="score">
+			0
+		</div>
 	</div>
 	<div id="cycle-time-box">
 		<div id="cycle-timer">0.00</div>
@@ -74,6 +81,7 @@ const transitionTimerLoop = (time: number) => {
 const cycleTimer = document.getElementById("cycle-timer")!;
 
 const score = document.getElementById("score")!;
+const changesElement = document.getElementById("changes-box")!;
 
 const showSavePrompt = () => {
 	const modal = document.getElementById("saveModal")!;
@@ -149,8 +157,9 @@ const setState = (runState: RunState) => {
 	}
 
 	setScore(score, runState.score);
+
 	runState.cycles.forEach((cycle) => {
-		displayChange(cycle.score, cycle.type);
+		displayChange(changesElement, cycle.type, cycle.time, cycle.score);
 	});
 
 	const lastCycle = runState.cycles[runState.cycles.length - 1];
@@ -197,6 +206,8 @@ const handleMessage = (data: Message) => {
 		case "start":
 			sounds.playSound("autobegin");
 			setTimer(timer, 150, timerLoop);
+			setScore(score, 0);
+			clearChanges(changesElement);
 			resetStopwatch(cycleTimer);
 			hideSavePrompt();
 			break;
@@ -207,10 +218,11 @@ const handleMessage = (data: Message) => {
 			break;
 		case "resetCycle":
 			resetStopwatch(cycleTimer);
+			displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
 			break;
 		case "setScore":
 			if (data.value) {
-				setScore(score, data.value, data.name);
+				setScore(score, data.value);
 			}
 			break;
 		case "playSound":

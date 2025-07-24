@@ -88,10 +88,42 @@ nav>a {
 #bottom-section>* {
 	width: 100%;
 	height: 100%;
+	position: relative;
 	background-color: var(--secondary-bg-colour);
 	display: grid;
 	place-items: center;
 	font-size: 3em;
+}
+
+#changes-box {
+	overflow: hidden;
+}
+
+#changes-box .change {
+    width: 100%;
+    height: 7.5vh;
+	position: absolute;
+	font-size: 5vh;
+    text-align: center;
+}
+
+#changes-box .change {
+	&.change-0 {
+		top: -50%;
+		transition: top 0.5s;
+	}
+	&.change-1 {
+		top: 0;
+		transition: top 0.5s;
+	}
+	&.change-2 {
+		top: 50%;
+		transition: top 0.5s;
+	}
+	&.change-3 {
+		top: 100%;
+		transition: none;
+	}
 }
 
 #score {

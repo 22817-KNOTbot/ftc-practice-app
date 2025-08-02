@@ -6,11 +6,17 @@ import "./style.css";
 import {
 	resetStopwatch,
 	stopStopwatch,
-	setTimer,
-	stopTimer,
 	setupStopwatch,
+	setAutoTimer,
+	setTransitionTimer,
+	setTeleopTimer,
+	registerSounds,
+	Timer,
 } from "./timer.ts";
 import { Message, RunState } from "./types.ts";
+import { setTime } from "./time.ts";
+
+let running = false;
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <nav>
@@ -46,37 +52,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const sounds: Sounds = new Sounds();
 sounds.preload();
+registerSounds(sounds);
 
-// TODO: change timer system to store extra value instead of relying on time
-// to allow for directly starting in teleop, etc.
-const timer = document.getElementById("timer")!;
-const timerLoop = (time: number) => {
-	switch (time) {
-		case 120:
-			sounds.playSound("autoend");
-			setTimer(timer, 8, transitionTimerLoop);
-			break;
-		case 30:
-			sounds.playSound("endgame");
-			break;
-		case 0:
-			sounds.playSound("endmatch");
-			break;
-	}
-};
-const transitionTimerLoop = (time: number) => {
-	switch (time) {
-		case 6:
-			sounds.playSound("pickupcontrollers");
-			break;
-		case 3:
-			sounds.playSound("countdown");
-			break;
-		case 0:
-			sounds.playSound("teleopbegin");
-			setTimer(timer, 120, timerLoop);
-	}
-};
+const timer = new Timer(document.getElementById("timer")!);
 
 const cycleTimer = document.getElementById("cycle-timer")!;
 
@@ -141,19 +119,24 @@ const saveRun = (name: string) => {
 };
 
 const setState = (runState: RunState) => {
+	running = runState.running;
 	if (!runState.running) return;
 
-	// Set timer depending on stage of game
-	// (Will be changed after timer rework)
-	const time = runState.runTime;
-	if (time < 30) {
-		setTimer(timer, 150 - time, timerLoop);
-	} else if (time < 38) {
-		setTimer(timer, 38 - time, transitionTimerLoop);
-	} else if (time < 158) {
-		setTimer(timer, 158 - time, timerLoop);
-	} else {
-		setTimer(timer, 0);
+	const period = runState.matchPeriod;
+	const periodTime = runState.periodTime;
+	switch (period) {
+		case "AUTO":
+			setAutoTimer(30 - periodTime);
+			break;
+		case "TRANSITION":
+			setTransitionTimer(8 - periodTime);
+			break;
+		case "TELEOP":
+			setTeleopTimer(120 - periodTime);
+			break;
+		default:
+			timer.setTimer(0);
+			break;
 	}
 
 	setScore(score, runState.score);
@@ -162,9 +145,7 @@ const setState = (runState: RunState) => {
 		displayChange(changesElement, cycle.type, cycle.time, cycle.score);
 	});
 
-	const lastCycle = runState.cycles[runState.cycles.length - 1];
-	const lastCycleTime = lastCycle?.time ?? 0;
-	setupStopwatch(cycleTimer, time - lastCycleTime);
+	setupStopwatch(cycleTimer, runState.cycleTime);
 };
 
 const socket: ReconnectingWebSocket = createSocket();
@@ -182,11 +163,12 @@ socket.onmessage = (event) => {
 	handleMessage(jsonData);
 };
 socket.onclose = () => {
-	stopTimer();
+	timer.stopTimer();
 	stopStopwatch();
 };
 
 const handleMessage = (data: Message) => {
+	console.debug(data);
 	switch (data.event) {
 		case "setState":
 			if (data.name) {
@@ -203,17 +185,42 @@ const handleMessage = (data: Message) => {
 				setState(runState);
 			}
 			break;
-		case "start":
+		case "startAuto":
+			running = true;
+			setAutoTimer();
 			sounds.playSound("autobegin");
-			setTimer(timer, 150, timerLoop);
 			setScore(score, 0);
 			clearChanges(changesElement);
 			resetStopwatch(cycleTimer);
 			hideSavePrompt();
+			if (data.value) setTime(data.value);
+			break;
+		case "startTransition":
+			running = true;
+			setTransitionTimer();
+			sounds.playSound("autoend");
+			setScore(score, 0);
+			clearChanges(changesElement);
+			resetStopwatch(cycleTimer);
+			hideSavePrompt();
+			if (data.value) setTime(data.value);
+			break;
+		case "startTeleop":
+			if (!running) {
+				setTeleopTimer();
+				setScore(score, 0);
+				clearChanges(changesElement);
+				resetStopwatch(cycleTimer);
+				hideSavePrompt();
+			} /* else {
+				const difference = Date.now() - getRelativePeriodTimes();
+			}*/
+			sounds.playSound("teleopbegin");
+			if (data.value) setTime(data.value);
 			break;
 		case "abort":
 			sounds.playSound("abort");
-			stopTimer();
+			timer.stopTimer();
 			stopStopwatch();
 			break;
 		case "resetCycle":
@@ -231,7 +238,7 @@ const handleMessage = (data: Message) => {
 			}
 			break;
 		case "end":
-			stopTimer();
+			timer.stopTimer();
 			stopStopwatch();
 			showSavePrompt();
 			break;

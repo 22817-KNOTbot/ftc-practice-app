@@ -19,7 +19,7 @@ public class Data {
 
 		public static class RunOverview {
 			public String name;
-			public int timestamp;
+			public long timestamp;
 			public int score;
 			public String filename;
 
@@ -68,12 +68,12 @@ public class Data {
 
 	protected static class RunData {
 		public String name;
-		public Integer timestamp;
+		public Long timestamp;
 		public int score;
 		public Map<String, Integer> info;
 		public List<Cycle> cycles;
 
-		public RunData(String name, Integer timestamp, int score, Map<String, Integer> info, List<Cycle> cycles) {
+		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles) {
 			this.name = name;
 			this.timestamp = timestamp;
 			this.score = score;
@@ -130,19 +130,30 @@ public class Data {
 
 	protected static class RunState {
 		public boolean running;
-		public Float runTime;
+		public MatchPeriod matchPeriod;
+		public Float periodTime;
 		public Integer score;
 		public List<Cycle> cycles;
+		public float cycleTime;
+
+		public static enum MatchPeriod {
+			AUTO,
+			TRANSITION,
+			TELEOP,
+			NONE,
+		}
 
 		public RunState(boolean running) {
 			this.running = false;
 		}
 
-		public RunState(boolean running, Float runTime, Integer score, List<Cycle> cycles) {
+		public RunState(boolean running, MatchPeriod matchPeriod, Float periodTime, Integer score, List<Cycle> cycles, Float cycleTime) {
 			this.running = running;
-			this.runTime = runTime;
+			this.matchPeriod = matchPeriod;
+			this.periodTime = periodTime;
 			this.score = score;
 			this.cycles = cycles;
+			this.cycleTime = cycleTime;
 		}
 
 		protected static RunState toData(String json) {

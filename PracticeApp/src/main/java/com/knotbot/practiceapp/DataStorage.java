@@ -60,7 +60,7 @@ public class DataStorage {
 		if (runData.timestamp == null) {
 			saveRun(runData, "null");
 		} else {
-			saveRun(runData, Integer.toString(runData.timestamp));
+			saveRun(runData, Long.toString(runData.timestamp));
 		}
 	}
 

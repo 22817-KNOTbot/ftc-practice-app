@@ -13,10 +13,15 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	private static PracticeApp.WsHandler wsHandler;
 	protected static OpModeManagerImpl opModeManager;
 	public static boolean running = false;
-	public static ElapsedTime runTimer = new ElapsedTime();
-	public static ElapsedTime cycleTimer = new ElapsedTime();
+	private static boolean autoEnd = true;
+	protected static ElapsedTime runTimer = new ElapsedTime();
+	protected static ElapsedTime periodTimer = new ElapsedTime();
+	protected static double periodTimerOffset = 0;
+	protected static ElapsedTime cycleTimer = new ElapsedTime();
 	public static int score = 0;
 	public static Data.RunData runData;
+	protected static Data.RunState.MatchPeriod startingMatchPeriod = Data.RunState.MatchPeriod.NONE;
+	protected static Data.RunState.MatchPeriod matchPeriod = Data.RunState.MatchPeriod.NONE;
 
 	protected static void registerWsHandler(PracticeApp.WsHandler wsHandler) {
 		RobotEvent.wsHandler = wsHandler;
@@ -26,14 +31,55 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		RobotEvent.wsHandler = null;
 	}
 
-	public static void start() {
+	public static void start() { 
+		startAuto();
+	}
+
+	public static void startAuto() {
 		running = true;
+		startingMatchPeriod = Data.RunState.MatchPeriod.AUTO;
+		matchPeriod = Data.RunState.MatchPeriod.AUTO;
 		runTimer.reset();
+		periodTimer.reset();
+		periodTimerOffset = 0;
 		cycleTimer.reset();
 		score = 0;
 		runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
 		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("start"));
+			wsHandler.sendMessage(new PracticeApp.Message("startAuto", System.currentTimeMillis()));
+		}
+	}
+	
+	public static void startTransition() {
+		running = true;
+		startingMatchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+		matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+		runTimer.reset();
+		periodTimer.reset();
+		periodTimerOffset = 0;
+		cycleTimer.reset();
+		score = 0;
+		runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
+		if (wsHandler != null) {
+			wsHandler.sendMessage(new PracticeApp.Message("startTransition", System.currentTimeMillis()));
+		}
+	}
+
+	public static void startTeleop() {
+		boolean previouslyRunning = running;
+		running = true;
+		matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+		periodTimer.reset();
+		periodTimerOffset = 0;
+		if (!previouslyRunning) {
+			startingMatchPeriod = Data.RunState.MatchPeriod.TELEOP;
+			runTimer.reset();
+			cycleTimer.reset();
+			score = 0;
+			runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
+		}
+		if (wsHandler != null) {
+			wsHandler.sendMessage(new PracticeApp.Message("startTeleop", System.currentTimeMillis()));
 		}
 	}
 
@@ -89,6 +135,10 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		}
 	}
 
+	public static void setAutoEnd(boolean autoEnd) {
+		RobotEvent.autoEnd = autoEnd;
+	}
+
 	public static void runEnd() {
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("end"));
@@ -104,9 +154,9 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 
 	@Override
 	public void onOpModePostStop(OpMode opMode) {
-		if (running) {
+		if (running && autoEnd) {
 			runEnd();
+			running = false;
 		}
-		running = false;
 	}
 }

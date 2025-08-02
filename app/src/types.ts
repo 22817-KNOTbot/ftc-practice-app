@@ -10,9 +10,11 @@ export type RunState =
 	  }
 	| {
 			running: true;
-			runTime: number;
+			matchPeriod: "AUTO" | "TRANSITION" | "TELEOP" | "NONE";
+			periodTime: number;
 			score: number;
 			cycles: Cycle[];
+			cycleTime: number;
 	  };
 
 export type Data = {

@@ -183,7 +183,7 @@ public class PracticeApp {
 	public static class Message {
 		public String event;
 		public String name;
-		public Integer value;
+		public Long value;
 
 		public Message(String event) {
 			this.event = event;
@@ -195,11 +195,19 @@ public class PracticeApp {
 		}
 
 		public Message(String event, Integer value) {
+			this(event, (long) value);
+		}
+
+		public Message(String event, Long value) {
 			this.event = event;
 			this.value = value;
 		}
 
 		public Message(String event, String name, Integer value) {
+			this(event, name, (long) value);
+		}
+
+		public Message(String event, String name, Long value) {
 			this.event = event;
 			this.name = name;
 			this.value = value;
@@ -297,15 +305,36 @@ public class PracticeApp {
 			switch (message.event) {
 				case "getState":
 					Data.RunState runState;
+					float runTime = (float) RobotEvent.runTimer.time();
+
+					if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
+						if (runTime >= 30 && runTime < 38) {
+							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+							RobotEvent.periodTimerOffset = runTime - 30;
+							RobotEvent.periodTimer.reset();
+						} else if (runTime >= 38) {
+							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+							RobotEvent.periodTimerOffset = runTime - 38;
+							RobotEvent.periodTimer.reset();
+						}
+					} else if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
+						if (runTime >= 8) {
+							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+							RobotEvent.periodTimerOffset = runTime - 8;
+							RobotEvent.periodTimer.reset();
+						}
+					}
 
 					if (!RobotEvent.running || RobotEvent.runData == null) {
 						runState = new Data.RunState(false);
 					} else {
 						runState = new Data.RunState(
 							RobotEvent.running,
-							(float) RobotEvent.runTimer.time(),
+							RobotEvent.matchPeriod,
+							(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
 							RobotEvent.score,
-							RobotEvent.runData.cycles
+							RobotEvent.runData.cycles,
+							(float) RobotEvent.cycleTimer.time()
 						);
 					}
 
@@ -324,6 +353,10 @@ public class PracticeApp {
 					DataStorage.saveRun(RobotEvent.runData);
 					RobotEvent.runData = null;
 					break;
+				case "getTime":
+					final long time = System.currentTimeMillis();
+					Message timeMessage = new Message("setTime", time);
+					sendMessage(timeMessage);
 				default:
 					break;
 			}

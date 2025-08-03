@@ -1,49 +1,51 @@
 import { Data, RunData } from "../types";
 
 export async function getData(): Promise<Data> {
-	const response = await fetch(`/practice/data/main.json`, {
+	const request = fetch(`/practice/data/main.json`, {
 		headers: {
 			Accept: "application/json",
 		},
 	});
+
 	return new Promise<Data>((resolve, reject) => {
-		if (!response.ok) {
-			reject();
-		} else {
-			response.json().then((data) => {
-				let receivedData: Data;
-				try {
-					receivedData = data as Data;
-				} catch {
-					reject("Malformed data");
-					return;
+		request
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						`${response.status} ${response.statusText}`
+					);
 				}
-				resolve(receivedData);
+				response.json().then((data) => {
+					resolve(data);
+				});
+			})
+			.catch((error: Error) => {
+				reject(error.message);
 			});
-		}
 	});
 }
 
 export async function getRunData(run: string): Promise<RunData> {
-	const response = await fetch(`/practice/data/${run}`, {
+	const request = fetch(`/practice/data/${run}`, {
 		headers: {
 			Accept: "application/json",
 		},
 	});
+
 	return new Promise<RunData>((resolve, reject) => {
-		if (!response.ok) {
-			reject();
-		} else {
-			response.json().then((data) => {
-				let receivedData: RunData;
-				try {
-					receivedData = data as RunData;
-				} catch {
-					reject("Malformed data");
-					return;
+		request
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						`${response.status} ${response.statusText}`
+					);
 				}
-				resolve(receivedData);
+				response.json().then((data) => {
+					resolve(data);
+				});
+			})
+			.catch((error: Error) => {
+				reject(error.message);
 			});
-		}
 	});
 }

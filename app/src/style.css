@@ -217,6 +217,7 @@ nav>a {
 #modalContent {
 	height: 100%;
 	overflow-y: scroll;
+	scrollbar-width: thin;
 	border-top: 1px solid var(--text-colour);
 	box-shadow: inset 0px 5px 5px -5px hsl(0, 0%, 25%);
 	padding: 5%;
@@ -260,10 +261,20 @@ nav>a {
 	text-align: center;
 }
 
+#modalContent h2 {
+	margin-top: 5%;
+	&.firstModalHeader {
+		margin: 0;
+	}
+}
+
 #modalContent .modalContentSubtitle {
-	font-size: 1em;
+	font-size: 1.1em;
 	margin: 0;
-	margin-top: -5%;
+}
+
+#modalContent ul {
+	margin: 0;
 }
 
 #cycleTable {
@@ -271,9 +282,23 @@ nav>a {
 	flex-grow: 1;
 	flex-shrink: 100;
 	overflow-y: scroll;
-	border: 1px solid var(--text-colour)
+	border: 1px solid var(--text-colour);
+	margin: 2% 0;
+}
+
+#cycleTable th {
+	text-align: left;
+	text-decoration: underline;
 }
 
 #cycleTable th:nth-child(1) {
-	width: 50%;
+	width: 30%;
+}
+
+#modalContent samp {
+	margin: 5% 0;
+	padding: 5%;
+	display: block;
+	background-color: rgb(54, 54, 54);
+	border: var(--text-colour) solid 1px;
 }

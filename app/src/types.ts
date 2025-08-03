@@ -34,6 +34,7 @@ export type RunData = {
 		[key: string]: number;
 	};
 	cycles: Cycle[];
+	teleopTimes: number[];
 };
 
 export type Cycle = {

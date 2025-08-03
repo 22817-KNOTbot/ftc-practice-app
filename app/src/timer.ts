@@ -1,5 +1,4 @@
 import { Sounds } from "./sfx";
-import { getRelativeTime } from "./time";
 
 export class Timer {
 	private timer: HTMLElement;
@@ -7,7 +6,6 @@ export class Timer {
 	static #instance: Timer | undefined;
 	private loop = false;
 	private updateTimer: number = 0;
-	private lastRunTime = 0;
 	private interval = 1000;
 
 	constructor(newTimer: HTMLElement) {
@@ -20,7 +18,7 @@ export class Timer {
 	}
 
 	setTimer(time: number, loopHandler?: (time: number) => void) {
-		this.lastRunTime = this.startTime = Date.now();
+		this.startTime = Date.now();
 
 		const setCounter = (time: string) => {
 			if (this.timer == undefined) return;
@@ -46,8 +44,6 @@ export class Timer {
 					? startMs - currentMs
 					: this.interval + startMs - currentMs;
 			if (this.loop) timerLoop(Math.max(0, delay));
-
-			this.lastRunTime = Date.now();
 
 			if (loopHandler) {
 				loopHandler(remainingTime);
@@ -82,7 +78,7 @@ export function setupStopwatch(element: HTMLElement, time: number) {
 	clearInterval(updateStopwatch);
 	const startTime = Date.now();
 	const setCounter = (time: string) => {
-		element.innerHTML = time;
+		element.textContent = time;
 	};
 	updateStopwatch = setInterval(() => {
 		const currentTime =
@@ -117,17 +113,6 @@ export function registerSounds(newSounds: Sounds) {
 	FTC specific timer functions
 */
 
-// Store relative times based on estimated RC clock
-const relativePeriodTimes = {
-	AUTO: 0,
-	TRANSITION: 0,
-	TELEOP: 0,
-};
-
-export function getRelativePeriodTimes() {
-	return relativePeriodTimes;
-}
-
 const autoTimerLoop = (time: number) => {
 	if (time <= 120) {
 		sounds?.playSound("autoend");
@@ -136,12 +121,11 @@ const autoTimerLoop = (time: number) => {
 };
 
 export function setAutoTimer(startingTime?: number) {
-	startingTime ??= 30;
+	startingTime ??= 150;
 	const timerInstance = Timer.getInstance();
 	if (timerInstance) {
-		timerInstance.setTimer(120 + startingTime, autoTimerLoop);
+		timerInstance.setTimer(startingTime, autoTimerLoop);
 	}
-	relativePeriodTimes.AUTO = getRelativeTime();
 }
 
 const transitionTimerLoop = (time: number) => {
@@ -168,7 +152,6 @@ export function setTransitionTimer(startingTime?: number) {
 	if (timerInstance) {
 		timerInstance.setTimer(startingTime, transitionTimerLoop);
 	}
-	relativePeriodTimes.TRANSITION = getRelativeTime();
 }
 
 const teleopTimerLoop = (time: number) => {
@@ -191,5 +174,4 @@ export function setTeleopTimer(startingTime?: number) {
 	if (timerInstance) {
 		timerInstance.setTimer(startingTime, teleopTimerLoop);
 	}
-	relativePeriodTimes.TELEOP = getRelativeTime();
 }

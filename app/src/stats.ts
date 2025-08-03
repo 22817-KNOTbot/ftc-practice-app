@@ -194,6 +194,47 @@ function showRunData(data: RunData) {
 		tableData = row.appendChild(document.createElement("td"));
 		tableData.textContent = data.cycles[cycle].type;
 	}
+
+	if (
+		data.teleopTimes != undefined &&
+		data.teleopTimes.length > 0 &&
+		(data.teleopTimes[0] != null || data.teleopTimes[1] != null)
+	) {
+		const teleopTimesHeader = content
+			.appendChild(document.createElement("h2"))
+			.appendChild(document.createElement("u"));
+		teleopTimesHeader.textContent = "TeleOp Times";
+
+		const teleopTimesStart = content.appendChild(
+			document.createElement("div")
+		);
+		if (data.teleopTimes[0] != undefined) {
+			teleopTimesStart.textContent =
+				`TeleOp start: ${Math.abs(data.teleopTimes[0]) / 1e3}s ` +
+				`${
+					data.teleopTimes[0] == 0
+						? ""
+						: data.teleopTimes[0] > 0
+						? "late"
+						: "early"
+				}`;
+		}
+
+		const teleopTimesEnd = content.appendChild(
+			document.createElement("div")
+		);
+		if (data.teleopTimes[1] != undefined) {
+			teleopTimesEnd.textContent =
+				`TeleOp end: ${Math.abs(data.teleopTimes[1]) / 1e3}s ` +
+				`${
+					data.teleopTimes[1] == 0
+						? ""
+						: data.teleopTimes[1] > 0
+						? "late"
+						: "early"
+				}`;
+		}
+	}
 }
 
 window.addEventListener("click", (event) => {

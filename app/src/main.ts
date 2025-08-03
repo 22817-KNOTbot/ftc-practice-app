@@ -1,5 +1,11 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { clearChanges, displayChange, setScore } from "./score.ts";
+import {
+	clearChanges,
+	displayChange,
+	displayInfo,
+	displayInfoColor,
+	setScore,
+} from "./score.ts";
 import { Sounds } from "./sfx.ts";
 import { createSocket } from "./socket.ts";
 import "./style.css";
@@ -14,7 +20,6 @@ import {
 	Timer,
 } from "./timer.ts";
 import { Message, RunState } from "./types.ts";
-import { setTime } from "./time.ts";
 
 let running = false;
 
@@ -126,7 +131,7 @@ const setState = (runState: RunState) => {
 	const periodTime = runState.periodTime;
 	switch (period) {
 		case "AUTO":
-			setAutoTimer(30 - periodTime);
+			setAutoTimer(150 - periodTime);
 			break;
 		case "TRANSITION":
 			setTransitionTimer(8 - periodTime);
@@ -146,6 +151,13 @@ const setState = (runState: RunState) => {
 	});
 
 	setupStopwatch(cycleTimer, runState.cycleTime);
+};
+
+const resetRun = () => {
+	setScore(score, 0);
+	clearChanges(changesElement);
+	resetStopwatch(cycleTimer);
+	hideSavePrompt();
 };
 
 const socket: ReconnectingWebSocket = createSocket();
@@ -189,36 +201,37 @@ const handleMessage = (data: Message) => {
 			running = true;
 			setAutoTimer();
 			sounds.playSound("autobegin");
-			setScore(score, 0);
-			clearChanges(changesElement);
-			resetStopwatch(cycleTimer);
-			hideSavePrompt();
-			if (data.value) setTime(data.value);
+			resetRun();
 			break;
 		case "startTransition":
 			running = true;
 			setTransitionTimer();
 			sounds.playSound("autoend");
-			setScore(score, 0);
-			clearChanges(changesElement);
-			resetStopwatch(cycleTimer);
-			hideSavePrompt();
-			if (data.value) setTime(data.value);
+			resetRun();
 			break;
 		case "startTeleop":
 			if (!running) {
+				running = true;
 				setTeleopTimer();
-				setScore(score, 0);
-				clearChanges(changesElement);
-				resetStopwatch(cycleTimer);
-				hideSavePrompt();
-			} /* else {
-				const difference = Date.now() - getRelativePeriodTimes();
-			}*/
-			sounds.playSound("teleopbegin");
-			if (data.value) setTime(data.value);
+				sounds.playSound("teleopbegin");
+				resetRun();
+			}
+			if (data.value) {
+				data.value /= 1000;
+				const positive = data.value > 0;
+				displayInfoColor(
+					changesElement,
+					"TeleOp started: " +
+						(positive ? "+" : "-") +
+						Math.abs(data.value).toFixed(3),
+					positive ? "var(--success-color)" : "var(--failure-color)"
+				);
+			} else {
+				displayInfo(changesElement, "TeleOp started");
+			}
 			break;
 		case "abort":
+			running = false;
 			sounds.playSound("abort");
 			timer.stopTimer();
 			stopStopwatch();
@@ -238,9 +251,23 @@ const handleMessage = (data: Message) => {
 			}
 			break;
 		case "end":
+			running = false;
 			timer.stopTimer();
 			stopStopwatch();
 			showSavePrompt();
+			if (data.value) {
+				data.value /= 1000;
+				const positive = data.value > 0;
+				displayInfoColor(
+					changesElement,
+					"TeleOp ended: " +
+						(data.value > 0 ? "+" : "-") +
+						Math.abs(data.value).toFixed(3),
+					positive ? "var(--failure-color)" : "var(--success-color)"
+				);
+			} else {
+				displayInfo(changesElement, "Run ended");
+			}
 			break;
 		case "error":
 			if (data.name) {

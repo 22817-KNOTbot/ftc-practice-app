@@ -353,10 +353,6 @@ public class PracticeApp {
 					DataStorage.saveRun(RobotEvent.runData);
 					RobotEvent.runData = null;
 					break;
-				case "getTime":
-					final long time = System.currentTimeMillis();
-					Message timeMessage = new Message("setTime", time);
-					sendMessage(timeMessage);
 				default:
 					break;
 			}

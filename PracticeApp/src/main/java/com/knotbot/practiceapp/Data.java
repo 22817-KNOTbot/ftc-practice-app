@@ -6,6 +6,8 @@ import com.squareup.moshi.JsonDataException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,19 +74,25 @@ public class Data {
 		public int score;
 		public Map<String, Integer> info;
 		public List<Cycle> cycles;
+		public Integer[] teleopTimes;
 
-		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles) {
+		public RunData() {
+			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] {null, null});
+		}
+
+		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles, Integer[] teleopTimes) {
 			this.name = name;
 			this.timestamp = timestamp;
 			this.score = score;
 			this.info = info;
 			this.cycles = cycles;
+			this.teleopTimes = teleopTimes;
 		}
 
 		@Override
 		public String toString() {
 			return "RunData [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", info=" + info
-					+ ", cycles=" + cycles + "]";
+					+ ", cycles=" + cycles + ", teleopTimes=" + Arrays.toString(teleopTimes) + "]";
 		}
 
 		protected static RunData toData(String json) {
@@ -126,6 +134,39 @@ public class Data {
 		public String toString() {
 			return "Cycle [time=" + time + ", type=" + type + ", score=" + score + "]";
 		}
+	}
+
+	protected static class PeriodTime {
+		protected Long expectedStartTime;
+		protected Long realStartTime;
+		protected Long expectedEndTime;
+		protected Long realEndTime;
+
+		public Integer getStartDifference() {
+			if (expectedStartTime != null && realStartTime != null) {
+				return (int) (realStartTime - expectedStartTime);
+			} else {
+				return null;
+			}
+		}
+
+		public Integer getEndDifference() {
+			if (expectedEndTime != null && realEndTime != null) {
+				return (int) (realEndTime - expectedEndTime);
+			} else {
+				return null;
+			}
+		}
+
+		protected static String toJson(PeriodTime runState) {
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<PeriodTime> jsonAdapter = moshi.adapter(PeriodTime.class);
+
+			String json = jsonAdapter.toJson(runState);
+			// Log.v(TAG, json);
+			return json;
+		}
+
 	}
 
 	protected static class RunState {

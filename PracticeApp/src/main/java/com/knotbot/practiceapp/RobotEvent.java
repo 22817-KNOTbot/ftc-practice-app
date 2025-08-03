@@ -1,7 +1,6 @@
 package com.knotbot.practiceapp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,6 +21,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	public static Data.RunData runData;
 	protected static Data.RunState.MatchPeriod startingMatchPeriod = Data.RunState.MatchPeriod.NONE;
 	protected static Data.RunState.MatchPeriod matchPeriod = Data.RunState.MatchPeriod.NONE;
+	protected static Data.PeriodTime teleopTime = new Data.PeriodTime();
 
 	protected static void registerWsHandler(PracticeApp.WsHandler wsHandler) {
 		RobotEvent.wsHandler = wsHandler;
@@ -44,9 +44,12 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		periodTimerOffset = 0;
 		cycleTimer.reset();
 		score = 0;
-		runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
+		runData = new Data.RunData();
+		teleopTime = new Data.PeriodTime();
+		teleopTime.expectedStartTime = System.currentTimeMillis() + 38000;
+		teleopTime.expectedEndTime = System.currentTimeMillis() + 158000;
 		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("startAuto", System.currentTimeMillis()));
+			wsHandler.sendMessage(new PracticeApp.Message("startAuto"));
 		}
 	}
 	
@@ -59,9 +62,12 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		periodTimerOffset = 0;
 		cycleTimer.reset();
 		score = 0;
-		runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
+		runData = new Data.RunData();
+		teleopTime = new Data.PeriodTime();
+		teleopTime.expectedStartTime = System.currentTimeMillis() + 8000;
+		teleopTime.expectedEndTime = System.currentTimeMillis() + 128000;
 		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("startTransition", System.currentTimeMillis()));
+			wsHandler.sendMessage(new PracticeApp.Message("startTransition"));
 		}
 	}
 
@@ -76,10 +82,20 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			runTimer.reset();
 			cycleTimer.reset();
 			score = 0;
-			runData = new Data.RunData(null, null, 0, new HashMap<>(), new ArrayList<>());
+			runData = new Data.RunData();
+			teleopTime = new Data.PeriodTime();
+			teleopTime.expectedEndTime = System.currentTimeMillis() + 120000;
+		} else {
+			teleopTime.realStartTime = System.currentTimeMillis();
+			runData.teleopTimes[0] = teleopTime.getStartDifference();
 		}
+
 		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("startTeleop", System.currentTimeMillis()));
+			if (runData.teleopTimes[0] != null) {
+				wsHandler.sendMessage(new PracticeApp.Message("startTeleop", runData.teleopTimes[0]));
+			} else {
+				wsHandler.sendMessage(new PracticeApp.Message("startTeleop"));
+			}
 		}
 	}
 
@@ -140,9 +156,25 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	}
 
 	public static void runEnd() {
-		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("end"));
+		if (matchPeriod == Data.RunState.MatchPeriod.TELEOP) {
+			teleopTime.realEndTime = System.currentTimeMillis();
+			runData.teleopTimes[1] = teleopTime.getEndDifference();
+		} else {
+			runData.teleopTimes[1] = null;
 		}
+
+		if (wsHandler != null) {
+			if (runData.teleopTimes[1] != null) {
+				wsHandler.sendMessage(new PracticeApp.Message("end", runData.teleopTimes[1]));
+			} else {
+				wsHandler.sendMessage(new PracticeApp.Message("end"));
+			}
+		}
+
+		if (startingMatchPeriod == Data.RunState.MatchPeriod.TELEOP) {
+			runData.teleopTimes[0] = null;
+		}
+
 		DataStorage.tempSaveRun(runData, "unsaved");
 	}
 

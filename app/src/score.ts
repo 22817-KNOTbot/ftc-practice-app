@@ -34,14 +34,27 @@ export function displayChange(
 	score ??= currentScore - oldScore;
 	type ??= "Score";
 
-	const newChange = element.getElementsByClassName("change-3")[0]!
-		.children[0] as HTMLElement;
-
-	newChange.textContent = `
+	const info = `
 		${score >= 0 ? "+" : "-"}${Math.abs(score)} - 
 		${type}
 		${time == undefined ? "" : " - " + time.toFixed(3)}
 	`;
+
+	displayInfo(element, info);
+
+	oldScore = currentScore;
+	changes.push({ score: score, type: type, time: time ?? 0 });
+	if (changes.length > 2) {
+		changes.shift();
+	}
+}
+
+export function displayInfo(element: HTMLElement, info: string) {
+	const newChange = element.getElementsByClassName("change-3")[0]!
+		.children[0] as HTMLElement;
+
+	newChange.textContent = info;
+	newChange.style.color = "";
 
 	updateTextSize({
 		innerEl: newChange,
@@ -50,18 +63,32 @@ export function displayChange(
 	});
 
 	shiftChanges(element);
-
-	changes.push({ score: score, type: type, time: time ?? 0 });
-	if (changes.length > 2) {
-		changes.shift();
-	}
-
-	oldScore = currentScore;
 }
+
+export function displayInfoColor(
+	element: HTMLElement,
+	info: string,
+	color: string
+) {
+	const newChange = element.getElementsByClassName("change-3")[0]!
+		.children[0] as HTMLElement;
+
+	newChange.textContent = info;
+	newChange.style.color = color;
+
+	updateTextSize({
+		innerEl: newChange,
+		containerEl: newChange.parentElement!,
+		mode: "boxoneline",
+	});
+
+	shiftChanges(element);
+}
+
 export function clearChanges(element: HTMLElement) {
 	oldScore = 0;
 	changes.length = 0;
 	for (const child of element.children) {
-		child.textContent = "";
+		child.children[0].textContent = "";
 	}
 }

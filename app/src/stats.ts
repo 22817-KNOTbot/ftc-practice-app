@@ -7,10 +7,12 @@ import { updateTextSize } from "auto-text-size";
 
 let data: Data["data"];
 
-getData().then((d) => {
-	data = d.data;
-	generateChart(document.getElementById("chart")! as HTMLCanvasElement);
-});
+const showChart = () => {
+	getData().then((d) => {
+		data = d.data;
+		generateChart(document.getElementById("chart")! as HTMLCanvasElement);
+	});
+};
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <nav>
@@ -27,6 +29,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 	</div>
 </div>
 `;
+
+showChart();
 
 const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 	const chartData: { name: string; time: number; score: number }[] = [];
@@ -91,8 +95,11 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 			onClick: (_e, elements) => {
 				if (elements.length > 0) {
 					getRunData(data[elements[0].index].filename)
-						.then((data) => {
-							showRunData(data);
+						.then((runData) => {
+							showRunData(
+								runData,
+								data[elements[0].index].filename
+							);
 						})
 						.catch((reason) => {
 							showRunNotFound(
@@ -138,7 +145,8 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 	});
 };
 
-function showRunData(data: RunData) {
+function showRunData(data: RunData, filename?: string) {
+	filename ??= data.timestamp + ".json";
 	const modal = document.getElementById("runModal")!;
 	const titleContainer = document.getElementById("modalHeaderContainer")!;
 	const title = document.getElementById("modalHeader")!;
@@ -286,6 +294,35 @@ function showRunData(data: RunData) {
 				}`;
 		}
 	}
+	const downloadLink = content.appendChild(document.createElement("a"));
+	const downloadButton = downloadLink.appendChild(
+		document.createElement("button")
+	);
+	downloadLink.id = "downloadRun";
+	downloadLink.href = `/practice/data/${filename}`;
+	downloadLink.setAttribute("download", "");
+	downloadButton.textContent = "Download";
+
+	const deleteButton = content.appendChild(document.createElement("button"));
+	deleteButton.id = "deleteRun";
+	deleteButton.textContent = "Delete";
+	deleteButton.addEventListener("click", () => {
+		fetch("/practice/data/delete", {
+			headers: {
+				filename: filename,
+			},
+			method: "POST",
+		})
+			.then(() => {
+				modal.classList.remove("shownModal");
+				new Promise((resolve) => {
+					setTimeout(resolve, 200);
+				}).then(() => document.location.reload());
+			})
+			.catch((err: Error) => {
+				showRunNotFound(filename, err.message);
+			});
+	});
 }
 
 function showRunNotFound(filename: string, reason?: string) {

@@ -4,12 +4,15 @@
 	font-weight: 400;
 
 	color-scheme: light dark;
-	--text-colour: hsl(0, 0%, 90%);
-	--bg-colour: hsl(0, 0%, 8%);
-	--secondary-bg-colour: hsl(0, 0%, 10%);
-	color: var(--text-colour);
-	background-color: var(--bg-colour);
+	--text-color: hsl(0, 0%, 90%);
+	--bg-color: hsl(0, 0%, 8%);
+	--secondary-bg-color: hsl(0, 0%, 10%);
+	color: var(--text-color);
+	background-color: var(--bg-color);
 
+	--accent-color: hsl(0, 0%, 25%);
+	--accent-hover-color: hsl(0, 0%, 35%);
+	
 	--success-color: oklch(0.71 0.28 146.51);
 	--failure-color: oklch(0.64 0.27 26.67);
 
@@ -46,21 +49,26 @@ nav {
 
 nav>a {
 	display: block;
-	background: var(--secondary-bg-colour);
+	background: var(--secondary-bg-color);
 	flex-grow: 1;
 	height: 100%;
 	text-align: center;
 	align-content: center;
-	color: var(--text-colour);
+	color: var(--text-color);
 	text-decoration: none;
 	font-size: 5vh;
 
 	&:nth-child(1) {
-		border-right: 1px solid var(--text-colour);
+		border-right: 1px solid var(--text-color);
 	}
 	&:nth-child(2) {
-		border-left: 1px solid var(--text-colour);
+		border-left: 1px solid var(--text-color);
 	}
+}
+
+button {
+	cursor: pointer;
+	font-family: inherit;
 }
 
 #timer-section {
@@ -72,7 +80,7 @@ nav>a {
 
 #timer {
 	font-size: 50vh;
-	background-color: var(--text-colour);
+	background-color: var(--text-color);
 	color: black;
 	width: 70%;
 	height: 70%;
@@ -85,14 +93,14 @@ nav>a {
 	display: flex;
 	align-items: center;
 	justify-content: space-evenly;
-	border-top: var(--text-colour) 1px solid;
+	border-top: var(--text-color) 1px solid;
 }
 
 #bottom-section>* {
 	width: 100%;
 	height: 100%;
 	position: relative;
-	background-color: var(--secondary-bg-colour);
+	background-color: var(--secondary-bg-color);
 	display: grid;
 	place-items: center;
 	font-size: 3em;
@@ -143,7 +151,7 @@ nav>a {
 #score {
 	width: 100%;
 	height: 100%;
-	background-color: var(--text-colour);
+	background-color: var(--text-color);
 	color: black;
 	display: grid;
 	place-items: center;
@@ -169,13 +177,13 @@ nav>a {
 	gap: 2%;
 	opacity: 0;
 
-	background: linear-gradient(135deg, hsl(0, 0%, 13%) 0%, var(--secondary-bg-colour) 30%);
+	background: linear-gradient(135deg, hsl(0, 0%, 13%) 0%, var(--secondary-bg-color) 30%);
 
 	box-sizing: border-box;
 	width: 30vw;
 	padding: 3%;
 
-	border: 1px solid var(--text-colour);
+	border: 1px solid var(--text-color);
 	border-radius: 3vmin;
 	box-shadow: 5px 5px 5px hsl(0, 0%, 5%);
 	overflow-x: hidden;
@@ -218,7 +226,7 @@ nav>a {
 	height: 100%;
 	overflow-y: scroll;
 	scrollbar-width: thin;
-	border-top: 1px solid var(--text-colour);
+	border-top: 1px solid var(--text-color);
 	box-shadow: inset 0px 5px 5px -5px hsl(0, 0%, 25%);
 	padding: 5%;
 }
@@ -282,7 +290,7 @@ nav>a {
 	flex-grow: 1;
 	flex-shrink: 100;
 	overflow-y: scroll;
-	border: 1px solid var(--text-colour);
+	border: 1px solid var(--text-color);
 	margin: 2% 0;
 }
 
@@ -300,5 +308,28 @@ nav>a {
 	padding: 5%;
 	display: block;
 	background-color: rgb(54, 54, 54);
-	border: var(--text-colour) solid 1px;
+	border: var(--text-color) solid 1px;
+}
+
+#modalContent #downloadRun,
+#modalContent #deleteRun {
+	margin-top: 2%;
+	display: block;
+}
+
+#modalContent #downloadRun {
+	margin-top: 5%;
+}
+
+#modalContent #downloadRun>button,
+#modalContent #deleteRun {
+	width: 100%;
+	height: 1.5lh;
+	font-size: 1rem;
+	border: solid 2px;
+	border-radius: 100vmax;
+	background-color: var(--accent-color);
+	&:hover {
+		background-color: var(--accent-hover-color);
+	}
 }

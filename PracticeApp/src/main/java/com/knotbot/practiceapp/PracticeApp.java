@@ -29,13 +29,19 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class PracticeApp {
 	private static final String TAG = "PracticeApp";
 	private static final String WEB_PATH = "/practice";
+	private static final Set<String> DISALLOWED_DELETE_FILES = new HashSet<>(Arrays.asList(
+		"main.json",
+		"unsaved.json"
+	));
 
 	protected static PracticeApp instance;
 	private static WebHandlerManager manager;
@@ -79,6 +85,7 @@ public class PracticeApp {
 			instance.attachWebHandler(manager);
 			instance.attachAssetWebHandlers(manager, "practice/assets");
 			instance.attachDataWebHandlers(manager);
+			instance.attachDeleteHandler(manager);
 		}
 	}
 
@@ -143,15 +150,19 @@ public class PracticeApp {
 		}
 	}
 
+	private void attachDeleteHandler(WebHandlerManager manager) {
+		manager.register(WEB_PATH + "/data/delete", createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
+	}
+
 	private WebHandler createWebHandler(String file) {
-		Log.d(TAG, "Created WebHandler \"" + file + "\"");
+		Log.v(TAG, "Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
 			@Override
 			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
 				if (session.getMethod() == NanoHTTPD.Method.GET) {
 					AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
 					String mimeType = MimeTypesUtil.determineMimeType(file);
-					Log.d(TAG, "WebHandler returned file \"" + file + "\"");
+					Log.v(TAG, "WebHandler returned file \"" + file + "\"");
 					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, assetManager.open(file));
 				} else {
 					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
@@ -161,16 +172,59 @@ public class PracticeApp {
 	}
 	
 	private WebHandler createDataWebHandler(String file) {
-		Log.d(TAG, "Created WebHandler \"" + file + "\"");
+		Log.v(TAG, "Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
 			@Override
 			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
 				if (session.getMethod() == NanoHTTPD.Method.GET) {
 					String mimeType = MimeTypesUtil.determineMimeType(file);
-					Log.d(TAG, "WebHandler returned file \"" + file + "\"");
-					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, new FileInputStream(file));
+					Log.v(TAG, "WebHandler returned file \"" + file + "\"");
+					if (new File(file).exists()) {
+						return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, new FileInputStream(file));
+					} else {
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+					}
 				} else {
 					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+				}
+			}
+		};
+	}
+
+	private WebHandler createDeleteHandler(File path) {
+		Log.v(TAG, "Created web delete handler for path \"" + path.getAbsolutePath() + "\"");
+		return new WebHandler() {
+			@Override
+			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
+				Log.v(TAG, "Received request at delete endpoint");
+				if (session.getMethod() == NanoHTTPD.Method.POST) {
+					Log.v(TAG, "Headers: " + session.getHeaders().toString());
+					String referer = session.getHeaders().getOrDefault("referer", "").trim();
+					String filename = session.getHeaders().get("filename");
+					File file = new File(path, filename);
+					if (!referer.equals("http://192.168.43.1:8080/practice/stats")) {
+						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to incorrect referer: \"" + referer + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else if (!file.exists()) {
+						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to file not existing");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else if (PracticeApp.DISALLOWED_DELETE_FILES.contains(file.getName())) {
+						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to this file being disallowed to delete");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else {
+						Log.d(TAG, "Delete handler is deleting file \"" + filename + "\"");
+						boolean deleteSuccess = file.delete();
+						Log.d(TAG, "Delete handler " + (deleteSuccess ? "successfully deleted" : "failed to delete ") + " file");
+						if (deleteSuccess) {
+							DataStorage.removeRunFromMain(file.getName());
+							return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_PLAINTEXT, "");
+						} else {
+							return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "");
+						}
+						
+					}
+				} else {
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "");
 				}
 			}
 		};
@@ -287,7 +341,7 @@ public class PracticeApp {
 		}
 
 		public void onMessage(String json) {
-			Log.d(TAG, "Received WS message \"" + json + "\"");
+			Log.v(TAG, "Received WS message \"" + json + "\"");
 			Moshi moshi = new Moshi.Builder().build();
 			JsonAdapter<Message> jsonAdapter = moshi.adapter(Message.class);
 

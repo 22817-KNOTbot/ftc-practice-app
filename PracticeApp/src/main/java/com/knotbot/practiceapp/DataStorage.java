@@ -79,7 +79,7 @@ public class DataStorage {
 	}
 
 	protected static void addRunToMain(Data.RunData runData, String fileName) {
-		Log.v(TAG, "Started adding run to main");
+		Log.v(TAG, "Started adding run to main: " + fileName);
 		File path = new File(AppUtil.ROOT_FOLDER, "Practice/Data");
 		File file = new File(path, "main.json");
 
@@ -108,6 +108,42 @@ public class DataStorage {
 		data.data.add(newOverview);
 
 		String newText = Data.MainData.toJson(data);
+
+		writeString(file.getName().replaceFirst("[.][^.]+$", ""), newText);
+	}
+
+	protected static void removeRunFromMain(String fileName) {
+		Log.v(TAG, "Started removing run from main: " + fileName);
+		File path = new File(AppUtil.ROOT_FOLDER, "Practice/Data");
+		File file = new File(path, "main.json");
+
+		if (!path.exists() || !file.exists() || !file.isFile()) {
+			try {
+				Log.d(TAG, "main.json file does not exist, creating file");
+				path.mkdirs();
+				boolean newFile = file.createNewFile();
+				Log.d(TAG, "Successfully created main.json with value " + newFile);
+			} catch (IOException err) {
+				Log.e(TAG, "Error writing to file \"" + file.getAbsolutePath() + "\"", err);
+			}
+		}
+
+		final String existingText = readString(file);
+		Data.MainData mainData = Data.MainData.toData(existingText);
+
+		if (mainData.data == null) {
+			mainData.data = new ArrayList<Data.MainData.RunOverview>();
+		}
+
+		for (Data.MainData.RunOverview overview : mainData.data) {
+			if (overview.filename.equals(fileName)) {
+				Log.v(TAG, "Removing main data for run: " + overview.toString());
+				mainData.data.remove(overview);
+				break;
+			}
+		}
+
+		String newText = Data.MainData.toJson(mainData);
 
 		writeString(file.getName().replaceFirst("[.][^.]+$", ""), newText);
 	}

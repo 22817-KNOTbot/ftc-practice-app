@@ -164,10 +164,11 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		}
 
 		if (wsHandler != null) {
+			String json = Data.RunData.toJson(runData);
 			if (runData.teleopTimes[1] != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("end", runData.teleopTimes[1]));
+				wsHandler.sendMessage(new PracticeApp.Message("end", json, runData.teleopTimes[1]));
 			} else {
-				wsHandler.sendMessage(new PracticeApp.Message("end"));
+				wsHandler.sendMessage(new PracticeApp.Message("end", json));
 			}
 		}
 

@@ -191,11 +191,7 @@ button {
 	transition: transform 250ms, opacity 250ms, filter 250ms;
 }
 
-.modal#saveModal {
-	height: 50vh;
-}
-
-.modal#runModal {
+.modal#saveModal, .modal#runModal {
 	height: 80vh;
 }
 
@@ -231,12 +227,8 @@ button {
 	padding: 5%;
 }
 
-#saveModal>#modalContent {
-	overflow-y: hidden;
-}
-
-#modalContent>form {
-	height: 100%;
+#saveModal>#modalContent>form {
+	height: 50%;
 	overflow: hidden;
 }
 

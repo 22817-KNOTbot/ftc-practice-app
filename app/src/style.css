@@ -12,7 +12,7 @@
 
 	--accent-color: hsl(0, 0%, 25%);
 	--accent-hover-color: hsl(0, 0%, 35%);
-	
+
 	--success-color: oklch(0.71 0.28 146.51);
 	--failure-color: oklch(0.64 0.27 26.67);
 
@@ -61,6 +61,7 @@ nav>a {
 	&:nth-child(1) {
 		border-right: 1px solid var(--text-color);
 	}
+
 	&:nth-child(2) {
 		border-left: 1px solid var(--text-color);
 	}
@@ -112,8 +113,8 @@ button {
 }
 
 #changes-box .change {
-    width: 100%;
-    height: 7.5vh;
+	width: 100%;
+	height: 7.5vh;
 	position: absolute;
 	font-size: 5vh;
 }
@@ -130,14 +131,17 @@ button {
 		top: -50%;
 		transition: top 0.5s;
 	}
+
 	&.change-1 {
 		top: 0;
 		transition: top 0.5s;
 	}
+
 	&.change-2 {
 		top: 50%;
 		transition: top 0.5s;
 	}
+
 	&.change-3 {
 		top: 100%;
 		transition: none;
@@ -191,7 +195,8 @@ button {
 	transition: transform 250ms, opacity 250ms, filter 250ms;
 }
 
-.modal#saveModal, .modal#runModal {
+.modal#saveModal,
+.modal#runModal {
 	height: 80vh;
 }
 
@@ -240,7 +245,8 @@ button {
 	text-align: center;
 }
 
-#runNameInput, #runNameSubmit {
+#runNameInput,
+#runNameSubmit {
 	box-sizing: border-box;
 	width: 100%;
 	height: 20%;
@@ -263,6 +269,7 @@ button {
 
 #modalContent h2 {
 	margin-top: 5%;
+
 	&.firstModalHeader {
 		margin: 0;
 	}
@@ -321,7 +328,52 @@ button {
 	border: solid 2px;
 	border-radius: 100vmax;
 	background-color: var(--accent-color);
+
 	&:hover {
 		background-color: var(--accent-hover-color);
+	}
+}
+
+#loading-spinner {
+	position: absolute;
+	place-self: center;
+	visibility: hidden;
+	opacity: 0;
+}
+
+#loading-spinner.shownSpinner {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 250ms;
+}
+
+.loading-container {
+	--loading-size: 5vw;
+	--loading-color: white;
+	--loading-speed: .8s;
+	--loading-bg-opacity: 0.1;
+	height: var(--loading-size);
+	width: var(--loading-size);
+}
+
+#loading-spinner.shownSpinner .loading-container {
+	animation: rotate var(--loading-speed) linear infinite;
+}
+
+.loading-car {
+	stroke: var(--loading-color);
+	stroke-dasharray: 25, 75;
+	stroke-dashoffset: 25;
+	stroke-linecap: round;
+}
+
+.loading-track {
+	stroke: var(--loading-color);
+	opacity: var(--loading-bg-opacity);
+}
+
+@keyframes rotate {
+	100% {
+		transform: rotate(360deg);
 	}
 }

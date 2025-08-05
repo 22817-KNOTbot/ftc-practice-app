@@ -4,6 +4,11 @@ import { getData, getRunData } from "./stats/data";
 import "./style.css";
 import { Data, RunData } from "./types";
 import { updateTextSize } from "auto-text-size";
+import {
+	hideLoadingIndicator,
+	prepareSpinner,
+	showLoadingIndicator,
+} from "./loading";
 
 let data: Data["data"];
 
@@ -28,6 +33,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 		Modal content
 	</div>
 </div>
+<div id="loading-spinner"></div>
 `;
 
 showChart();
@@ -94,6 +100,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 			},
 			onClick: (_e, elements) => {
 				if (elements.length > 0) {
+					showLoadingIndicator();
 					getRunData(data[elements[0].index].filename)
 						.then((runData) => {
 							showRunData(
@@ -106,6 +113,9 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 								data[elements[0].index].filename,
 								reason
 							);
+						})
+						.finally(() => {
+							hideLoadingIndicator();
 						});
 				}
 			},
@@ -303,6 +313,14 @@ function showRunData(data: RunData, filename?: string) {
 	downloadLink.setAttribute("download", "");
 	downloadButton.textContent = "Download";
 
+	downloadLink.addEventListener("click", (e) => {
+		if (e.target) {
+			// No good way of detecting when downloaded, only option
+			// is to say downloading
+			(e.target as HTMLElement).textContent = "Downloading";
+		}
+	});
+
 	const deleteButton = content.appendChild(document.createElement("button"));
 	deleteButton.id = "deleteRun";
 	deleteButton.textContent = "Delete";
@@ -315,6 +333,8 @@ function showRunData(data: RunData, filename?: string) {
 		})
 			.then(() => {
 				modal.classList.remove("shownModal");
+				// Some browsers can't load the page right after deleting
+				// the file for an unknown reason. Hard coded delay fixes it
 				new Promise((resolve) => {
 					setTimeout(resolve, 200);
 				}).then(() => document.location.reload());
@@ -384,4 +404,9 @@ window.addEventListener("click", (event) => {
 	if (!modal.contains(event.target as HTMLElement)) {
 		modal.classList.remove("shownModal");
 	}
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+	const spinner = document.getElementById("loading-spinner");
+	if (spinner) prepareSpinner(spinner);
 });

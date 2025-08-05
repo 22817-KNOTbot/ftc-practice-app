@@ -30,7 +30,9 @@ public class DataStorage {
 				stream.close();
 				Log.i(TAG, "Successfully wrote to file \"" + file.getAbsolutePath() + "\"");
 				if (PracticeApp.instance != null) {
-					PracticeApp.instance.attachDataWebHandler(file);
+					if (!name.equals("main")) {
+						PracticeApp.instance.attachDataWebHandler(file);
+					}
 				}
 			} catch (IOException err) {
 				Log.e(TAG, "Error writing to file \"" + file.getAbsolutePath() + "\"", err);

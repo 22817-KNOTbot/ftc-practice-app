@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -148,5 +149,51 @@ public class DataStorage {
 		String newText = Data.MainData.toJson(mainData);
 
 		writeString(file.getName().replaceFirst("[.][^.]+$", ""), newText);
+	}
+
+	protected static void refreshMain() {
+		Log.v(TAG, "Started refreshing main file");
+		File path = new File(AppUtil.ROOT_FOLDER, "Practice/Data");
+		File mainFile = new File(path, "main.json");
+
+		if (!path.exists() || !mainFile.exists() || !mainFile.isFile()) {
+			try {
+				Log.d(TAG, "main.json file does not exist, creating file");
+				path.mkdirs();
+				boolean newFile = mainFile.createNewFile();
+				Log.d(TAG, "Successfully created main.json with value " + newFile);
+			} catch (IOException err) {
+				Log.e(TAG, "Error writing to file \"" + mainFile.getAbsolutePath() + "\"", err);
+			}
+		}
+
+		Data.MainData data = new Data.MainData();
+		data.data = new ArrayList<Data.MainData.RunOverview>();
+		
+		File[] files = path.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				if (name.equals("main.json") || name.equals("unsaved.json")) {
+					return false;
+				}
+				return true;
+			};
+		});
+
+		for (File file : files) {
+			Data.RunData runData = Data.RunData.toData(readString(file));
+
+			Data.MainData.RunOverview newOverview = new Data.MainData.RunOverview();
+			newOverview.name = runData.name;
+			newOverview.timestamp = runData.timestamp;
+			newOverview.score = runData.score;
+			newOverview.filename = file.getName();
+
+			data.data.add(newOverview);
+		}
+
+		String text = Data.MainData.toJson(data);
+
+		writeString(mainFile.getName().replaceFirst("[.][^.]+$", ""), text);
 	}
 }

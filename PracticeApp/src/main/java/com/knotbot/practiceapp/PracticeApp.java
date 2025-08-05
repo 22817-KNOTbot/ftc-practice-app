@@ -59,6 +59,7 @@ public class PracticeApp {
 		if (instance == null) instance = new PracticeApp();
 		if (RobotEvent.instance == null) RobotEvent.instance = new RobotEvent();
 		Log.i(TAG, "STARTED");
+		DataStorage.refreshMain();
 	}
 
 	@OnCreateEventLoop
@@ -198,7 +199,6 @@ public class PracticeApp {
 			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
 				Log.v(TAG, "Received request at delete endpoint");
 				if (session.getMethod() == NanoHTTPD.Method.POST) {
-					Log.v(TAG, "Headers: " + session.getHeaders().toString());
 					String referer = session.getHeaders().getOrDefault("referer", "").trim();
 					String filename = session.getHeaders().get("filename");
 					File file = new File(path, filename);

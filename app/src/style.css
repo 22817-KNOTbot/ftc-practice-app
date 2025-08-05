@@ -168,7 +168,13 @@ button {
 }
 
 #chart-div {
-	width: 80vw;
+	display: grid;
+	place-content: center;
+	width: 100vw;
+	height: 90vh;
+	padding: 2vh 2vw;
+	box-sizing: border-box;
+	place-self: center;
 }
 
 .modal {

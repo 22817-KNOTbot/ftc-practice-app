@@ -1,4 +1,12 @@
-import Chart from "chart.js/auto";
+import {
+	Chart,
+	LineController,
+	LineElement,
+	PointElement,
+	TimeSeriesScale,
+	LinearScale,
+	Tooltip,
+} from "chart.js";
 import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
 import "./style.css";
@@ -37,6 +45,26 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 showChart();
+
+Chart.register(
+	LineController,
+	LineElement,
+	PointElement,
+	TimeSeriesScale,
+	LinearScale,
+	Tooltip
+);
+
+const textColor = window
+	.getComputedStyle(document.body)
+	.getPropertyValue("--text-color");
+
+const fontFamily = window
+	.getComputedStyle(document.body)
+	.getPropertyValue("font-family");
+
+Chart.defaults.color = textColor;
+Chart.defaults.font.family = fontFamily;
 
 const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 	const chartData: { name: string; time: number; score: number }[] = [];
@@ -78,7 +106,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 
 							return text;
 						},
-						afterTitle: (context) => {
+						beforeBody: (context) => {
 							let text = "";
 							if (context[0] != null) {
 								const timestamp =
@@ -96,8 +124,95 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 							return text;
 						},
 					},
+					titleFont: {
+						size: 15,
+					},
+					bodyFont: {
+						size: 13,
+					},
+					animations: {
+						x: {
+							duration: 0,
+						},
+						y: {
+							duration: 0,
+						},
+						width: {
+							duration: 0,
+						},
+						height: {
+							duration: 0,
+						},
+					},
 				},
 			},
+			elements: {
+				point: {
+					radius: 5,
+					backgroundColor: "#fff",
+					borderColor: "#4bbfff",
+					borderWidth: 2,
+					hitRadius: 5,
+				},
+				line: {
+					borderColor: "#5feddd",
+				},
+			},
+			scales: {
+				x: {
+					type: "timeseries",
+					time: {
+						minUnit: "day",
+					},
+					ticks: {
+						font: {
+							size: 13,
+						},
+					},
+					title: {
+						display: true,
+						align: "center",
+						text: "Time",
+						font: {
+							size: 15,
+						},
+					},
+					grid: {
+						color: (context) => {
+							if (context.index == 0) {
+								return textColor;
+							}
+							return "";
+						},
+					},
+				},
+				y: {
+					beginAtZero: true,
+					ticks: {
+						precision: 0,
+						font: {
+							size: 13,
+						},
+					},
+					title: {
+						display: true,
+						align: "center",
+						text: "Points",
+						font: {
+							size: 15,
+						},
+					},
+					grid: {
+						color: (context) => {
+							if (context.index == 0) {
+								return textColor;
+							}
+							return "#444";
+						},
+					},
+				},
+			},
+			maintainAspectRatio: false,
 			onClick: (_e, elements) => {
 				if (elements.length > 0) {
 					showLoadingIndicator();
@@ -124,32 +239,6 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 					(event.native.target as HTMLElement).style.cursor =
 						elements[0] ? "pointer" : "default";
 				}
-			},
-			elements: {
-				point: {
-					radius: 5,
-					backgroundColor: "#FFF",
-					borderColor: "#4bbfff",
-					borderWidth: 2,
-					hitRadius: 5,
-				},
-				line: {
-					borderColor: "#5feddd",
-				},
-			},
-			scales: {
-				x: {
-					type: "timeseries",
-					time: {
-						minUnit: "day",
-					},
-				},
-				y: {
-					beginAtZero: true,
-					ticks: {
-						precision: 0,
-					},
-				},
 			},
 		},
 	});

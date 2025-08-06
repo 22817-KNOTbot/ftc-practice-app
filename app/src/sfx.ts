@@ -1,12 +1,12 @@
-import abort from "./assets/sfx/abort.wav";
-import autobegin from "./assets/sfx/autobegin.wav";
-import autoend from "./assets/sfx/autoend.wav";
-import countdown from "./assets/sfx/countdown.wav";
-import endgame from "./assets/sfx/endgame.wav";
-import endmatch from "./assets/sfx/endmatch.wav";
-import teleopbegin from "./assets/sfx/teleopbegin.wav";
-import pickupcontrollers from "./assets/sfx/pickupcontrollers.wav";
-import results from "./assets/sfx/results.wav";
+import abort from "./assets/sfx/abort.mp3";
+import autobegin from "./assets/sfx/autobegin.mp3";
+import autoend from "./assets/sfx/autoend.mp3";
+import countdown from "./assets/sfx/countdown.mp3";
+import endgame from "./assets/sfx/endgame.mp3";
+import endmatch from "./assets/sfx/endmatch.mp3";
+import teleopbegin from "./assets/sfx/teleopbegin.mp3";
+import pickupcontrollers from "./assets/sfx/pickupcontrollers.mp3";
+import results from "./assets/sfx/results.mp3";
 
 interface Audios {
 	[details: string]: HTMLAudioElement;

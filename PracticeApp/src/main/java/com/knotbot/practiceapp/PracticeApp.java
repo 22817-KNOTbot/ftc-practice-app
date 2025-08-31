@@ -42,6 +42,7 @@ public class PracticeApp {
 		"main.json",
 		"unsaved.json"
 	));
+	private static final int WS_PORT = 8081;
 
 	protected static PracticeApp instance;
 	private static WebHandlerManager manager;
@@ -421,7 +422,7 @@ public class PracticeApp {
 		}
 	}
 
-	private NanoWSD wsServer = new NanoWSD(8001) {
+	private NanoWSD wsServer = new NanoWSD(WS_PORT) {
 		@Override
 		protected NanoWSD.WebSocket openWebSocket(NanoHTTPD.IHTTPSession handshake) {
 			return new Socket(handshake);

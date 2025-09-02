@@ -376,8 +376,8 @@ const handleMessage = (data: Message) => {
 			displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
 			break;
 		case "setScore":
-			if (data.value) {
-				setScore(score, data.value);
+			if (Object.prototype.hasOwnProperty.call(data, "value")) {
+				setScore(score, data.value!);
 			}
 			break;
 		case "playSound":

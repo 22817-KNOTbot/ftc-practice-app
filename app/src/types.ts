@@ -42,3 +42,15 @@ export type Cycle = {
 	type: string;
 	score: number;
 };
+
+export type Layout = {
+	name: string;
+	imagePath: string;
+	layoutData: LayoutData;
+};
+
+export type LayoutData = {
+	stylePath: string;
+	timerHtml: string;
+	statsHtml: string;
+};

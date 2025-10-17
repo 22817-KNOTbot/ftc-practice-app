@@ -17,6 +17,7 @@ import {
 	prepareSpinner,
 	showLoadingIndicator,
 } from "./loading";
+import { getLayout } from "./layouts";
 
 let data: Data["data"];
 
@@ -27,22 +28,11 @@ const showChart = () => {
 	});
 };
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-<nav>
-	<a href="/practice">Timer</a>
-	<a href="/practice/stats">Stats</a>
-</nav>
-<div id="chart-div">
-	<canvas id="chart"></canvas>
-</div>
-<div id="runModal" class="modal">
-	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>
-	<div id="modalContent">
-		Modal content
-	</div>
-</div>
-<div id="loading-spinner"></div>
-`;
+const layout = getLayout("Classic");
+const layoutData = layout.layoutData;
+document.querySelector<HTMLDivElement>("#app")!.innerHTML =
+	`<link rel="stylesheet" href="${layoutData.stylePath}">` +
+	layoutData.statsHtml;
 
 showChart();
 

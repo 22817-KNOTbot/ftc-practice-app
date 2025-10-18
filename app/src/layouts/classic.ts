@@ -6,6 +6,7 @@ const nav = `
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
 	<a href="/practice/settings">Settings</a>
+	<a href="/practice/about">About</a>
 </nav>
 `;
 
@@ -114,7 +115,35 @@ ${nav}
 	</div>
 </div>
 `,
-			about: ``,
+			about: `
+${nav}
+<div id="about-container">
+	<h1 id="about-header">About</h1>
+	<p class="text-center">
+		FTC Practice App by 22817 KNOTbot is a web app created to improve your driving performance in practice of the
+		FIRST<sup>®</sup> Tech Challenge’s yearly competitions
+	</p>
+	<p class="text-center">Please read the <a href="https://github.com/22817-KNOTbot/ftc-practice-app" target="_blank">Github page</a> for instructions</p>
+	<p>Key features</p>
+	<ul>
+		<li>Easy to use interface</li>
+		<li>Automatically keep track of points</li>
+		<li>Record cycle times with millisecond precision</li>
+		<li>View past run data to track progress</li>
+	</ul>
+	<p>Extra features</p>
+	<ul>
+		<li>Label runs with custom identifiable names</li>
+		<li>View advanced statistics including mean cycle time and scoring rate</li>
+		<li>Play real FTC match sounds</li>
+		<li>Show a warning when starting early or ending matches late</li>
+		<li>Synchronize with multiple devices</li>
+	</ul>
+	<p class="text-center">FTC Practice App is open source and licensed under the <a
+			href="https://github.com/22817-KNOTbot/ftc-practice-app/blob/main/LICENSE" target="_blank">MIT License</a>.
+	</p>
+</div>
+`,
 		},
 	};
 }

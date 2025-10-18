@@ -84,7 +84,11 @@ for (const input of timerSettingsInputs) {
 	input.addEventListener("focusout", (e) => {
 		const targetElement = e.target as HTMLInputElement;
 		const valueNumber = targetElement.valueAsNumber;
-		if (isNaN(valueNumber)) {
+		if (
+			isNaN(valueNumber) ||
+			valueNumber < 0 ||
+			!Number.isInteger(valueNumber)
+		) {
 			targetElement.classList.add("invalid");
 		} else {
 			targetElement.classList.remove("invalid");
@@ -97,7 +101,12 @@ const saveChanges = (settings: Settings) => {
 	for (const input of timerSettingsInputs) {
 		const period = input.dataset["timerPeriod"];
 		const valueNumber = input.valueAsNumber;
-		if (!isNaN(valueNumber) && period) {
+		if (
+			!isNaN(valueNumber) &&
+			valueNumber >= 0 &&
+			Number.isInteger(valueNumber) &&
+			period
+		) {
 			newTimerValues[period] = valueNumber;
 		}
 	}

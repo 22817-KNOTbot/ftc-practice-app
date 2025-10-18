@@ -28,11 +28,12 @@ const showChart = () => {
 	});
 };
 
-const layout = getLayout("Classic");
-const layoutData = layout.layoutData;
+const chosenLayout = localStorage.getItem("layout") ?? "Classic";
+const layout = getLayout(chosenLayout);
+const layoutData = layout.layoutDataGetter();
 document.querySelector<HTMLDivElement>("#app")!.innerHTML =
 	`<link rel="stylesheet" href="${layoutData.stylePath}">` +
-	layoutData.statsHtml;
+	layoutData.html.stats;
 
 showChart();
 

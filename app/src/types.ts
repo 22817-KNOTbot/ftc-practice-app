@@ -46,11 +46,22 @@ export type Cycle = {
 export type Layout = {
 	name: string;
 	imagePath: string;
-	layoutData: LayoutData;
+	layoutDataGetter: () => LayoutData;
 };
 
 export type LayoutData = {
 	stylePath: string;
-	timerHtml: string;
-	statsHtml: string;
+	html: {
+		timer: string;
+		stats: string;
+		settings: string;
+		about: string;
+	};
+};
+
+export type Settings = {
+	layout: string;
+	timerValues: {
+		[key: string]: number;
+	};
 };

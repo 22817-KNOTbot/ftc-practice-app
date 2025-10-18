@@ -1,17 +1,18 @@
 import { getLayoutData as getClassicLayoutData } from "./layouts/classic";
-// import { getLayoutData as getModernLayoutData } from "./layouts/modern";
+import { getLayoutData as getModernLayoutData } from "./layouts/modern";
+import { getLayoutData as getGreenScreenLayoutData } from "./layouts/greenScreen";
 import { Layout } from "./types";
 
 const layouts: Layout[] = [
 	{
 		name: "Modern",
 		imagePath: "src/assets/images/layouts/modern.webp",
-		layoutDataGetter: getClassicLayoutData,
+		layoutDataGetter: getModernLayoutData,
 	},
 	{
 		name: "Green Screen",
 		imagePath: "src/assets/images/layouts/modern.webp",
-		layoutDataGetter: getClassicLayoutData,
+		layoutDataGetter: getGreenScreenLayoutData,
 	},
 	{
 		name: "Classic",

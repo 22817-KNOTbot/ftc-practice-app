@@ -1,4 +1,5 @@
 import { getLayout } from "./layouts";
+import { registerNavbar } from "./navbar";
 import { getData } from "./stats/data";
 import { Settings } from "./types";
 
@@ -18,9 +19,18 @@ const chosenLayout = localStorage.getItem("layout") ?? "Classic";
 const storedTimerValues = localStorage.getItem("timerValues") ?? "{}";
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
+let styleTags = "";
+if (typeof layoutData.stylePath == "object") {
+	layoutData.stylePath.forEach((path) => {
+		styleTags += `<link rel="stylesheet" href="${path}">`;
+	});
+} else {
+	styleTags = `<link rel="stylesheet" href="${layoutData.stylePath}">`;
+}
 document.querySelector<HTMLDivElement>("#app")!.innerHTML =
-	`<link rel="stylesheet" href="${layoutData.stylePath}">` +
-	layoutData.html.settings;
+	styleTags + layoutData.html.settings;
+
+registerNavbar(document.querySelector("nav")!);
 
 const layoutSettingsOptions = document.querySelectorAll(".settings-layout");
 

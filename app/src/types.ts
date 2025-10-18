@@ -50,7 +50,7 @@ export type Layout = {
 };
 
 export type LayoutData = {
-	stylePath: string;
+	stylePath: string | string[];
 	html: {
 		timer: string;
 		stats: string;

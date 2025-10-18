@@ -21,15 +21,25 @@ import {
 } from "./timer.ts";
 import { Message, RunData, RunState } from "./types.ts";
 import { getLayout } from "./layouts.ts";
+import { registerNavbar } from "./navbar.ts";
 
 let running = false;
 
 const chosenLayout = localStorage.getItem("layout") ?? "Classic";
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
+let styleTags = "";
+if (typeof layoutData.stylePath == "object") {
+	layoutData.stylePath.forEach((path) => {
+		styleTags += `<link rel="stylesheet" href="${path}">`;
+	});
+} else {
+	styleTags = `<link rel="stylesheet" href="${layoutData.stylePath}">`;
+}
 document.querySelector<HTMLDivElement>("#app")!.innerHTML =
-	`<link rel="stylesheet" href="${layoutData.stylePath}">` +
-	layoutData.html.timer;
+	styleTags + layoutData.html.timer;
+
+registerNavbar(document.querySelector("nav")!);
 
 const sounds: Sounds = new Sounds();
 sounds.preload();

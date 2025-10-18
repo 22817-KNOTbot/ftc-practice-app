@@ -18,6 +18,7 @@ import {
 	showLoadingIndicator,
 } from "./loading";
 import { getLayout } from "./layouts";
+import { registerNavbar } from "./navbar";
 
 let data: Data["data"];
 
@@ -31,10 +32,18 @@ const showChart = () => {
 const chosenLayout = localStorage.getItem("layout") ?? "Classic";
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
+let styleTags = "";
+if (typeof layoutData.stylePath == "object") {
+	layoutData.stylePath.forEach((path) => {
+		styleTags += `<link rel="stylesheet" href="${path}">`;
+	});
+} else {
+	styleTags = `<link rel="stylesheet" href="${layoutData.stylePath}">`;
+}
 document.querySelector<HTMLDivElement>("#app")!.innerHTML =
-	`<link rel="stylesheet" href="${layoutData.stylePath}">` +
-	layoutData.html.stats;
+	styleTags + layoutData.html.stats;
 
+registerNavbar(document.querySelector("nav")!);
 showChart();
 
 Chart.register(

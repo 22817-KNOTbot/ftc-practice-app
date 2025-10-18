@@ -1,5 +1,6 @@
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
+import { getSetting, saveSettings } from "./settingsManager";
 import { getData } from "./stats/data";
 import { Settings } from "./types";
 
@@ -15,8 +16,8 @@ getData().then((d) => {
 	runCount = Object.keys(d.data).length;
 });
 
-const chosenLayout = localStorage.getItem("layout") ?? "Classic";
-const storedTimerValues = localStorage.getItem("timerValues") ?? "{}";
+const chosenLayout = getSetting("layout");
+const storedTimerValues = getSetting("timerValues");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";
@@ -51,7 +52,7 @@ updateSelectedLayout(chosenLayout);
 
 const currentSettings: Settings = {
 	layout: chosenLayout,
-	timerValues: JSON.parse(storedTimerValues),
+	timerValues: storedTimerValues,
 };
 
 for (const option of layoutSettingsOptions) {
@@ -100,9 +101,9 @@ const saveChanges = (settings: Settings) => {
 			newTimerValues[period] = valueNumber;
 		}
 	}
-	console.log(newTimerValues);
-	localStorage.setItem("layout", settings.layout);
-	localStorage.setItem("timerValues", JSON.stringify(newTimerValues));
+	settings.timerValues = newTimerValues;
+
+	saveSettings(currentSettings);
 	document.location.reload();
 };
 

@@ -22,10 +22,11 @@ import {
 import { Message, RunData, RunState } from "./types.ts";
 import { getLayout } from "./layouts.ts";
 import { registerNavbar } from "./navbar.ts";
+import { getSetting } from "./settingsManager.ts";
 
 let running = false;
 
-const chosenLayout = localStorage.getItem("layout") ?? "Classic";
+const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";

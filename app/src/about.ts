@@ -1,7 +1,8 @@
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
+import { getSetting } from "./settingsManager";
 
-const chosenLayout = localStorage.getItem("layout") ?? "Classic";
+const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";

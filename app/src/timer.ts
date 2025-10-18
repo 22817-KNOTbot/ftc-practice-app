@@ -1,4 +1,8 @@
+import { getSetting } from "./settingsManager";
 import { Sounds } from "./sfx";
+import { Settings } from "./types";
+
+const timerValues: Settings["timerValues"] = getSetting("timerValues");
 
 export class Timer {
 	private timer: HTMLElement;
@@ -100,7 +104,7 @@ export function stopStopwatch() {
 	clearInterval(updateStopwatch);
 }
 
-function secsToMins(s: number) {
+export function secsToMins(s: number) {
 	return (s - (s %= 60)) / 60 + (9 < s ? ":" : ":0") + s;
 }
 
@@ -114,14 +118,14 @@ export function registerSounds(newSounds: Sounds) {
 */
 
 const autoTimerLoop = (time: number) => {
-	if (time <= 120) {
+	if (time <= timerValues["teleop"]) {
 		sounds?.playSound("autoend");
 		setTransitionTimer();
 	}
 };
 
 export function setAutoTimer(startingTime?: number) {
-	startingTime ??= 150;
+	startingTime ??= timerValues["auto"] + timerValues["teleop"];
 	const timerInstance = Timer.getInstance();
 	if (timerInstance) {
 		timerInstance.setTimer(startingTime, autoTimerLoop);
@@ -147,7 +151,7 @@ const transitionTimerLoop = (time: number) => {
 };
 
 export function setTransitionTimer(startingTime?: number) {
-	startingTime ??= 8;
+	startingTime ??= timerValues["transition"];
 	const timerInstance = Timer.getInstance();
 	if (timerInstance) {
 		timerInstance.setTimer(startingTime, transitionTimerLoop);
@@ -156,7 +160,7 @@ export function setTransitionTimer(startingTime?: number) {
 
 const teleopTimerLoop = (time: number) => {
 	switch (time) {
-		case 30:
+		case timerValues["endgame"]:
 			sounds?.playSound("endgame");
 			break;
 		case 0:
@@ -169,7 +173,7 @@ const teleopTimerLoop = (time: number) => {
 };
 
 export function setTeleopTimer(startingTime?: number) {
-	startingTime ??= 120;
+	startingTime ??= timerValues["teleop"];
 	const timerInstance = Timer.getInstance();
 	if (timerInstance) {
 		timerInstance.setTimer(startingTime, teleopTimerLoop);

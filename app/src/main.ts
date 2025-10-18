@@ -18,6 +18,7 @@ import {
 	setTeleopTimer,
 	registerSounds,
 	Timer,
+	secsToMins,
 } from "./timer.ts";
 import { Message, RunData, RunState } from "./types.ts";
 import { getLayout } from "./layouts.ts";
@@ -46,7 +47,12 @@ const sounds: Sounds = new Sounds();
 sounds.preload();
 registerSounds(sounds);
 
-const timer = new Timer(document.getElementById("timer")!);
+const timerElement = document.getElementById("timer")!;
+const timer = new Timer(timerElement);
+const timerValues = getSetting("timerValues");
+timerElement.textContent = secsToMins(
+	timerValues["auto"] + timerValues["teleop"]
+);
 
 const cycleTimer = document.getElementById("cycle-timer")!;
 

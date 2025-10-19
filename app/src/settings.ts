@@ -193,21 +193,25 @@ const showDeleteRunsConfirmationModal = () => {
 	subtitle.textContent =
 		"This will clear all your run data and stats. You cannot undo this action!";
 
-	const challengeText = `Yes I want to delete all ${runCount} runs`;
+	const challengeText = `Yes, I want to delete all ${runCount} runs`;
 	const challenge = content.appendChild(document.createElement("p"));
 	challenge.className = "modalConfirmationChallenge";
 	challenge.textContent = `To confirm, type "${challengeText}"`;
 
-	const input = content.appendChild(document.createElement("input"));
+	const form = content.appendChild(document.createElement("form"));
+
+	const input = form.appendChild(document.createElement("input"));
 	input.id = "challengeInput";
 	input.setAttribute("type", "text");
 	input.setAttribute("placeholder", challengeText);
 
-	const confirmButton = content.appendChild(document.createElement("button"));
+	const confirmButton = form.appendChild(document.createElement("input"));
+	confirmButton.type = "submit";
 	confirmButton.id = "confirmDanger";
 	confirmButton.textContent = "Confirm";
 
-	confirmButton.addEventListener("click", () => {
+	form.addEventListener("submit", (event) => {
+		event.preventDefault();
 		if (input.value == challengeText) {
 			// TODO: delete runs after backend implementation
 			document.location.reload();

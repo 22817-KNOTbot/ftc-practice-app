@@ -34,6 +34,10 @@ h1 {
 	line-height: 1.1;
 }
 
+input {
+	font-family: inherit;
+}
+
 .text-center {
 	text-align: center;
 }
@@ -206,6 +210,11 @@ input[type="submit"] {
 	align-self: center;
 }
 
+.editModalTitle {
+	width: 90%;
+	font-size: 1.2rem;
+}
+
 #modalContent {
 	height: 100%;
 	overflow-y: scroll;
@@ -265,6 +274,47 @@ input[type="submit"] {
 	margin: 1vh 0;
 }
 
+#runModal .editModalInput {
+	padding: 1ch;
+	border-radius: 5vmax;
+	border-style: solid;
+	background-color: var(--accent-color);
+}
+
+#runModal .editModalInput.invalid {
+	border-style: solid;
+	border-color: red;
+}
+
+#modalContent .editModalSubtitle {
+	display: inline;
+}
+
+#modalContent .editModalTableInput {
+	width: 80%;
+	box-sizing: border-box;
+}
+
+#modalContent .editModalDeleteButton,
+#modalContent .editModalAddButton {
+	background-color: transparent;
+	background-size: contain;
+	width: 1.5lh;
+	height: 1.5lh;
+	vertical-align: middle;
+	padding: 0;
+	border-style: solid;
+	border-radius: 100%;
+}
+
+#modalContent .editModalDeleteButton {
+	background-image: url("/practice/src/assets/icons/cross.svg");
+}
+
+#modalContent .editModalAddButton {
+	background-image: url("/practice/src/assets/icons/plus.svg");
+}
+
 #modalContent ul {
 	margin: 0;
 }
@@ -283,7 +333,7 @@ input[type="submit"] {
 	text-decoration: underline;
 }
 
-#cycleTable th:nth-child(1) {
+#cycleTable:not(.editCycleTable) th:nth-child(1) {
 	width: 30%;
 }
 
@@ -295,21 +345,12 @@ input[type="submit"] {
 	border: var(--text-color) solid 1px;
 }
 
-#modalContent #downloadRun,
-#modalContent #deleteRun,
-#modalContent #confirmDanger {
-	margin-top: 2%;
-	display: block;
-}
-
-#modalContent #downloadRun {
+#modalContent .modalButton {
+	margin: auto;
 	margin-top: 5%;
-}
-
-#modalContent #downloadRun>button,
-#modalContent #deleteRun {
-	width: 100%;
-	height: 1.5lh;
+	display: block;
+	width: 90%;
+	height: 2.5lh;
 	font-size: 1rem;
 	border: solid 1px;
 	border-radius: 100vmax;
@@ -318,6 +359,15 @@ input[type="submit"] {
 	&:hover {
 		background-color: var(--accent-hover-color);
 	}
+}
+
+#modalContent #downloadRun {
+	margin-top: 5%;
+	text-decoration: none;
+}
+
+#modalContent .editModalTeleopLine {
+	margin: 0.5lh 0;
 }
 
 #loading-spinner {
@@ -419,7 +469,7 @@ input[type="submit"] {
 	width: 100%;
 	aspect-ratio: 16 / 9;
 	border: 1px solid white;
-	
+
 	&>img {
 		width: 100%;
 		height: 100%;

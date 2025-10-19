@@ -10,7 +10,7 @@ import {
 import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
 import "./style.css";
-import { Data, RunData } from "./types";
+import { Cycle, Data, RunData } from "./types";
 import { updateTextSize } from "auto-text-size";
 import {
 	hideLoadingIndicator,
@@ -216,6 +216,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 			maintainAspectRatio: false,
 			onClick: (_e, elements) => {
 				if (elements.length > 0) {
+					if (document.querySelector(".shownModal.editModal")) return;
 					showLoadingIndicator();
 					getRunData(data[elements[0].index].filename)
 						.then((runData) => {
@@ -225,7 +226,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 							);
 						})
 						.catch((reason) => {
-							showRunNotFound(
+							showRunError(
 								data[elements[0].index].filename,
 								reason
 							);
@@ -251,7 +252,7 @@ function showRunData(data: RunData, filename?: string) {
 	const titleContainer = document.getElementById("modalHeaderContainer")!;
 	const title = document.getElementById("modalHeader")!;
 	const content = document.getElementById("modalContent")!;
-	modal.classList.add("shownModal");
+	modal.className = "modal shownModal";
 
 	content.scrollTop = 0;
 	content.innerHTML = "";
@@ -394,6 +395,15 @@ function showRunData(data: RunData, filename?: string) {
 				}`;
 		}
 	}
+
+	const editButton = content.appendChild(document.createElement("button"));
+	editButton.id = "editRun";
+	editButton.textContent = "Edit";
+	editButton.classList.add("modalButton");
+	editButton.addEventListener("click", () => {
+		showRunEditModal(data, filename);
+	});
+
 	const downloadLink = content.appendChild(document.createElement("a"));
 	const downloadButton = downloadLink.appendChild(
 		document.createElement("button")
@@ -402,6 +412,7 @@ function showRunData(data: RunData, filename?: string) {
 	downloadLink.href = `/practice/data/${filename}`;
 	downloadLink.setAttribute("download", "");
 	downloadButton.textContent = "Download";
+	downloadButton.classList.add("modalButton");
 
 	downloadLink.addEventListener("click", (e) => {
 		if (e.target) {
@@ -414,6 +425,7 @@ function showRunData(data: RunData, filename?: string) {
 	const deleteButton = content.appendChild(document.createElement("button"));
 	deleteButton.id = "deleteRun";
 	deleteButton.textContent = "Delete";
+	deleteButton.classList.add("modalButton");
 	deleteButton.addEventListener("click", () => {
 		fetch("/practice/data/delete", {
 			headers: {
@@ -421,7 +433,12 @@ function showRunData(data: RunData, filename?: string) {
 			},
 			method: "POST",
 		})
-			.then(() => {
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						`${response.status} ${response.statusText}`
+					);
+				}
 				modal.classList.remove("shownModal");
 				// Some browsers can't load the page right after deleting
 				// the file for an unknown reason. Hard coded delay fixes it
@@ -430,17 +447,17 @@ function showRunData(data: RunData, filename?: string) {
 				}).then(() => document.location.reload());
 			})
 			.catch((err: Error) => {
-				showRunNotFound(filename, err.message);
+				showRunError(filename, err.message);
 			});
 	});
 }
 
-function showRunNotFound(filename: string, reason?: string) {
+function showRunError(filename: string, reason?: string) {
 	const modal = document.getElementById("runModal")!;
 	const titleContainer = document.getElementById("modalHeaderContainer")!;
 	const title = document.getElementById("modalHeader")!;
 	const content = document.getElementById("modalContent")!;
-	modal.classList.add("shownModal");
+	modal.className = "modal shownModal";
 
 	content.scrollTop = 0;
 	content.innerHTML = "";
@@ -489,8 +506,363 @@ function showRunNotFound(filename: string, reason?: string) {
 	});
 }
 
-window.addEventListener("click", (event) => {
+function showRunEditModal(data: RunData, filename?: string) {
+	filename ??= data.timestamp + ".json";
 	const modal = document.getElementById("runModal")!;
+	const title = document.getElementById("modalHeader")!;
+	const content = document.getElementById("modalContent")!;
+	modal.className = "modal shownModal editModal";
+
+	content.scrollTop = 0;
+	content.innerHTML = "";
+
+	title.textContent = "";
+	const titleInput = title.appendChild(document.createElement("input"));
+	titleInput.classList.add("editModalInput", "editModalTitle");
+	titleInput.value = data.name;
+	titleInput.placeholder = data.name;
+
+	titleInput.addEventListener("focusout", () => {
+		const value = titleInput.value;
+		if (value.trim().length == 0 && value.length > 0) {
+			titleInput.classList.add("invalid");
+		} else {
+			titleInput.classList.remove("invalid");
+		}
+	});
+
+	let infoHeader: HTMLElement = content.appendChild(
+		document.createElement("h2")
+	);
+	infoHeader.className = "firstModalHeader";
+	infoHeader = infoHeader.appendChild(document.createElement("u"));
+	infoHeader.textContent = "Info";
+
+	const subtitleDiv = content.appendChild(document.createElement("div"));
+	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
+	const subtitleInput = subtitleDiv.appendChild(
+		document.createElement("input")
+	);
+	subtitle.className = "modalContentSubtitle editModalSubtitle";
+	subtitleInput.type = "datetime-local";
+	subtitleInput.id = "editModalDate";
+	subtitleInput.classList.add("editModalInput");
+	const rawDate: Date = new Date(data.timestamp * 1000);
+	// Date inputs don't use time zones. Manually adjusting for time zones before passing it as input
+	const date: Date = new Date(
+		rawDate.getTime() - rawDate.getTimezoneOffset() * 60 * 1000
+	);
+	subtitle.textContent = "Date: ";
+	subtitleInput.valueAsDate = date;
+	subtitleInput.placeholder = rawDate.toString();
+	subtitleInput.addEventListener("focusout", () => {
+		const date = subtitleInput.valueAsDate;
+		if (date == null) {
+			subtitleInput.classList.add("invalid");
+		} else {
+			subtitleInput.classList.remove("invalid");
+		}
+	});
+
+	const cycleHeader = content
+		.appendChild(document.createElement("h2"))
+		.appendChild(document.createElement("u"));
+	cycleHeader.textContent = "Cycles";
+
+	const cycleTable = content.appendChild(document.createElement("table"));
+	cycleTable.id = "cycleTable";
+	cycleTable.className = "editCycleTable";
+	const tableHeaderRow = cycleTable.appendChild(document.createElement("tr"));
+	let header = tableHeaderRow.appendChild(document.createElement("th"));
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Time (s)";
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Type";
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Score";
+
+	const timeInputs: HTMLInputElement[] = [];
+	const typeInputs: HTMLInputElement[] = [];
+	const scoreInputs: HTMLInputElement[] = [];
+
+	let rowIndex = 0;
+	const addRow = (cycle?: Cycle) => {
+		const row = cycleTable.appendChild(document.createElement("tr"));
+		let tableData = row.appendChild(document.createElement("td"));
+		const deleteButton = tableData.appendChild(
+			document.createElement("button")
+		);
+		deleteButton.classList.add("editModalDeleteButton");
+
+		tableData = row.appendChild(document.createElement("td"));
+		const timeInput = tableData.appendChild(
+			document.createElement("input")
+		);
+		timeInput.classList.add("editModalInput", "editModalTableInput");
+		timeInputs.push(timeInput);
+		timeInput.value = cycle?.time.toString() ?? "";
+		timeInput.placeholder = cycle?.time.toString() ?? "";
+
+		tableData = row.appendChild(document.createElement("td"));
+		const typeInput = tableData.appendChild(
+			document.createElement("input")
+		);
+		typeInput.classList.add("editModalInput", "editModalTableInput");
+		typeInputs.push(typeInput);
+		typeInput.value = cycle?.type ?? "";
+		typeInput.placeholder = cycle?.type ?? "";
+
+		tableData = row.appendChild(document.createElement("td"));
+		const scoreInput = tableData.appendChild(
+			document.createElement("input")
+		);
+		scoreInput.classList.add("editModalInput", "editModalTableInput");
+		scoreInputs.push(scoreInput);
+		scoreInput.value = cycle?.score.toString() ?? "";
+		scoreInput.placeholder = cycle?.score.toString() ?? "";
+
+		// Event listeners
+		const localRowIndex = rowIndex;
+		deleteButton.addEventListener("click", () => {
+			cycleTable.removeChild(row);
+			timeInputs.splice(localRowIndex, 1);
+			typeInputs.splice(localRowIndex, 1);
+			scoreInputs.splice(localRowIndex, 1);
+		});
+
+		timeInput.addEventListener("focusout", () => {
+			const parsedValue = Number(timeInput.value);
+			if (
+				(isNaN(parsedValue) ||
+					!isFinite(parsedValue) ||
+					parsedValue <= 0) &&
+				timeInput.value.length > 0
+			) {
+				timeInput.classList.add("invalid");
+			} else {
+				timeInput.classList.remove("invalid");
+			}
+		});
+
+		typeInput.addEventListener("focusout", () => {
+			const value = typeInput.value;
+			if (value.trim().length == 0 && value.length > 0) {
+				typeInput.classList.add("invalid");
+			} else {
+				typeInput.classList.remove("invalid");
+			}
+		});
+
+		scoreInput.addEventListener("focusout", () => {
+			const parsedValue = Number(scoreInput.value);
+			if (
+				(isNaN(parsedValue) ||
+					!isFinite(parsedValue) ||
+					!Number.isInteger(parsedValue)) &&
+				scoreInput.value.length > 0
+			) {
+				scoreInput.classList.add("invalid");
+			} else {
+				scoreInput.classList.remove("invalid");
+			}
+		});
+
+		rowIndex++;
+	};
+
+	for (const cycle of data.cycles) {
+		addRow(cycle);
+	}
+
+	const row = cycleTable.appendChild(document.createElement("tr"));
+	const tableData = row.appendChild(document.createElement("td"));
+	const addButton = tableData.appendChild(document.createElement("button"));
+	addButton.classList.add("editModalAddButton");
+	addButton.addEventListener("click", () => {
+		cycleTable.removeChild(row);
+		addRow();
+		cycleTable.appendChild(row);
+	});
+
+	// TeleOp Times
+	const teleopTimesHeader = content
+		.appendChild(document.createElement("h2"))
+		.appendChild(document.createElement("u"));
+	teleopTimesHeader.textContent = "TeleOp Times";
+
+	const teleopTimesStart = content.appendChild(document.createElement("div"));
+	teleopTimesStart.classList.add("editModalTeleopLine");
+	teleopTimesStart.textContent = "TeleOp start: ";
+	const teleopTimesStartInput = teleopTimesStart.appendChild(
+		document.createElement("input")
+	);
+	teleopTimesStartInput.classList.add("editModalInput");
+
+	data.teleopTimes ??= [];
+	const teleopStartTime = data.teleopTimes[0]
+		? (data.teleopTimes[0] / 1e3).toString()
+		: "";
+	teleopTimesStartInput.value = teleopStartTime;
+	teleopTimesStartInput.placeholder = teleopStartTime;
+
+	teleopTimesStartInput.addEventListener("focusout", () => {
+		const parsedValue = Number(teleopTimesStartInput.value);
+		if (
+			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
+			teleopTimesStartInput.value.trim().length > 0
+		) {
+			teleopTimesStartInput.classList.add("invalid");
+		} else {
+			teleopTimesStartInput.classList.remove("invalid");
+		}
+	});
+
+	const teleopTimesEnd = content.appendChild(document.createElement("div"));
+	teleopTimesEnd.classList.add("editModalTeleopLine");
+	teleopTimesEnd.textContent = "TeleOp end: ";
+	const teleopTimesEndInput = teleopTimesEnd.appendChild(
+		document.createElement("input")
+	);
+	teleopTimesEndInput.classList.add("editModalInput");
+
+	const teleopEndTime = data.teleopTimes[1]
+		? (data.teleopTimes[1] / 1e3).toString()
+		: "";
+	teleopTimesEndInput.value = teleopEndTime;
+	teleopTimesEndInput.placeholder = teleopEndTime;
+
+	teleopTimesEndInput.addEventListener("focusout", () => {
+		const parsedValue = Number(teleopTimesEndInput.value);
+		if (
+			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
+			teleopTimesEndInput.value.trim().length > 0
+		) {
+			teleopTimesEndInput.classList.add("invalid");
+		} else {
+			teleopTimesEndInput.classList.remove("invalid");
+		}
+	});
+
+	// Buttons
+	const saveButton = content.appendChild(document.createElement("button"));
+	saveButton.id = "saveEdit";
+	saveButton.textContent = "Save Edits";
+	saveButton.classList.add("modalButton");
+	saveButton.addEventListener("click", () => {
+		let titleValue = titleInput.value;
+		if (titleValue.trim().length == 0 && titleValue.length > 0) {
+			titleValue = titleInput.placeholder;
+		}
+
+		let date = subtitleInput.valueAsDate;
+		if (date == null) {
+			date = new Date(subtitleInput.placeholder);
+		} else {
+			date = new Date(
+				date.getTime() + rawDate.getTimezoneOffset() * 60 * 1000
+			);
+		}
+
+		let score = 0;
+		const info: RunData["info"] = {};
+		const cycles: Cycle[] = [];
+		for (let i = 0; i < timeInputs.length; i++) {
+			const timeInput = timeInputs[i];
+			const typeInput = typeInputs[i];
+			const scoreInput = scoreInputs[i];
+
+			let timeValue = Number(timeInput.value);
+			let typeValue = typeInput.value;
+			let scoreValue = Number(scoreInput.value);
+
+			if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+				timeValue = Number(timeInput.placeholder);
+			}
+			if (typeValue.trim().length == 0) {
+				typeValue = typeInput.placeholder;
+			}
+			if (
+				isNaN(scoreValue) ||
+				!isFinite(scoreValue) ||
+				!Number.isInteger(scoreValue)
+			) {
+				scoreValue = Number(scoreInput.placeholder);
+			}
+
+			score += scoreValue;
+			info[typeValue] = (info[typeValue] ?? 0) + 1;
+
+			cycles.push({
+				time: timeValue,
+				type: typeValue,
+				score: scoreValue,
+			});
+		}
+
+		let teleopTimes: RunData["teleopTimes"] = [];
+		let teleopTimesStartValue = Number(teleopTimesStartInput.value);
+		let teleopTimesEndValue = Number(teleopTimesEndInput.value);
+		if (isNaN(teleopTimesStartValue) || !isFinite(teleopTimesStartValue)) {
+			teleopTimesStartValue = Number(teleopTimesStartInput.placeholder);
+		}
+		if (isNaN(teleopTimesEndValue) || !isFinite(teleopTimesEndValue)) {
+			teleopTimesEndValue = Number(teleopTimesEndInput.placeholder);
+		}
+		if (teleopTimesEndInput.value.trim().length != 0) {
+			teleopTimes = [
+				isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue,
+				teleopTimesEndValue,
+			];
+		} else if (teleopTimesStartInput.value.trim().length != 0) {
+			teleopTimes = [teleopTimesStartValue];
+		}
+
+		const editedRunData = {
+			name: titleValue,
+			timestamp: Math.floor(date.getTime() / 1000),
+			score: score,
+			info: info,
+			cycles: cycles,
+			teleopTimes: teleopTimes,
+		};
+
+		fetch("/practice/data/edit", {
+			headers: {
+				filename: filename,
+				runData: JSON.stringify(editedRunData),
+			},
+			method: "POST",
+		})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						`${response.status} ${response.statusText}`
+					);
+				}
+				modal.classList.remove("shownModal");
+				// Some browsers can't load the page right after deleting
+				// the file for an unknown reason. Hard coded delay fixes it
+				new Promise((resolve) => {
+					setTimeout(resolve, 200);
+				}).then(() => document.location.reload());
+			})
+			.catch((err: Error) => {
+				showRunError(filename, err.message);
+			});
+	});
+
+	const discardButton = content.appendChild(document.createElement("button"));
+	discardButton.id = "discardEdit";
+	discardButton.textContent = "Discard Edits";
+	discardButton.classList.add("modalButton");
+	discardButton.addEventListener("click", () => {
+		modal.classList.remove("shownModal");
+	});
+}
+
+window.addEventListener("mousedown", (event) => {
+	const modal = document.getElementById("runModal")!;
+	if (modal.classList.contains("editModal")) return;
 	if (!modal.contains(event.target as HTMLElement)) {
 		modal.classList.remove("shownModal");
 	}

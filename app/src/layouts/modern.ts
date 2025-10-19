@@ -129,7 +129,7 @@ ${nav}
 			FTC Practice App by 22817 KNOTbot is a web app created to improve your driving performance in practice of the
 			FIRST<sup>®</sup> Tech Challenge’s yearly competitions
 		</p>
-		<p class="text-center">Please read the <a href="https://github.com/22817-KNOTbot/ftc-practice-app" target="_blank">Github page</a> for instructions</p>
+		<p class="text-center">Please read the <a href="https://github.com/22817-KNOTbot/ftc-practice-app" target="_blank">GitHub page</a> for instructions</p>
 		<p>Key features</p>
 		<ul>
 			<li>Easy to use interface</li>

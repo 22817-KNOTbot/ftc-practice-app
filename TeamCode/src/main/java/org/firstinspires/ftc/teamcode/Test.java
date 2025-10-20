@@ -18,7 +18,6 @@ public class Test extends LinearOpMode {
 			}
 			if (gamepad1.a) {
 				RobotEvent.addScore(1);
-				RobotEvent.resetCycle();
 			}
 			if (gamepad1.x) {
 				RobotEvent.setScore(0);

@@ -38,7 +38,7 @@ import java.util.Set;
 public class PracticeApp {
 	private static final String TAG = "PracticeApp";
 	private static final String WEB_PATH = "/practice";
-	private static final Set<String> DISALLOWED_DELETE_FILES = new HashSet<>(Arrays.asList(
+	private static final Set<String> DISALLOWED_MODIFY_FILES = new HashSet<>(Arrays.asList(
 		"main.json",
 		"unsaved.json"
 	));
@@ -88,6 +88,7 @@ public class PracticeApp {
 			instance.attachAssetWebHandlers(manager, "practice/assets");
 			instance.attachDataWebHandlers(manager);
 			instance.attachDeleteHandler(manager);
+			instance.attachEditHandler(manager);
 		}
 	}
 
@@ -156,6 +157,10 @@ public class PracticeApp {
 		manager.register(WEB_PATH + "/data/delete", createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
 	}
 
+	private void attachEditHandler(WebHandlerManager manager) {
+		manager.register(WEB_PATH + "/data/edit", createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
+	}
+
 	private WebHandler createWebHandler(String file) {
 		Log.v(TAG, "Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
@@ -209,7 +214,7 @@ public class PracticeApp {
 					} else if (!file.exists()) {
 						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to file not existing");
 						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
-					} else if (PracticeApp.DISALLOWED_DELETE_FILES.contains(file.getName())) {
+					} else if (PracticeApp.DISALLOWED_MODIFY_FILES.contains(file.getName())) {
 						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to this file being disallowed to delete");
 						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
 					} else {
@@ -223,6 +228,42 @@ public class PracticeApp {
 							return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "");
 						}
 						
+					}
+				} else {
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "");
+				}
+			}
+		};
+	}
+
+	private WebHandler createEditHandler(File path) {
+		Log.v(TAG, "Created web edit handler for path \"" + path.getAbsolutePath() + "\"");
+		return new WebHandler() {
+			@Override
+			public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException {
+				Log.v(TAG, "Received request at edit endpoint");
+				if (session.getMethod() == NanoHTTPD.Method.POST) {
+					String referer = session.getHeaders().getOrDefault("referer", "").trim();
+					String filename = session.getHeaders().get("filename");
+					String runDataString = session.getHeaders().get("runData");
+					Data.RunData runData = Data.RunData.toData(runDataString);
+					File file = new File(path, filename);
+					if (!referer.equals("http://192.168.43.1:8080/practice/stats")) {
+						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to incorrect referer: \"" + referer + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else if (!file.exists()) {
+						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to file not existing");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else if (PracticeApp.DISALLOWED_MODIFY_FILES.contains(file.getName())) {
+						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to this file being disallowed to edit");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else if (runData == null) {
+						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to given run data being malformed: \"" + runDataString + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "");
+					} else {
+						Log.d(TAG, "Edit handler is editing file \"" + filename + "\"");
+						DataStorage.updateRun(runData, filename.replaceFirst("\\.json$", ""));
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_PLAINTEXT, "");
 					}
 				} else {
 					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "");

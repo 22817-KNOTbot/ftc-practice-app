@@ -37,7 +37,7 @@ public class DataStorage {
 				}
 			} catch (IOException err) {
 				Log.e(TAG, "Error writing to file \"" + file.getAbsolutePath() + "\"", err);
-			} 
+			}
 		} catch (Exception err) {
 			Log.e(TAG, "Error writing to file", err);
 		}
@@ -45,7 +45,8 @@ public class DataStorage {
 	}
 
 	protected static String readString(File file) {
-		if (!file.exists() || !file.canRead()) return null;
+		if (!file.exists() || !file.canRead())
+			return null;
 		String text = "";
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			String line = reader.readLine();
@@ -79,6 +80,15 @@ public class DataStorage {
 	protected static void tempSaveRun(Data.RunData runData, String name) {
 		String json = Data.RunData.toJson(runData);
 		File file = writeString(name, json);
+	}
+
+	protected static void updateRun(Data.RunData runData, String name) {
+		String json = Data.RunData.toJson(runData);
+		File file = writeString(name.replaceFirst("[.][^.]+$", ""), json);
+
+		String fileName = file.getName();
+
+		refreshMain();
 	}
 
 	protected static void addRunToMain(Data.RunData runData, String fileName) {
@@ -169,7 +179,7 @@ public class DataStorage {
 
 		Data.MainData data = new Data.MainData();
 		data.data = new ArrayList<Data.MainData.RunOverview>();
-		
+
 		File[] files = path.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {

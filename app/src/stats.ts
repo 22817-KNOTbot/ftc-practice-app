@@ -540,7 +540,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 
 	const subtitleDiv = content.appendChild(document.createElement("div"));
 	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
-	const subtitleInput = subtitleDiv.appendChild(
+	const subtitleInput = subtitleDiv.appendChild<HTMLInputElement>(
 		document.createElement("input")
 	);
 	subtitle.className = "modalContentSubtitle editModalSubtitle";
@@ -549,15 +549,13 @@ function showRunEditModal(data: RunData, filename?: string) {
 	subtitleInput.classList.add("editModalInput");
 	const rawDate: Date = new Date(data.timestamp * 1000);
 	// Date inputs don't use time zones. Manually adjusting for time zones before passing it as input
-	const date: Date = new Date(
-		rawDate.getTime() - rawDate.getTimezoneOffset() * 60 * 1000
-	);
 	subtitle.textContent = "Date: ";
-	subtitleInput.valueAsDate = date;
+	subtitleInput.valueAsNumber =
+		rawDate.getTime() - rawDate.getTimezoneOffset() * 60 * 1000;
 	subtitleInput.placeholder = rawDate.toString();
 	subtitleInput.addEventListener("focusout", () => {
-		const date = subtitleInput.valueAsDate;
-		if (date == null) {
+		const date = subtitleInput.valueAsNumber;
+		if (isNaN(date)) {
 			subtitleInput.classList.add("invalid");
 		} else {
 			subtitleInput.classList.remove("invalid");
@@ -754,13 +752,12 @@ function showRunEditModal(data: RunData, filename?: string) {
 			titleValue = titleInput.placeholder;
 		}
 
-		let date = subtitleInput.valueAsDate;
-		if (date == null) {
+		const dateNum = subtitleInput.valueAsNumber;
+		let date: Date;
+		if (isNaN(dateNum)) {
 			date = new Date(subtitleInput.placeholder);
 		} else {
-			date = new Date(
-				date.getTime() + rawDate.getTimezoneOffset() * 60 * 1000
-			);
+			date = new Date(dateNum + rawDate.getTimezoneOffset() * 60 * 1000);
 		}
 
 		let score = 0;
@@ -829,7 +826,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 		fetch("/practice/data/edit", {
 			headers: {
 				filename: filename,
-				runData: JSON.stringify(editedRunData),
+				"run-data": JSON.stringify(editedRunData),
 			},
 			method: "POST",
 		})

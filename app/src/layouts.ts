@@ -6,17 +6,17 @@ import { Layout } from "./types";
 const layouts: Layout[] = [
 	{
 		name: "Modern",
-		imagePath: "src/assets/images/layouts/modern.webp",
+		imagePath: "/practice/assets/layouts/modern.jpg",
 		layoutDataGetter: getModernLayoutData,
 	},
 	{
 		name: "Green Screen",
-		imagePath: "src/assets/images/layouts/modern.webp",
+		imagePath: "/practice/assets/layouts/classic_new.jpg",
 		layoutDataGetter: getGreenScreenLayoutData,
 	},
 	{
 		name: "Classic",
-		imagePath: "src/assets/images/layouts/classic.webp",
+		imagePath: "/practice/assets/layouts/classic_new.jpg",
 		layoutDataGetter: getClassicLayoutData,
 	},
 ];

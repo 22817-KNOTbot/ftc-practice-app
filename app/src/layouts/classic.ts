@@ -12,7 +12,7 @@ const nav = `
 
 export function getLayoutData(): LayoutData {
 	return {
-		stylePath: "src/layouts/classic.css",
+		stylePath: "/practice/assets/layouts/classic.css",
 		html: {
 			timer: `
 ${nav}

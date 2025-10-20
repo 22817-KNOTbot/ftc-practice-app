@@ -10,12 +10,19 @@ export type RunState =
 	  }
 	| {
 			running: true;
-			matchPeriod: "AUTO" | "TRANSITION" | "TELEOP" | "NONE";
+			matchPeriod: MatchPeriod;
 			periodTime: number;
 			score: number;
 			cycles: Cycle[];
 			cycleTime: number;
 	  };
+
+export enum MatchPeriod {
+	AUTO = "AUTO",
+	TRANSITION = "TRANSITION",
+	TELEOP = "TELEOP",
+	NONE = "NONE",
+}
 
 export type Data = {
 	data: {
@@ -26,7 +33,7 @@ export type Data = {
 	}[];
 };
 
-export type RunData = {
+export interface RunData {
 	name: string;
 	timestamp: number;
 	score: number;
@@ -34,8 +41,13 @@ export type RunData = {
 		[key: string]: number;
 	};
 	cycles: Cycle[];
-	teleopTimes: number[];
-};
+	teleopTimes: (number | null)[];
+	startingMatchPeriod: MatchPeriod;
+}
+
+export interface SaveRunData extends RunData {
+	periodTimes: (number | null)[];
+}
 
 export type Cycle = {
 	time: number;

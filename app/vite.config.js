@@ -11,6 +11,8 @@ export default defineConfig({
 			input: {
 				index: "./index.html",
 				stats: "./stats.html",
+				settings: "./settings.html",
+				about: "./about.html",
 			},
 			output: {
 				entryFileNames: `assets/[name].js`,

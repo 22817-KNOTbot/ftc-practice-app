@@ -21,7 +21,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	public static Data.RunData runData;
 	protected static Data.RunState.MatchPeriod startingMatchPeriod = Data.RunState.MatchPeriod.NONE;
 	protected static Data.RunState.MatchPeriod matchPeriod = Data.RunState.MatchPeriod.NONE;
-	protected static Data.PeriodTime teleopTime = new Data.PeriodTime();
+	protected static Long[] periodTimes = {null, null, null};
 
 	protected static void registerWsHandler(PracticeApp.WsHandler wsHandler) {
 		RobotEvent.wsHandler = wsHandler;
@@ -45,9 +45,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		cycleTimer.reset();
 		score = 0;
 		runData = new Data.RunData();
-		teleopTime = new Data.PeriodTime();
-		teleopTime.expectedStartTime = System.currentTimeMillis() + 38000;
-		teleopTime.expectedEndTime = System.currentTimeMillis() + 158000;
+		periodTimes[0] = System.currentTimeMillis();
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("startAuto"));
 		}
@@ -63,9 +61,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		cycleTimer.reset();
 		score = 0;
 		runData = new Data.RunData();
-		teleopTime = new Data.PeriodTime();
-		teleopTime.expectedStartTime = System.currentTimeMillis() + 8000;
-		teleopTime.expectedEndTime = System.currentTimeMillis() + 128000;
+		periodTimes[0] = System.currentTimeMillis();
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("startTransition"));
 		}
@@ -83,16 +79,12 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			cycleTimer.reset();
 			score = 0;
 			runData = new Data.RunData();
-			teleopTime = new Data.PeriodTime();
-			teleopTime.expectedEndTime = System.currentTimeMillis() + 120000;
-		} else {
-			teleopTime.realStartTime = System.currentTimeMillis();
-			runData.teleopTimes[0] = teleopTime.getStartDifference();
 		}
+		periodTimes[1] = System.currentTimeMillis();
 
 		if (wsHandler != null) {
-			if (runData.teleopTimes[0] != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("startTeleop", runData.teleopTimes[0]));
+			if (periodTimes[0] != null) {
+				wsHandler.sendMessage(new PracticeApp.Message("startTeleop", matchPeriod.toString(), periodTimes[1] - periodTimes[0]));
 			} else {
 				wsHandler.sendMessage(new PracticeApp.Message("startTeleop"));
 			}
@@ -156,24 +148,18 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	}
 
 	public static void runEnd() {
+		runData.startingMatchPeriod = startingMatchPeriod;
 		if (matchPeriod == Data.RunState.MatchPeriod.TELEOP) {
-			teleopTime.realEndTime = System.currentTimeMillis();
-			runData.teleopTimes[1] = teleopTime.getEndDifference();
-		} else {
-			runData.teleopTimes[1] = null;
+			periodTimes[2] = System.currentTimeMillis();
 		}
 
 		if (wsHandler != null) {
 			String json = Data.RunData.toJson(runData);
-			if (runData.teleopTimes[1] != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("end", json, runData.teleopTimes[1]));
+			if (periodTimes[2] != null) {
+				wsHandler.sendMessage(new PracticeApp.Message("end", json, periodTimes[2] - periodTimes[1]));
 			} else {
 				wsHandler.sendMessage(new PracticeApp.Message("end", json));
 			}
-		}
-
-		if (startingMatchPeriod == Data.RunState.MatchPeriod.TELEOP) {
-			runData.teleopTimes[0] = null;
 		}
 
 		DataStorage.tempSaveRun(runData, "unsaved");

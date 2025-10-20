@@ -1,9 +1,10 @@
 import { getLayouts } from "../layouts";
 import { LayoutData } from "../types";
+import faviconUrl from "../assets/images/favicon.ico";
 
 const nav = `
 <nav class="collapsed">
-	<a href="/practice" class="navbar-img"><img src="/practice/src/assets/images/favicon.ico"></a>
+	<a href="/practice" class="navbar-img"><img src="${faviconUrl}"></a>
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
 	<a href="/practice/settings">Settings</a>
@@ -13,7 +14,7 @@ const nav = `
 
 export function getLayoutData(): LayoutData {
 	return {
-		stylePath: "src/layouts/modern.css",
+		stylePath: "/practice/assets/layouts/modern.css",
 		html: {
 			timer: `
 ${nav}

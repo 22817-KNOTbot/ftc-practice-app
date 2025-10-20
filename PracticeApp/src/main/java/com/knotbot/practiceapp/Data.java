@@ -27,7 +27,8 @@ public class Data {
 
 			@Override
 			public String toString() {
-				return "RunOverview [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", filename=" + filename
+				return "RunOverview [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", filename="
+						+ filename
 						+ "]";
 			}
 		}
@@ -75,24 +76,28 @@ public class Data {
 		public Map<String, Integer> info;
 		public List<Cycle> cycles;
 		public Integer[] teleopTimes;
+		public RunState.MatchPeriod startingMatchPeriod;
 
 		public RunData() {
-			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] {null, null});
+			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE);
 		}
 
-		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles, Integer[] teleopTimes) {
+		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles,
+				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod) {
 			this.name = name;
 			this.timestamp = timestamp;
 			this.score = score;
 			this.info = info;
 			this.cycles = cycles;
 			this.teleopTimes = teleopTimes;
+			this.startingMatchPeriod = startingMatchPeriod;
 		}
 
 		@Override
 		public String toString() {
 			return "RunData [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", info=" + info
-					+ ", cycles=" + cycles + ", teleopTimes=" + Arrays.toString(teleopTimes) + "]";
+					+ ", cycles=" + cycles + ", teleopTimes=" + Arrays.toString(teleopTimes) + ", startingMatchPeriod="
+					+ startingMatchPeriod + "]";
 		}
 
 		protected static RunData toData(String json) {
@@ -112,6 +117,50 @@ public class Data {
 		protected static String toJson(RunData runData) {
 			Moshi moshi = new Moshi.Builder().build();
 			JsonAdapter<RunData> jsonAdapter = moshi.adapter(RunData.class);
+
+			String json = jsonAdapter.toJson(runData);
+			// Log.v(TAG, json);
+			return json;
+		}
+	}
+
+	protected static class SaveRunData extends RunData {
+		public Long[] periodTimes;
+
+		public SaveRunData() {
+			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE, new Long[] {null, null, null});
+		}
+
+		public SaveRunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles,
+				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod, Long[] periodTimes) {
+			super(name, timestamp, score, info, cycles, teleopTimes, startingMatchPeriod);
+			this.periodTimes = periodTimes;
+		}
+
+		@Override
+		public String toString() {
+			return "RunData [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", info=" + info
+					+ ", cycles=" + cycles + ", teleopTimes=" + Arrays.toString(teleopTimes) + ", startingMatchPeriod="
+					+ startingMatchPeriod + "]" + ", periodTimes=" + Arrays.toString(periodTimes);
+		}
+
+		protected static SaveRunData toData(String json) {
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<SaveRunData> jsonAdapter = moshi.adapter(SaveRunData.class);
+
+			try {
+				SaveRunData runData = jsonAdapter.fromJson(json);
+				// Log.v(TAG, runData.toString());
+				return runData;
+			} catch (IOException | JsonDataException err) {
+				Log.e(TAG, "Error deserializing JSON", err);
+			}
+			return null;
+		}
+
+		protected static String toJson(SaveRunData runData) {
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<SaveRunData> jsonAdapter = moshi.adapter(SaveRunData.class);
 
 			String json = jsonAdapter.toJson(runData);
 			// Log.v(TAG, json);
@@ -188,7 +237,8 @@ public class Data {
 			this.running = false;
 		}
 
-		public RunState(boolean running, MatchPeriod matchPeriod, Float periodTime, Integer score, List<Cycle> cycles, Float cycleTime) {
+		public RunState(boolean running, MatchPeriod matchPeriod, Float periodTime, Integer score, List<Cycle> cycles,
+				Float cycleTime) {
 			this.running = running;
 			this.matchPeriod = matchPeriod;
 			this.periodTime = periodTime;

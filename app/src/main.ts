@@ -20,7 +20,7 @@ import {
 	Timer,
 	secsToMins,
 } from "./timer.ts";
-import { Message, RunData, RunState } from "./types.ts";
+import { Message, RunData, RunState, SaveRunData } from "./types.ts";
 import { getLayout } from "./layouts.ts";
 import { registerNavbar } from "./navbar.ts";
 import { getSetting } from "./settingsManager.ts";
@@ -59,7 +59,7 @@ const cycleTimer = document.getElementById("cycle-timer")!;
 const score = document.getElementById("score")!;
 const changesElement = document.getElementById("changes-box")!;
 
-const showSavePrompt = (data?: RunData) => {
+const showSavePrompt = (data: SaveRunData) => {
 	const modal = document.getElementById("saveModal")!;
 	const title = document.getElementById("modalHeader")!;
 	const content = document.getElementById("modalContent")!;
@@ -95,11 +95,11 @@ const showSavePrompt = (data?: RunData) => {
 
 	submit.addEventListener("click", (event) => {
 		event.preventDefault();
-		saveRun(input.value, Math.floor(date.getTime() / 1000));
+		data.name = input.value;
+		data.timestamp = Math.floor(date.getTime() / 1000);
+		saveRun(data);
 		hideSavePrompt();
 	});
-
-	if (!data) return;
 
 	let infoHeader: HTMLElement = content.appendChild(
 		document.createElement("h2")
@@ -190,45 +190,57 @@ const showSavePrompt = (data?: RunData) => {
 		).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
 	}
 
-	if (
-		data.teleopTimes != undefined &&
-		data.teleopTimes.length > 0 &&
-		(data.teleopTimes[0] != null || data.teleopTimes[1] != null)
-	) {
-		const teleopTimesHeader = content
-			.appendChild(document.createElement("h2"))
-			.appendChild(document.createElement("u"));
-		teleopTimesHeader.textContent = "TeleOp Times";
+	// TeleOp Times
+	const expectedStartTime =
+		data.startingMatchPeriod == "AUTO"
+			? getSetting("timerValues")["auto"] +
+			  getSetting("timerValues")["transition"]
+			: data.startingMatchPeriod == "TRANSITION"
+			? getSetting("timerValues")["transition"]
+			: 0;
+	const teleopStartDifference: number | null =
+		data.periodTimes[0] == null || data.periodTimes[1] == null
+			? null
+			: data.periodTimes[1] - data.periodTimes[0] - expectedStartTime;
+	data.teleopTimes[0] = teleopStartDifference;
 
-		const teleopTimesStart = content.appendChild(
-			document.createElement("div")
-		);
-		if (data.teleopTimes[0] != undefined) {
-			teleopTimesStart.textContent =
-				`TeleOp start: ${Math.abs(data.teleopTimes[0]) / 1e3}s ` +
-				`${
-					data.teleopTimes[0] == 0
-						? ""
-						: data.teleopTimes[0] > 0
-						? "late"
-						: "early"
-				}`;
-		}
+	const teleopTimesHeader = content
+		.appendChild(document.createElement("h2"))
+		.appendChild(document.createElement("u"));
+	teleopTimesHeader.textContent = "TeleOp Times";
 
-		const teleopTimesEnd = content.appendChild(
-			document.createElement("div")
-		);
-		if (data.teleopTimes[1] != undefined) {
-			teleopTimesEnd.textContent =
-				`TeleOp end: ${Math.abs(data.teleopTimes[1]) / 1e3}s ` +
-				`${
-					data.teleopTimes[1] == 0
-						? ""
-						: data.teleopTimes[1] > 0
-						? "late"
-						: "early"
-				}`;
-		}
+	const teleopTimesStart = content.appendChild(document.createElement("div"));
+	if (teleopStartDifference != null) {
+		teleopTimesStart.textContent =
+			`TeleOp start: ${Math.abs(teleopStartDifference) / 1e3}s ` +
+			`${
+				teleopStartDifference == 0
+					? ""
+					: teleopStartDifference > 0
+					? "late"
+					: "early"
+			}`;
+	}
+
+	const teleopEndDifference: number | null =
+		data.periodTimes[1] == null || data.periodTimes[2] == null
+			? null
+			: data.periodTimes[2] -
+			  data.periodTimes[1] -
+			  getSetting("timerValues")["teleop"];
+	data.teleopTimes[1] = teleopEndDifference;
+
+	const teleopTimesEnd = content.appendChild(document.createElement("div"));
+	if (teleopEndDifference != null) {
+		teleopTimesEnd.textContent =
+			`TeleOp end: ${Math.abs(teleopEndDifference) / 1e3}s ` +
+			`${
+				teleopEndDifference == 0
+					? ""
+					: teleopEndDifference > 0
+					? "late"
+					: "early"
+			}`;
 	}
 };
 
@@ -237,13 +249,11 @@ const hideSavePrompt = () => {
 	if (modal != null) modal.classList.remove("shownModal");
 };
 
-const saveRun = (name: string, timestamp?: number) => {
+const saveRun = (runData: RunData) => {
 	if (socket.readyState == WebSocket.OPEN) {
-		timestamp ??= Math.floor(Date.now() / 1000);
 		const data: Message = {
 			event: "saveRun",
-			name: name,
-			value: timestamp,
+			name: JSON.stringify(runData),
 		};
 		socket.send(JSON.stringify(data));
 	} else {
@@ -344,14 +354,22 @@ const handleMessage = (data: Message) => {
 				sounds.playSound("teleopbegin");
 				resetRun();
 			}
-			if (data.value) {
+			if (data.name && data.value) {
 				data.value /= 1000;
-				const positive = data.value > 0;
+				const expectedTime =
+					data.name == "AUTO"
+						? getSetting("timerValues")["auto"] +
+						  getSetting("timerValues")["transition"]
+						: data.name == "TRANSITION"
+						? getSetting("timerValues")["transition"]
+						: 0;
+				const difference = data.value - expectedTime;
+				const positive = difference > 0;
 				displayInfoColor(
 					changesElement,
 					"TeleOp started: " +
 						(positive ? "+" : "-") +
-						Math.abs(data.value).toFixed(3),
+						Math.abs(difference).toFixed(3),
 					positive ? "var(--success-color)" : "var(--failure-color)"
 				);
 			} else {
@@ -384,11 +402,13 @@ const handleMessage = (data: Message) => {
 			stopStopwatch();
 			if (data.value) {
 				data.value /= 1000;
-				const positive = data.value > 0;
+				const difference =
+					data.value - getSetting("timerValues")["teleop"];
+				const positive = difference > 0;
 				displayInfoColor(
 					changesElement,
 					"TeleOp ended: " +
-						(data.value > 0 ? "+" : "-") +
+						(difference > 0 ? "+" : "-") +
 						Math.abs(data.value).toFixed(3),
 					positive ? "var(--failure-color)" : "var(--success-color)"
 				);
@@ -396,10 +416,8 @@ const handleMessage = (data: Message) => {
 				displayInfo(changesElement, "Run ended");
 			}
 			if (data.name) {
-				const json = JSON.parse(data.name) as RunData;
+				const json = JSON.parse(data.name) as SaveRunData;
 				showSavePrompt(json);
-			} else {
-				showSavePrompt();
 			}
 			break;
 		case "error":

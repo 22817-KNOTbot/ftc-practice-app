@@ -86,6 +86,7 @@ public class PracticeApp {
 			PracticeApp.manager = manager;
 			instance.attachWebHandler(manager);
 			instance.attachAssetWebHandlers(manager, "practice/assets");
+			instance.attachAssetWebHandlers(manager, "practice/assets/layouts");
 			instance.attachDataWebHandlers(manager);
 			instance.attachDeleteHandler(manager);
 			instance.attachEditHandler(manager);
@@ -95,6 +96,8 @@ public class PracticeApp {
 	private void attachWebHandler(WebHandlerManager manager) {
 		manager.register(WEB_PATH, createWebHandler("practice/index.html"));
 		manager.register(WEB_PATH + "/stats", createWebHandler("practice/stats.html"));
+		manager.register(WEB_PATH + "/settings", createWebHandler("practice/settings.html"));
+		manager.register(WEB_PATH + "/about", createWebHandler("practice/about.html"));
 	}
 
 	private void attachAssetWebHandlers(WebHandlerManager manager, String path) {
@@ -158,7 +161,7 @@ public class PracticeApp {
 	}
 
 	private void attachEditHandler(WebHandlerManager manager) {
-		manager.register(WEB_PATH + "/data/edit", createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
+		manager.register(WEB_PATH + "/data/edit", createEditHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
 	}
 
 	private WebHandler createWebHandler(String file) {
@@ -245,7 +248,7 @@ public class PracticeApp {
 				if (session.getMethod() == NanoHTTPD.Method.POST) {
 					String referer = session.getHeaders().getOrDefault("referer", "").trim();
 					String filename = session.getHeaders().get("filename");
-					String runDataString = session.getHeaders().get("runData");
+					String runDataString = session.getHeaders().get("run-data");
 					Data.RunData runData = Data.RunData.toData(runDataString);
 					File file = new File(path, filename);
 					if (!referer.equals("http://192.168.43.1:8080/practice/stats")) {
@@ -443,10 +446,8 @@ public class PracticeApp {
 						Log.e(TAG, "Malformed save run message. Given data \"" + json + "\"");
 						return;
 					}
-					if (message.name == "" || RobotEvent.runData == null) return;
-					RobotEvent.runData.name = message.name;
-					RobotEvent.runData.timestamp = message.value;
-					DataStorage.saveRun(RobotEvent.runData);
+					if (message.name == "") return;
+					DataStorage.saveRun(Data.RunData.toData(message.name));
 					RobotEvent.runData = null;
 					break;
 				default:

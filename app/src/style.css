@@ -308,11 +308,11 @@ input[type="submit"] {
 }
 
 #modalContent .editModalDeleteButton {
-	background-image: url("/practice/src/assets/icons/cross.svg");
+	background-image: url("/practice/assets/icons/cross.svg");
 }
 
 #modalContent .editModalAddButton {
-	background-image: url("/practice/src/assets/icons/plus.svg");
+	background-image: url("/practice/assets/icons/plus.svg");
 }
 
 #modalContent ul {

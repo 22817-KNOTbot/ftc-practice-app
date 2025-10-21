@@ -442,11 +442,10 @@ public class PracticeApp {
 					Log.v(TAG, "Sent run state: \"" + runStateJson + "\"");
 					break;
 				case "saveRun":
-					if (message.name == null || message.value == null) {
+					if (message.name == null || message.name == "") {
 						Log.e(TAG, "Malformed save run message. Given data \"" + json + "\"");
 						return;
 					}
-					if (message.name == "") return;
 					DataStorage.saveRun(Data.RunData.toData(message.name));
 					RobotEvent.runData = null;
 					break;

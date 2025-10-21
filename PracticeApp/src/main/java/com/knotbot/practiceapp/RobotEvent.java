@@ -21,7 +21,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	public static Data.RunData runData;
 	protected static Data.RunState.MatchPeriod startingMatchPeriod = Data.RunState.MatchPeriod.NONE;
 	protected static Data.RunState.MatchPeriod matchPeriod = Data.RunState.MatchPeriod.NONE;
-	protected static Long[] periodTimes = {null, null, null};
+	protected static Long[] periodTimes = { null, null, null };
 
 	protected static void registerWsHandler(PracticeApp.WsHandler wsHandler) {
 		RobotEvent.wsHandler = wsHandler;
@@ -31,7 +31,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		RobotEvent.wsHandler = null;
 	}
 
-	public static void start() { 
+	public static void start() {
 		startAuto();
 	}
 
@@ -50,7 +50,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			wsHandler.sendMessage(new PracticeApp.Message("startAuto"));
 		}
 	}
-	
+
 	public static void startTransition() {
 		running = true;
 		startingMatchPeriod = Data.RunState.MatchPeriod.TRANSITION;
@@ -84,7 +84,8 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 
 		if (wsHandler != null) {
 			if (periodTimes[0] != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("startTeleop", matchPeriod.toString(), periodTimes[1] - periodTimes[0]));
+				wsHandler.sendMessage(new PracticeApp.Message("startTeleop", startingMatchPeriod.toString(),
+						periodTimes[1] - periodTimes[0]));
 			} else {
 				wsHandler.sendMessage(new PracticeApp.Message("startTeleop"));
 			}
@@ -121,7 +122,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			count++;
 			runData.info.put(type, count);
 
-			Data.Cycle cycle = new Data.Cycle(timeMs/1000f, type, score);
+			Data.Cycle cycle = new Data.Cycle(timeMs / 1000f, type, score);
 			runData.cycles.add(cycle);
 		}
 		if (wsHandler != null) {
@@ -148,28 +149,28 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 	}
 
 	public static void runEnd() {
-		runData.startingMatchPeriod = startingMatchPeriod;
 		if (matchPeriod == Data.RunState.MatchPeriod.TELEOP) {
 			periodTimes[2] = System.currentTimeMillis();
 		}
+		runData.startingMatchPeriod = startingMatchPeriod;
+		Data.SaveRunData saveRunData = new Data.SaveRunData(runData.name, runData.timestamp, runData.score, runData.info,
+				runData.cycles, runData.teleopTimes, runData.startingMatchPeriod, periodTimes);
 
 		if (wsHandler != null) {
-			String json = Data.RunData.toJson(runData);
-			if (periodTimes[2] != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("end", json, periodTimes[2] - periodTimes[1]));
-			} else {
-				wsHandler.sendMessage(new PracticeApp.Message("end", json));
-			}
+			String json = Data.SaveRunData.toJson(saveRunData);
+			wsHandler.sendMessage(new PracticeApp.Message("end", json));
 		}
 
 		DataStorage.tempSaveRun(runData, "unsaved");
 	}
 
 	@Override
-	public void onOpModePreInit(OpMode opMode) {}
-	
+	public void onOpModePreInit(OpMode opMode) {
+	}
+
 	@Override
-	public void onOpModePreStart(OpMode opMode) {}
+	public void onOpModePreStart(OpMode opMode) {
+	}
 
 	@Override
 	public void onOpModePostStop(OpMode opMode) {

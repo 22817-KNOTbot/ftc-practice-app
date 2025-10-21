@@ -807,11 +807,14 @@ function showRunEditModal(data: RunData, filename?: string) {
 		}
 		if (teleopTimesEndInput.value.trim().length != 0) {
 			teleopTimes = [
-				isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue,
-				teleopTimesEndValue,
+				Math.floor(
+					(isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue) *
+						1000
+				),
+				Math.floor(teleopTimesEndValue * 1000),
 			];
 		} else if (teleopTimesStartInput.value.trim().length != 0) {
-			teleopTimes = [teleopTimesStartValue];
+			teleopTimes = [Math.floor(teleopTimesStartValue) * 1000];
 		}
 
 		const editedRunData = {

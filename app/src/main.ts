@@ -193,16 +193,18 @@ const showSavePrompt = (data: SaveRunData) => {
 	// TeleOp Times
 	const expectedStartTime =
 		data.startingMatchPeriod == "AUTO"
-			? getSetting("timerValues")["auto"] +
-			  getSetting("timerValues")["transition"]
+			? timerValues["auto"] + timerValues["transition"]
 			: data.startingMatchPeriod == "TRANSITION"
-			? getSetting("timerValues")["transition"]
+			? timerValues["transition"]
 			: 0;
 	const teleopStartDifference: number | null =
 		data.periodTimes[0] == null || data.periodTimes[1] == null
 			? null
-			: data.periodTimes[1] - data.periodTimes[0] - expectedStartTime;
-	data.teleopTimes[0] = teleopStartDifference;
+			: (data.periodTimes[1] - data.periodTimes[0]) / 1e3 -
+			  expectedStartTime;
+	if (teleopStartDifference != null) {
+		data.teleopTimes[0] = Math.floor(teleopStartDifference * 1e3);
+	}
 
 	const teleopTimesHeader = content
 		.appendChild(document.createElement("h2"))
@@ -212,7 +214,7 @@ const showSavePrompt = (data: SaveRunData) => {
 	const teleopTimesStart = content.appendChild(document.createElement("div"));
 	if (teleopStartDifference != null) {
 		teleopTimesStart.textContent =
-			`TeleOp start: ${Math.abs(teleopStartDifference) / 1e3}s ` +
+			`TeleOp start: ${Math.abs(teleopStartDifference).toFixed(3)}s ` +
 			`${
 				teleopStartDifference == 0
 					? ""
@@ -225,15 +227,16 @@ const showSavePrompt = (data: SaveRunData) => {
 	const teleopEndDifference: number | null =
 		data.periodTimes[1] == null || data.periodTimes[2] == null
 			? null
-			: data.periodTimes[2] -
-			  data.periodTimes[1] -
-			  getSetting("timerValues")["teleop"];
-	data.teleopTimes[1] = teleopEndDifference;
+			: (data.periodTimes[2] - data.periodTimes[1]) / 1e3 -
+			  timerValues["teleop"];
+	if (teleopEndDifference != null) {
+		data.teleopTimes[1] = Math.floor(teleopEndDifference * 1e3);
+	}
 
 	const teleopTimesEnd = content.appendChild(document.createElement("div"));
 	if (teleopEndDifference != null) {
 		teleopTimesEnd.textContent =
-			`TeleOp end: ${Math.abs(teleopEndDifference) / 1e3}s ` +
+			`TeleOp end: ${Math.abs(teleopEndDifference).toFixed(3)}s ` +
 			`${
 				teleopEndDifference == 0
 					? ""
@@ -267,15 +270,19 @@ const setState = (runState: RunState) => {
 
 	const period = runState.matchPeriod;
 	const periodTime = runState.periodTime;
+	let totalTime: number;
 	switch (period) {
 		case "AUTO":
-			setAutoTimer(150 - periodTime);
+			totalTime = timerValues["auto"] + timerValues["teleop"];
+			setAutoTimer(totalTime - periodTime);
 			break;
 		case "TRANSITION":
-			setTransitionTimer(8 - periodTime);
+			totalTime = timerValues["transition"];
+			setTransitionTimer(totalTime - periodTime);
 			break;
 		case "TELEOP":
-			setTeleopTimer(120 - periodTime);
+			totalTime = timerValues["teleop"];
+			setTeleopTimer(totalTime - periodTime);
 			break;
 		default:
 			timer.setTimer(0);
@@ -358,10 +365,9 @@ const handleMessage = (data: Message) => {
 				data.value /= 1000;
 				const expectedTime =
 					data.name == "AUTO"
-						? getSetting("timerValues")["auto"] +
-						  getSetting("timerValues")["transition"]
+						? timerValues["auto"] + timerValues["transition"]
 						: data.name == "TRANSITION"
-						? getSetting("timerValues")["transition"]
+						? timerValues["transition"]
 						: 0;
 				const difference = data.value - expectedTime;
 				const positive = difference > 0;
@@ -370,7 +376,7 @@ const handleMessage = (data: Message) => {
 					"TeleOp started: " +
 						(positive ? "+" : "-") +
 						Math.abs(difference).toFixed(3),
-					positive ? "var(--success-color)" : "var(--failure-color)"
+					positive ? "var(--failure-color)" : "var(--success-color)"
 				);
 			} else {
 				displayInfo(changesElement, "TeleOp started");
@@ -400,24 +406,34 @@ const handleMessage = (data: Message) => {
 			running = false;
 			timer.stopTimer();
 			stopStopwatch();
-			if (data.value) {
-				data.value /= 1000;
-				const difference =
-					data.value - getSetting("timerValues")["teleop"];
-				const positive = difference > 0;
-				displayInfoColor(
-					changesElement,
-					"TeleOp ended: " +
-						(difference > 0 ? "+" : "-") +
-						Math.abs(data.value).toFixed(3),
-					positive ? "var(--failure-color)" : "var(--success-color)"
-				);
+			if (data.name) {
+				const runData = JSON.parse(data.name) as SaveRunData;
+
+				const difference: number | null =
+					runData.periodTimes[1] == null ||
+					runData.periodTimes[2] == null
+						? null
+						: (runData.periodTimes[2] - runData.periodTimes[1]) /
+								1e3 -
+						  timerValues["teleop"];
+				if (difference != null) {
+					const positive = difference > 0;
+					displayInfoColor(
+						changesElement,
+						"TeleOp ended: " +
+							(difference > 0 ? "+" : "-") +
+							Math.abs(difference).toFixed(3),
+						positive
+							? "var(--failure-color)"
+							: "var(--success-color)"
+					);
+				} else {
+					displayInfo(changesElement, "Run ended");
+				}
+
+				showSavePrompt(runData);
 			} else {
 				displayInfo(changesElement, "Run ended");
-			}
-			if (data.name) {
-				const json = JSON.parse(data.name) as SaveRunData;
-				showSavePrompt(json);
 			}
 			break;
 		case "error":

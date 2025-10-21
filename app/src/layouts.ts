@@ -11,12 +11,12 @@ const layouts: Layout[] = [
 	},
 	{
 		name: "Green Screen",
-		imagePath: "/practice/assets/layouts/classic_new.jpg",
+		imagePath: "/practice/assets/layouts/greenScreen.jpg",
 		layoutDataGetter: getGreenScreenLayoutData,
 	},
 	{
 		name: "Classic",
-		imagePath: "/practice/assets/layouts/classic_new.jpg",
+		imagePath: "/practice/assets/layouts/classic.jpg",
 		layoutDataGetter: getClassicLayoutData,
 	},
 ];

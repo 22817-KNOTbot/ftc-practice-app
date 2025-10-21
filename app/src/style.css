@@ -274,14 +274,14 @@ input[type="submit"] {
 	margin: 1vh 0;
 }
 
-#runModal .editModalInput {
+.modal .editModalInput {
 	padding: 1ch;
 	border-radius: 5vmax;
 	border-style: solid;
 	background-color: var(--accent-color);
 }
 
-#runModal .editModalInput.invalid {
+.modal .editModalInput.invalid {
 	border-style: solid;
 	border-color: red;
 }

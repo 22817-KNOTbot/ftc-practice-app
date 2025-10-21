@@ -5,7 +5,7 @@
 nav {
 	--total-height: 40vh;
 	width: 6vw;
-	height: calc(var(--total-height) + 4vh);
+	height: calc(var(--total-height) + 4vw);
 	position: fixed;
 	left: 1%;
 	top: 2%;
@@ -14,7 +14,7 @@ nav {
 	justify-content: start;
 	align-items: center;
 	border-radius: 100vmax;
-	padding: 1vh 0.3vw;
+	padding: 0.5vw 0.3vw;
 	gap: 0.2lh;
 	box-sizing: border-box;
 	background: var(--secondary-bg-color);
@@ -32,8 +32,8 @@ nav.collapsed {
 nav>a {
 	flex: 1;
 	width: 100%;
-	min-height: 1.5lh;
-	max-height: 1.5lh;
+	min-height: 2.3vw;
+	max-height: 2.3vw;
 	font-size: 1.2vw;
 	text-align: center;
 }

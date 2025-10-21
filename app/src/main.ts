@@ -20,7 +20,7 @@ import {
 	Timer,
 	secsToMins,
 } from "./timer.ts";
-import { Message, RunData, RunState, SaveRunData } from "./types.ts";
+import { Cycle, Message, RunData, RunState, SaveRunData } from "./types.ts";
 import { getLayout } from "./layouts.ts";
 import { registerNavbar } from "./navbar.ts";
 import { getSetting } from "./settingsManager.ts";
@@ -43,6 +43,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML =
 
 registerNavbar(document.querySelector("nav")!);
 
+document.addEventListener("click", () => {
+	console.log("");
+});
 const sounds: Sounds = new Sounds();
 sounds.preload();
 registerSounds(sounds);
@@ -91,15 +94,138 @@ const showSavePrompt = (data: SaveRunData) => {
 	submit.setAttribute("type", "submit");
 	submit.value = "Submit";
 
-	const date: Date = new Date();
-
 	submit.addEventListener("click", (event) => {
 		event.preventDefault();
-		data.name = input.value;
-		data.timestamp = Math.floor(date.getTime() / 1000);
-		saveRun(data);
+		const runData = updateData();
+		runData.name = input.value;
+		saveRun(runData);
 		hideSavePrompt();
 	});
+
+	// Updaters
+	const updateData = (): RunData => {
+		const dateNum = subtitleInput.valueAsNumber;
+		let date: Date;
+		if (isNaN(dateNum)) {
+			date = new Date(subtitleInput.placeholder);
+		} else {
+			date = new Date(dateNum + rawDate.getTimezoneOffset() * 60 * 1000);
+		}
+
+		let score = 0;
+		const info: RunData["info"] = {};
+		const cycles: Cycle[] = [];
+		for (let i = 0; i < timeInputs.length; i++) {
+			const timeInput = timeInputs[i];
+			const typeInput = typeInputs[i];
+			const scoreInput = scoreInputs[i];
+
+			if (
+				timeInput.value.trim().length <= 0 &&
+				typeInput.value.trim().length <= 0 &&
+				scoreInput.value.trim().length <= 0 &&
+				timeInput.placeholder.trim().length <= 0 &&
+				typeInput.placeholder.trim().length <= 0 &&
+				scoreInput.placeholder.trim().length <= 0
+			)
+				continue;
+
+			let timeValue = Number(timeInput.value);
+			let typeValue = typeInput.value;
+			let scoreValue = Number(scoreInput.value);
+
+			if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+				timeValue = Number(timeInput.placeholder);
+			}
+			if (typeValue.trim().length == 0) {
+				typeValue = typeInput.placeholder;
+			}
+			if (
+				isNaN(scoreValue) ||
+				!isFinite(scoreValue) ||
+				!Number.isInteger(scoreValue)
+			) {
+				scoreValue = Number(scoreInput.placeholder);
+			}
+
+			score += scoreValue;
+			info[typeValue] = (info[typeValue] ?? 0) + 1;
+
+			cycles.push({
+				time: timeValue,
+				type: typeValue,
+				score: scoreValue,
+			});
+		}
+
+		let teleopTimes: RunData["teleopTimes"] = [];
+		let teleopTimesStartValue = Number(teleopTimesStartInput.value);
+		let teleopTimesEndValue = Number(teleopTimesEndInput.value);
+		if (isNaN(teleopTimesStartValue) || !isFinite(teleopTimesStartValue)) {
+			teleopTimesStartValue = Number(teleopTimesStartInput.placeholder);
+		}
+		if (isNaN(teleopTimesEndValue) || !isFinite(teleopTimesEndValue)) {
+			teleopTimesEndValue = Number(teleopTimesEndInput.placeholder);
+		}
+		if (teleopTimesEndInput.value.trim().length != 0) {
+			teleopTimes = [
+				Math.floor(
+					(isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue) *
+						1000
+				),
+				Math.floor(teleopTimesEndValue * 1000),
+			];
+		} else if (teleopTimesStartInput.value.trim().length != 0) {
+			teleopTimes = [Math.floor(teleopTimesStartValue) * 1000];
+		}
+
+		return {
+			name: data.name,
+			timestamp: Math.floor(date.getTime() / 1000),
+			score: score,
+			info: info,
+			cycles: cycles,
+			teleopTimes: teleopTimes,
+			startingMatchPeriod: data.startingMatchPeriod,
+		};
+	};
+
+	const updateLiveInfo = (data: RunData) => {
+		infoList.textContent = "";
+		for (const type in data.info) {
+			const li = infoList.appendChild(document.createElement("li"));
+			li.textContent = `${type}: ${data.info[type]}`;
+		}
+
+		if (data.cycles.length > 0) {
+			const cycleTimes = data.cycles.map((cycle) => {
+				return cycle.time;
+			});
+			const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
+			const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
+			const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
+			const averageTime = cycleTimeSum / cycleTimes.length;
+			const secsPerPoint = cycleTimeSum / data.score;
+			const pointsPerSec = data.score / cycleTimeSum;
+
+			cycleInfoList.textContent = "";
+			cycleInfoList.appendChild(
+				document.createElement("li")
+			).textContent = `Min: ${minTime.toFixed(3)}s`;
+			cycleInfoList.appendChild(
+				document.createElement("li")
+			).textContent = `Max: ${maxTime.toFixed(3)}s`;
+			cycleInfoList.appendChild(
+				document.createElement("li")
+			).textContent = `Mean: ${averageTime.toFixed(3)}s`;
+			cycleInfoList.appendChild(
+				document.createElement("li")
+			).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
+			cycleInfoList.appendChild(
+				document.createElement("li")
+			).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
+		}
+	};
 
 	let infoHeader: HTMLElement = content.appendChild(
 		document.createElement("h2")
@@ -107,90 +233,161 @@ const showSavePrompt = (data: SaveRunData) => {
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
 	infoHeader.textContent = "Info";
 
-	const subtitle = content.appendChild(document.createElement("h3"));
-	subtitle.className = "modalContentSubtitle";
-	const formatDate = date.toLocaleString(undefined, {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
+	const subtitleDiv = content.appendChild(document.createElement("div"));
+	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
+	const subtitleInput = subtitleDiv.appendChild<HTMLInputElement>(
+		document.createElement("input")
+	);
+	subtitle.className = "modalContentSubtitle editModalSubtitle";
+	subtitleInput.type = "datetime-local";
+	subtitleInput.id = "editModalDate";
+	subtitleInput.classList.add("editModalInput");
+	const rawDate: Date = new Date(data.timestamp * 1000);
+	// Date inputs don't use time zones. Manually adjusting for time zones before passing it as input
+	subtitle.textContent = "Date: ";
+	subtitleInput.valueAsNumber =
+		rawDate.getTime() - rawDate.getTimezoneOffset() * 60 * 1000;
+	subtitleInput.placeholder = rawDate.toString();
+	subtitleInput.addEventListener("focusout", () => {
+		const date = subtitleInput.valueAsNumber;
+		if (isNaN(date)) {
+			subtitleInput.classList.add("invalid");
+		} else {
+			subtitleInput.classList.remove("invalid");
+		}
 	});
-	subtitle.textContent = `Date: ${formatDate}`;
 
 	const infoList = content.appendChild(document.createElement("ul"));
 
-	for (const type in data.info) {
-		const li = infoList.appendChild(document.createElement("li"));
-		li.textContent = `${type}: ${data.info[type]}`;
-	}
+	const cycleHeader = content
+		.appendChild(document.createElement("h2"))
+		.appendChild(document.createElement("u"));
+	cycleHeader.textContent = "Cycles";
 
-	if (data.cycles.length > 0) {
-		const cycleHeader = content
-			.appendChild(document.createElement("h2"))
-			.appendChild(document.createElement("u"));
-		cycleHeader.textContent = "Cycles";
+	const cycleTable = content.appendChild(document.createElement("table"));
+	cycleTable.id = "cycleTable";
+	cycleTable.className = "editCycleTable";
+	const tableHeaderRow = cycleTable.appendChild(document.createElement("tr"));
+	let header = tableHeaderRow.appendChild(document.createElement("th"));
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Time (s)";
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Type";
+	header = tableHeaderRow.appendChild(document.createElement("th"));
+	header.textContent = "Score";
 
-		const cycleTable = content.appendChild(document.createElement("table"));
-		cycleTable.id = "cycleTable";
-		const tableHeaderRow = cycleTable.appendChild(
-			document.createElement("tr")
+	const timeInputs: HTMLInputElement[] = [];
+	const typeInputs: HTMLInputElement[] = [];
+	const scoreInputs: HTMLInputElement[] = [];
+
+	const addRow = (cycle?: Cycle) => {
+		const row = cycleTable.appendChild(document.createElement("tr"));
+		let tableData = row.appendChild(document.createElement("td"));
+		const deleteButton = tableData.appendChild(
+			document.createElement("button")
 		);
-		let header = tableHeaderRow.appendChild(document.createElement("th"));
-		header.textContent = "Time (s)";
-		header = tableHeaderRow.appendChild(document.createElement("th"));
-		header.textContent = "Type";
-		header = tableHeaderRow.appendChild(document.createElement("th"));
-		header.textContent = "Score";
+		deleteButton.classList.add("editModalDeleteButton");
 
-		for (const cycle in data.cycles) {
-			const row = cycleTable.appendChild(document.createElement("tr"));
-			let tableData = row.appendChild(document.createElement("td"));
-			tableData.textContent = data.cycles[cycle].time
-				.toFixed(3)
-				.toString();
-			tableData = row.appendChild(document.createElement("td"));
-			tableData.textContent = data.cycles[cycle].type;
-			tableData = row.appendChild(document.createElement("td"));
-			tableData.textContent = data.cycles[cycle].score.toString();
-		}
-
-		const cycleInfoSubtitle = content.appendChild(
-			document.createElement("h3")
+		tableData = row.appendChild(document.createElement("td"));
+		const timeInput = tableData.appendChild(
+			document.createElement("input")
 		);
-		cycleInfoSubtitle.className = "modalContentSubtitle";
-		cycleInfoSubtitle.textContent = "Statistics";
+		timeInput.classList.add("editModalInput", "editModalTableInput");
+		timeInputs.push(timeInput);
+		timeInput.value = cycle?.time.toString() ?? "";
+		timeInput.placeholder = cycle?.time.toString() ?? "";
 
-		const cycleInfoList = content.appendChild(document.createElement("ul"));
-		const cycleTimes = data.cycles.map((cycle) => {
-			return cycle.time;
+		tableData = row.appendChild(document.createElement("td"));
+		const typeInput = tableData.appendChild(
+			document.createElement("input")
+		);
+		typeInput.classList.add("editModalInput", "editModalTableInput");
+		typeInputs.push(typeInput);
+		typeInput.value = cycle?.type ?? "";
+		typeInput.placeholder = cycle?.type ?? "";
+
+		tableData = row.appendChild(document.createElement("td"));
+		const scoreInput = tableData.appendChild(
+			document.createElement("input")
+		);
+		scoreInput.classList.add("editModalInput", "editModalTableInput");
+		scoreInputs.push(scoreInput);
+		scoreInput.value = cycle?.score.toString() ?? "";
+		scoreInput.placeholder = cycle?.score.toString() ?? "";
+
+		// Event listeners
+		deleteButton.addEventListener("click", () => {
+			cycleTable.removeChild(row);
+			timeInputs.splice(timeInputs.indexOf(timeInput), 1);
+			typeInputs.splice(typeInputs.indexOf(typeInput), 1);
+			scoreInputs.splice(scoreInputs.indexOf(scoreInput), 1);
+			updateLiveInfo(updateData());
 		});
 
-		const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-		const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-		const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
-		const averageTime = cycleTimeSum / cycleTimes.length;
-		const secsPerPoint = cycleTimeSum / data.score;
-		const pointsPerSec = data.score / cycleTimeSum;
+		timeInput.addEventListener("focusout", () => {
+			const parsedValue = Number(timeInput.value);
+			if (
+				(isNaN(parsedValue) ||
+					!isFinite(parsedValue) ||
+					parsedValue <= 0) &&
+				timeInput.value.length > 0
+			) {
+				timeInput.classList.add("invalid");
+			} else {
+				timeInput.classList.remove("invalid");
+			}
+			updateLiveInfo(updateData());
+		});
 
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Min: ${minTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Max: ${maxTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Mean: ${averageTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
+		typeInput.addEventListener("focusout", () => {
+			const value = typeInput.value;
+			if (value.trim().length == 0 && value.length > 0) {
+				typeInput.classList.add("invalid");
+			} else {
+				typeInput.classList.remove("invalid");
+			}
+			updateLiveInfo(updateData());
+		});
+
+		scoreInput.addEventListener("focusout", () => {
+			const parsedValue = Number(scoreInput.value);
+			if (
+				(isNaN(parsedValue) ||
+					!isFinite(parsedValue) ||
+					!Number.isInteger(parsedValue)) &&
+				scoreInput.value.length > 0
+			) {
+				scoreInput.classList.add("invalid");
+			} else {
+				scoreInput.classList.remove("invalid");
+			}
+			updateLiveInfo(updateData());
+		});
+	};
+
+	for (const cycle of data.cycles) {
+		addRow(cycle);
 	}
 
-	// TeleOp Times
+	const row = cycleTable.appendChild(document.createElement("tr"));
+	const tableData = row.appendChild(document.createElement("td"));
+	const addButton = tableData.appendChild(document.createElement("button"));
+	addButton.classList.add("editModalAddButton");
+	addButton.addEventListener("click", () => {
+		cycleTable.removeChild(row);
+		addRow();
+		cycleTable.appendChild(row);
+		updateLiveInfo(updateData());
+	});
+
+	const cycleInfoSubtitle = content.appendChild(document.createElement("h3"));
+	cycleInfoSubtitle.className = "modalContentSubtitle";
+	cycleInfoSubtitle.textContent = "Statistics";
+
+	const cycleInfoList = content.appendChild(document.createElement("ul"));
+
+	// TeleOp Times calculations
+	data.teleopTimes ??= [];
 	const expectedStartTime =
 		data.startingMatchPeriod == "AUTO"
 			? timerValues["auto"] + timerValues["transition"]
@@ -206,24 +403,6 @@ const showSavePrompt = (data: SaveRunData) => {
 		data.teleopTimes[0] = Math.floor(teleopStartDifference * 1e3);
 	}
 
-	const teleopTimesHeader = content
-		.appendChild(document.createElement("h2"))
-		.appendChild(document.createElement("u"));
-	teleopTimesHeader.textContent = "TeleOp Times";
-
-	const teleopTimesStart = content.appendChild(document.createElement("div"));
-	if (teleopStartDifference != null) {
-		teleopTimesStart.textContent =
-			`TeleOp start: ${Math.abs(teleopStartDifference).toFixed(3)}s ` +
-			`${
-				teleopStartDifference == 0
-					? ""
-					: teleopStartDifference > 0
-					? "late"
-					: "early"
-			}`;
-	}
-
 	const teleopEndDifference: number | null =
 		data.periodTimes[1] == null || data.periodTimes[2] == null
 			? null
@@ -233,18 +412,67 @@ const showSavePrompt = (data: SaveRunData) => {
 		data.teleopTimes[1] = Math.floor(teleopEndDifference * 1e3);
 	}
 
+	// TeleOp Times display
+	const teleopTimesHeader = content
+		.appendChild(document.createElement("h2"))
+		.appendChild(document.createElement("u"));
+	teleopTimesHeader.textContent = "TeleOp Times";
+
+	const teleopTimesStart = content.appendChild(document.createElement("div"));
+	teleopTimesStart.classList.add("editModalTeleopLine");
+	teleopTimesStart.textContent = "TeleOp start: ";
+	const teleopTimesStartInput = teleopTimesStart.appendChild(
+		document.createElement("input")
+	);
+	teleopTimesStartInput.classList.add("editModalInput");
+
+	const teleopStartTime =
+		data.teleopTimes[0] != null
+			? (data.teleopTimes[0] / 1e3).toFixed(3)
+			: "";
+	teleopTimesStartInput.value = teleopStartTime;
+	teleopTimesStartInput.placeholder = teleopStartTime;
+
+	teleopTimesStartInput.addEventListener("focusout", () => {
+		const parsedValue = Number(teleopTimesStartInput.value);
+		if (
+			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
+			teleopTimesStartInput.value.trim().length > 0
+		) {
+			teleopTimesStartInput.classList.add("invalid");
+		} else {
+			teleopTimesStartInput.classList.remove("invalid");
+		}
+	});
+
 	const teleopTimesEnd = content.appendChild(document.createElement("div"));
-	if (teleopEndDifference != null) {
-		teleopTimesEnd.textContent =
-			`TeleOp end: ${Math.abs(teleopEndDifference).toFixed(3)}s ` +
-			`${
-				teleopEndDifference == 0
-					? ""
-					: teleopEndDifference > 0
-					? "late"
-					: "early"
-			}`;
-	}
+	teleopTimesEnd.classList.add("editModalTeleopLine");
+	teleopTimesEnd.textContent = "TeleOp end: ";
+	const teleopTimesEndInput = teleopTimesEnd.appendChild(
+		document.createElement("input")
+	);
+	teleopTimesEndInput.classList.add("editModalInput");
+
+	const teleopEndTime =
+		data.teleopTimes[1] != null
+			? (data.teleopTimes[1] / 1e3).toFixed(3)
+			: "";
+	teleopTimesEndInput.value = teleopEndTime;
+	teleopTimesEndInput.placeholder = teleopEndTime;
+
+	teleopTimesEndInput.addEventListener("focusout", () => {
+		const parsedValue = Number(teleopTimesEndInput.value);
+		if (
+			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
+			teleopTimesEndInput.value.trim().length > 0
+		) {
+			teleopTimesEndInput.classList.add("invalid");
+		} else {
+			teleopTimesEndInput.classList.remove("invalid");
+		}
+	});
+
+	updateLiveInfo(updateData());
 };
 
 const hideSavePrompt = () => {

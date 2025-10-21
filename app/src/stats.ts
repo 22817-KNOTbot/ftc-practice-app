@@ -555,12 +555,12 @@ function showRunEditModal(data: RunData, filename?: string) {
 			const scoreInput = scoreInputs[i];
 
 			if (
-				timeInput.value.trim().length <= 0 &&
-				typeInput.value.trim().length <= 0 &&
-				scoreInput.value.trim().length <= 0 &&
-				timeInput.placeholder.trim().length <= 0 &&
-				typeInput.placeholder.trim().length <= 0 &&
-				scoreInput.placeholder.trim().length <= 0
+				(timeInput.value.trim().length <= 0 &&
+					timeInput.placeholder.trim().length <= 0) ||
+				(typeInput.value.trim().length <= 0 &&
+					typeInput.placeholder.trim().length <= 0) ||
+				(scoreInput.value.trim().length <= 0 &&
+					scoreInput.placeholder.trim().length <= 0)
 			)
 				continue;
 
@@ -631,6 +631,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 			li.textContent = `${type}: ${data.info[type]}`;
 		}
 
+		cycleInfoList.textContent = "";
 		if (data.cycles.length > 0) {
 			const cycleTimes = data.cycles.map((cycle) => {
 				return cycle.time;
@@ -642,7 +643,6 @@ function showRunEditModal(data: RunData, filename?: string) {
 			const secsPerPoint = cycleTimeSum / data.score;
 			const pointsPerSec = data.score / cycleTimeSum;
 
-			cycleInfoList.textContent = "";
 			cycleInfoList.appendChild(
 				document.createElement("li")
 			).textContent = `Min: ${minTime.toFixed(3)}s`;

@@ -121,12 +121,12 @@ const showSavePrompt = (data: SaveRunData) => {
 			const scoreInput = scoreInputs[i];
 
 			if (
-				timeInput.value.trim().length <= 0 &&
-				typeInput.value.trim().length <= 0 &&
-				scoreInput.value.trim().length <= 0 &&
-				timeInput.placeholder.trim().length <= 0 &&
-				typeInput.placeholder.trim().length <= 0 &&
-				scoreInput.placeholder.trim().length <= 0
+				(timeInput.value.trim().length <= 0 &&
+					timeInput.placeholder.trim().length <= 0) ||
+				(typeInput.value.trim().length <= 0 &&
+					typeInput.placeholder.trim().length <= 0) ||
+				(scoreInput.value.trim().length <= 0 &&
+					scoreInput.placeholder.trim().length <= 0)
 			)
 				continue;
 
@@ -197,6 +197,7 @@ const showSavePrompt = (data: SaveRunData) => {
 			li.textContent = `${type}: ${data.info[type]}`;
 		}
 
+		cycleInfoList.textContent = "";
 		if (data.cycles.length > 0) {
 			const cycleTimes = data.cycles.map((cycle) => {
 				return cycle.time;
@@ -208,7 +209,6 @@ const showSavePrompt = (data: SaveRunData) => {
 			const secsPerPoint = cycleTimeSum / data.score;
 			const pointsPerSec = data.score / cycleTimeSum;
 
-			cycleInfoList.textContent = "";
 			cycleInfoList.appendChild(
 				document.createElement("li")
 			).textContent = `Min: ${minTime.toFixed(3)}s`;
@@ -242,7 +242,7 @@ const showSavePrompt = (data: SaveRunData) => {
 	subtitleInput.type = "datetime-local";
 	subtitleInput.id = "editModalDate";
 	subtitleInput.classList.add("editModalInput");
-	const rawDate: Date = new Date(data.timestamp * 1000);
+	const rawDate: Date = new Date(Math.floor(Date.now() / 1e3) * 1e3);
 	// Date inputs don't use time zones. Manually adjusting for time zones before passing it as input
 	subtitle.textContent = "Date: ";
 	subtitleInput.valueAsNumber =

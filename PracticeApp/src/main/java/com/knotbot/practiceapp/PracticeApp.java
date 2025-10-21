@@ -42,7 +42,7 @@ public class PracticeApp {
 		"main.json",
 		"unsaved.json"
 	));
-	private static final int WS_PORT = 8081;
+	private static final int WS_PORT = 8888;
 
 	protected static PracticeApp instance;
 	private static WebHandlerManager manager;

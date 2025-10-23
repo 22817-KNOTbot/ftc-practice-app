@@ -199,9 +199,11 @@ const showDeleteRunsConfirmationModal = () => {
 	challenge.textContent = `To confirm, type "${challengeText}"`;
 
 	const form = content.appendChild(document.createElement("form"));
+	form.autocomplete = "off";
 
 	const input = form.appendChild(document.createElement("input"));
 	input.id = "challengeInput";
+	input.classList.add("editModalInput");
 	input.setAttribute("type", "text");
 	input.setAttribute("placeholder", challengeText);
 
@@ -213,8 +215,24 @@ const showDeleteRunsConfirmationModal = () => {
 	form.addEventListener("submit", (event) => {
 		event.preventDefault();
 		if (input.value == challengeText) {
-			// TODO: delete runs after backend implementation
-			document.location.reload();
+			fetch("/practice/data/delete", {
+				headers: {
+					"challenge-answer": runCount.toString(),
+				},
+				method: "POST",
+			}).then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						`${response.status} ${response.statusText}`
+					);
+				}
+				modal.classList.remove("shownModal");
+				// Some browsers can't load the page right after deleting
+				// the file for an unknown reason. Hard coded delay fixes it
+				new Promise((resolve) => {
+					setTimeout(resolve, 200);
+				}).then(() => document.location.reload());
+			});
 		} else {
 			input.classList.add("invalid");
 		}

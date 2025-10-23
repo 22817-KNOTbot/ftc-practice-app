@@ -481,6 +481,7 @@ const hideSavePrompt = () => {
 };
 
 const saveRun = (runData: RunData) => {
+	if (runData.name == "") return;
 	if (socket.readyState == WebSocket.OPEN) {
 		const data: Message = {
 			event: "saveRun",

@@ -206,4 +206,46 @@ public class DataStorage {
 
 		writeString(mainFile.getName().replaceFirst("[.][^.]+$", ""), text);
 	}
+
+	protected static boolean clearAllRuns(String challengeAnswer) {
+		File path = new File(AppUtil.ROOT_FOLDER, "Practice/Data");
+		File file = new File(path, "main.json");
+
+		if (!path.exists() || !file.exists() || !file.isFile()) {
+			try {
+				Log.d(TAG, "main.json file does not exist, creating file");
+				path.mkdirs();
+				boolean newFile = file.createNewFile();
+				Log.d(TAG, "Successfully created main.json with value " + newFile);
+			} catch (IOException err) {
+				Log.e(TAG, "Error writing to file \"" + file.getAbsolutePath() + "\"", err);
+			}
+		}
+
+		final String existingText = readString(file);
+		Data.MainData mainData = Data.MainData.toData(existingText);
+
+		if (mainData.data == null) {
+			mainData.data = new ArrayList<Data.MainData.RunOverview>();
+		}
+
+		if (challengeAnswer.toString().trim().equals(String.valueOf(mainData.data.size()).trim())) {
+			Log.i(TAG, "Received correct challenge answer for clearing all runs: " + challengeAnswer.toString());
+			Log.i(TAG, "Deleting all runs");
+			for (File fileToDelete : path.listFiles()) {
+				boolean success = fileToDelete.delete();
+				if (!success) {
+					Log.w(TAG, "Failed to delete file: " + fileToDelete.getAbsolutePath());
+				} else {
+					Log.d(TAG, "Successfully deleted file: " + fileToDelete.getAbsolutePath());
+				}
+			}
+			refreshMain();
+			return true;
+		} else {
+			Log.i(TAG, "Received incorrect challenge answer for clearing all runs: " + challengeAnswer.toString() + " but expected " + String.valueOf(mainData.data.size()));
+			Log.i(TAG, "Not deleting all runs");
+			return false;
+		}
+	}
 }

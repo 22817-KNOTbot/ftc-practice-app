@@ -39,9 +39,8 @@ public class PracticeApp {
 	private static final String TAG = "PracticeApp";
 	private static final String WEB_PATH = "/practice";
 	private static final Set<String> DISALLOWED_MODIFY_FILES = new HashSet<>(Arrays.asList(
-		"main.json",
-		"unsaved.json"
-	));
+			"main.json",
+			"unsaved.json"));
 	private static final int WS_PORT = 8888;
 
 	protected static PracticeApp instance;
@@ -57,8 +56,10 @@ public class PracticeApp {
 
 	@OnCreate
 	public static void start(Context context) {
-		if (instance == null) instance = new PracticeApp();
-		if (RobotEvent.instance == null) RobotEvent.instance = new RobotEvent();
+		if (instance == null)
+			instance = new PracticeApp();
+		if (RobotEvent.instance == null)
+			RobotEvent.instance = new RobotEvent();
 		Log.i(TAG, "STARTED");
 		DataStorage.refreshMain();
 	}
@@ -70,7 +71,7 @@ public class PracticeApp {
 			opModeManager.unregisterListener(RobotEvent.instance);
 		}
 		RobotEvent.opModeManager = opModeManager;
-		
+
 		if (RobotEvent.opModeManager != null) {
 			opModeManager.registerListener(RobotEvent.instance);
 		}
@@ -104,7 +105,7 @@ public class PracticeApp {
 		try {
 			AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
 			String[] pathList = assetManager.list(path);
-			
+
 			if (pathList == null) {
 				return;
 			}
@@ -127,9 +128,9 @@ public class PracticeApp {
 			if (!dataPath.exists()) {
 				dataPath.mkdirs();
 			}
-			
+
 			File[] fileList = dataPath.listFiles();
-			
+
 			if (fileList == null || fileList.length <= 0) {
 				return;
 			}
@@ -143,21 +144,24 @@ public class PracticeApp {
 	}
 
 	protected void attachDataWebHandler(File file) {
-		if (manager == null) return;
+		if (manager == null)
+			return;
 		try {
 			if (!file.exists() || !file.isFile()) {
 				Log.w(TAG, "Data file not found. Path: " + file.getAbsolutePath());
 				return;
 			}
 
-			PracticeApp.manager.register(WEB_PATH + "/data/" + file.getName(), createDataWebHandler(file.getAbsolutePath()));
+			PracticeApp.manager.register(WEB_PATH + "/data/" + file.getName(),
+					createDataWebHandler(file.getAbsolutePath()));
 		} catch (Exception err) {
 			Log.e(TAG, "Error attaching data web handler \"" + file.getAbsolutePath() + "\"", err);
 		}
 	}
 
 	private void attachDeleteHandler(WebHandlerManager manager) {
-		manager.register(WEB_PATH + "/data/delete", createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
+		manager.register(WEB_PATH + "/data/delete",
+				createDeleteHandler(new File(AppUtil.ROOT_FOLDER, "Practice/data")));
 	}
 
 	private void attachEditHandler(WebHandlerManager manager) {
@@ -173,14 +177,16 @@ public class PracticeApp {
 					AssetManager assetManager = AppUtil.getInstance().getActivity().getAssets();
 					String mimeType = MimeTypesUtil.determineMimeType(file);
 					Log.v(TAG, "WebHandler returned file \"" + file + "\"");
-					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, assetManager.open(file));
+					return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType,
+							assetManager.open(file));
 				} else {
-					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+							NanoHTTPD.MIME_PLAINTEXT, "");
 				}
 			}
 		};
 	}
-	
+
 	private WebHandler createDataWebHandler(String file) {
 		Log.v(TAG, "Created WebHandler \"" + file + "\"");
 		return new WebHandler() {
@@ -190,12 +196,15 @@ public class PracticeApp {
 					String mimeType = MimeTypesUtil.determineMimeType(file);
 					Log.v(TAG, "WebHandler returned file \"" + file + "\"");
 					if (new File(file).exists()) {
-						return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, new FileInputStream(file));
+						return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType,
+								new FileInputStream(file));
 					} else {
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					}
 				} else {
-					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+							NanoHTTPD.MIME_PLAINTEXT, "");
 				}
 			}
 		};
@@ -210,30 +219,55 @@ public class PracticeApp {
 				if (session.getMethod() == NanoHTTPD.Method.POST) {
 					String referer = session.getHeaders().getOrDefault("referer", "").trim();
 					String filename = session.getHeaders().get("filename");
-					File file = new File(path, filename);
-					if (!referer.equals("http://192.168.43.1:8080/practice/stats")) {
-						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to incorrect referer: \"" + referer + "\"");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, NanoHTTPD.MIME_PLAINTEXT, "");
-					} else if (!file.exists()) {
-						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to file not existing");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
-					} else if (PracticeApp.DISALLOWED_MODIFY_FILES.contains(file.getName())) {
-						Log.w(TAG, "Delete handler did not delete file \"" + filename + "\" due to this file being disallowed to delete");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
+					String challengeAnswer = session.getHeaders().get("challenge-answer");
+					if (!referer.equals("http://192.168.43.1:8080/practice/stats")
+							&& !referer.equals("http://192.168.43.1:8080/practice/settings")) {
+						Log.w(TAG, "Delete handler did not delete file \"" + filename
+								+ "\" due to incorrect referer: \"" + referer + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					} else {
-						Log.d(TAG, "Delete handler is deleting file \"" + filename + "\"");
-						boolean deleteSuccess = file.delete();
-						Log.d(TAG, "Delete handler " + (deleteSuccess ? "successfully deleted" : "failed to delete ") + " file");
-						if (deleteSuccess) {
-							DataStorage.removeRunFromMain(file.getName());
-							return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_PLAINTEXT, "");
+						if (challengeAnswer != null) {
+							boolean correct = DataStorage.clearAllRuns(challengeAnswer);
+							if (!correct) {
+								return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED,
+										NanoHTTPD.MIME_PLAINTEXT, "");
+							} else {
+								return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT,
+										NanoHTTPD.MIME_PLAINTEXT, "");
+							}
 						} else {
-							return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "");
+							File file = new File(path, filename);
+							if (!file.exists()) {
+								Log.w(TAG, "Delete handler did not delete file \"" + filename
+										+ "\" due to file not existing");
+								return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+										NanoHTTPD.MIME_PLAINTEXT, "");
+							} else if (PracticeApp.DISALLOWED_MODIFY_FILES.contains(file.getName())) {
+								Log.w(TAG, "Delete handler did not delete file \"" + filename
+										+ "\" due to this file being disallowed to delete");
+								return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN,
+										NanoHTTPD.MIME_PLAINTEXT, "");
+							} else {
+								Log.d(TAG, "Delete handler is deleting file \"" + filename + "\"");
+								boolean deleteSuccess = file.delete();
+								Log.d(TAG, "Delete handler "
+										+ (deleteSuccess ? "successfully deleted" : "failed to delete ") + " file");
+								if (deleteSuccess) {
+									DataStorage.removeRunFromMain(file.getName());
+									return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT,
+											NanoHTTPD.MIME_PLAINTEXT, "");
+								} else {
+									return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR,
+											NanoHTTPD.MIME_PLAINTEXT, "");
+								}
+							}
 						}
-						
+
 					}
 				} else {
-					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "");
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED,
+							NanoHTTPD.MIME_PLAINTEXT, "");
 				}
 			}
 		};
@@ -252,24 +286,33 @@ public class PracticeApp {
 					Data.RunData runData = Data.RunData.toData(runDataString);
 					File file = new File(path, filename);
 					if (!referer.equals("http://192.168.43.1:8080/practice/stats")) {
-						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to incorrect referer: \"" + referer + "\"");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, NanoHTTPD.MIME_PLAINTEXT, "");
+						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to incorrect referer: \""
+								+ referer + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					} else if (!file.exists()) {
 						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to file not existing");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					} else if (PracticeApp.DISALLOWED_MODIFY_FILES.contains(file.getName())) {
-						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to this file being disallowed to edit");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
+						Log.w(TAG, "Edit handler did not edit file \"" + filename
+								+ "\" due to this file being disallowed to edit");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.FORBIDDEN,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					} else if (runData == null) {
-						Log.w(TAG, "Edit handler did not edit file \"" + filename + "\" due to given run data being malformed: \"" + runDataString + "\"");
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "");
+						Log.w(TAG, "Edit handler did not edit file \"" + filename
+								+ "\" due to given run data being malformed: \"" + runDataString + "\"");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					} else {
 						Log.d(TAG, "Edit handler is editing file \"" + filename + "\"");
 						DataStorage.updateRun(runData, filename.replaceFirst("\\.json$", ""));
-						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_PLAINTEXT, "");
+						return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT,
+								NanoHTTPD.MIME_PLAINTEXT, "");
 					}
 				} else {
-					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "");
+					return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.METHOD_NOT_ALLOWED,
+							NanoHTTPD.MIME_PLAINTEXT, "");
 				}
 			}
 		};
@@ -278,7 +321,7 @@ public class PracticeApp {
 	/*
 	 * Web socket
 	 */
-	
+
 	public static class Message {
 		public String event;
 		public String name;
@@ -347,10 +390,12 @@ public class PracticeApp {
 		}
 
 		@Override
-		protected void onPong(NanoWSD.WebSocketFrame pong) {}
+		protected void onPong(NanoWSD.WebSocketFrame pong) {
+		}
 
 		@Override
-		protected void onException(IOException exception) {}
+		protected void onException(IOException exception) {
+		}
 
 		public void send(Message message) {
 			String messageStr = message.toJson();
@@ -399,7 +444,8 @@ public class PracticeApp {
 				return;
 			}
 
-			if (message == null) return;
+			if (message == null)
+				return;
 
 			switch (message.event) {
 				case "getState":
@@ -428,13 +474,12 @@ public class PracticeApp {
 						runState = new Data.RunState(false);
 					} else {
 						runState = new Data.RunState(
-							RobotEvent.running,
-							RobotEvent.matchPeriod,
-							(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
-							RobotEvent.score,
-							RobotEvent.runData.cycles,
-							(float) RobotEvent.cycleTimer.time()
-						);
+								RobotEvent.running,
+								RobotEvent.matchPeriod,
+								(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
+								RobotEvent.score,
+								RobotEvent.runData.cycles,
+								(float) RobotEvent.cycleTimer.time());
 					}
 
 					String runStateJson = Data.RunState.toJson(runState);

@@ -45,6 +45,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		cycleTimer.reset();
 		score = 0;
 		runData = new Data.RunData();
+		periodTimes = new Long[] { null, null, null };
 		periodTimes[0] = System.currentTimeMillis();
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("startAuto"));
@@ -61,6 +62,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		cycleTimer.reset();
 		score = 0;
 		runData = new Data.RunData();
+		periodTimes = new Long[] { null, null, null };
 		periodTimes[0] = System.currentTimeMillis();
 		if (wsHandler != null) {
 			wsHandler.sendMessage(new PracticeApp.Message("startTransition"));
@@ -79,6 +81,7 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			cycleTimer.reset();
 			score = 0;
 			runData = new Data.RunData();
+			periodTimes = new Long[] { null, null, null };
 		}
 		periodTimes[1] = System.currentTimeMillis();
 

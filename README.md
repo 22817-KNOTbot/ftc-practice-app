@@ -7,16 +7,19 @@ Developed by KNOTbot 22817
 
 # Features
 ## Key features
-- Easy to use interface with an FTC-like design
+- Easy to use interface with a straightforward design
 - Automatically keep track of points
 - Record cycle times with millisecond precision
-- View past run data to track progress
+- Graph runs to watch improvement over time
+- Designed to work regardless of the season's game
 ## Extra features
 - Label runs with custom identifiable names
 - View advanced statistics including mean cycle time and scoring rate
 - Play real FTC match sounds
 - Show a warning when starting early or ending matches late
 - Synchronize with multiple devices
+- Multiple layouts to suit your needs
+- Record videos of your runs with live stats
 
 # Installation
 1. Open `build.dependencies.gradle` in the root of your project
@@ -76,7 +79,7 @@ public void runOpMode() {
 ```
 
 &nbsp;\
-When scoring points, call the `addScore(score, name)` method, where score is the amount to add and name is the name of the scoring element. (Negative score values are allowed. The name is purely for labeling points and can be omitted)
+When scoring points, call the `addScore(score, name)` method, where score is the amount to add and name is the name of the scoring element. (Negative score values are allowed. The name is purely for your own reference and can be omitted)
 
 ```java
 // When scoring a point, call the method
@@ -103,13 +106,13 @@ RobotEvent.addScore(3, "Park"); // Not doubled because parking points do not dou
 ```
 
 &nbsp;\
-By default, the run will automatically end when you end the OpMode. If you want to run a TeleOp program after an Auto, you will need to disable auto end with the `setAutoEnd(autoEnd)` method. (Note that this value resets every time the robot restarts, so make sure to call this method each time)
+By default, the run will automatically end when you end the OpMode. If you want to run another OpMode, (for example, a TeleOp program after Auto,) you will need to disable auto end with the `setAutoEnd(autoEnd)` method. (Note that this value resets every time the robot restarts, so make sure to call this method each time)
 
 ```java
 RobotEvent.setAutoEnd(false); // Disables auto ending
 ```
 
-To end the run, use the `runEnd()` method. This can be called in either Auto or TeleOp even if auto end is still enabled
+To end the run, use the `runEnd()` method. This can be called in either Auto or TeleOp regardless of whether auto end is enabled or not.
 
 ```java
 RobotEvent.runEnd(); // Ends the run
@@ -131,7 +134,7 @@ Use `setScore(score)` to set the score
 RobotEvent.setScore(0) // Sets the score to 0
 ```
 
-Play sounds using `playsound(sound)` to play one of the supported match sounds
+Play sounds using `playsound(sound)` to play one of the supported match sounds. (Note that normal match sounds will automatically play, you do not need to use this method)
 
 ```java
 /*
@@ -155,9 +158,9 @@ To access the web app, connect to the robot wifi and go to http://192.168.43.1:8
 
 ### Main page
 
-This page is for viewing the live match. It includes the time, score, cycle timer, and recent events.
+This page is for viewing the live match. It includes the time, score, cycle timer, and recent changes in score.
 
-![Screenshot showing the main page of the app](docs/images/main-page.png)
+![Screenshot showing the main page of the app](docs/images/modern.png)
 
 &nbsp;\
 While a match is active, sounds will play to imitate a real FTC game
@@ -171,20 +174,46 @@ The bottom left box will show changes in points and some other information. It w
 
 #### <ins>Ending a run</ins>
 
-When the run ends, you will be shown a prompt to save the run. It includes all the run data that will be stored and a text box to input a name. The name will only be used for future identification and can be anything you want.
+When the run ends, you will be shown a prompt to save the run. It includes all the run data that will be stored and a text box to input a name. The name will only be used for future identification and can be anything you want. You can also edit the run to change what will be saved. For example, you can remove a scoring element that missed.
 
-![Screenshot showing the save prompt](docs/images/save-prompt.png)
+![Screenshot showing the save prompt](docs/images/save-prompt.gif)
 
 ### Stats page
+
 This page is for viewing the statistics of all recorded runs
 
-![Screenshot showing the stats page of the app](docs/images/stats-page.png)
+![Screenshot showing the stats page of the app](docs/images/stats.png)
 
 Click on a point of the graph to show more information
 
 This includes date, scoring cycles, and statistics
 
-![Video showing the run data modal](docs/images/run-data.gif)
+From here, you can also edit the data if necessary
+
+![Video showing the run data modal and editing a run](docs/images/run-edit.gif)
+
+### Settings
+
+On this page, there are a number of things you can configure
+
+![Screenshot showing the settings page of the app](docs/images/settings.png)
+
+#### <ins>Save changes</ins>
+Make sure to save changes by clicking the "Save Changes" button on the top right
+
+#### <ins>Layouts</ins>
+You can choose between the 3 layouts: Modern, Chroma Key, and Classic.
+
+| Modern | Chroma Key | Classic |
+| ------ | ---------- | ------- |
+| A minimalist design with an emphasis on only the most important information | Similar to the Modern design but includes a large frame for chroma keying (commonly known as green screen), allowing you to insert live video streams of your runs | A classic layout with all information presented in a straightforward manner |
+| ![Screenshot showing the modern layout](docs/images/modern.png) | ![Screenshot showing the chroma key layout](docs/images/chromaKey.png) | ![Screenshot showing the modern layout](docs/images/classic.png)
+
+#### <ins>Timer Settings</ins>
+Customize the times for the timer here. Use this if the season's rules change the length of periods, or just to experiment with different times.
+
+#### <ins>Danger Zone</ins>
+This area contains buttons that make **permanent** changes. Pressing a button shows a confirmation box. After pressing confirm, you **cannot undo the action!**
 
 # Contributing
 Feel free to contribute by making issues or pull requests.

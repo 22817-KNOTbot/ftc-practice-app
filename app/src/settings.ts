@@ -210,7 +210,7 @@ const showDeleteRunsConfirmationModal = () => {
 	const confirmButton = form.appendChild(document.createElement("input"));
 	confirmButton.type = "submit";
 	confirmButton.id = "confirmDanger";
-	confirmButton.textContent = "Confirm";
+	confirmButton.value = "Confirm";
 
 	form.addEventListener("submit", (event) => {
 		event.preventDefault();

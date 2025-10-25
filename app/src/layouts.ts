@@ -1,6 +1,6 @@
 import { getLayoutData as getClassicLayoutData } from "./layouts/classic";
 import { getLayoutData as getModernLayoutData } from "./layouts/modern";
-import { getLayoutData as getGreenScreenLayoutData } from "./layouts/greenScreen";
+import { getLayoutData as getChromaKeyScreenLayoutData } from "./layouts/chromaKey";
 import { Layout } from "./types";
 
 const layouts: Layout[] = [
@@ -10,9 +10,9 @@ const layouts: Layout[] = [
 		layoutDataGetter: getModernLayoutData,
 	},
 	{
-		name: "Green Screen",
-		imagePath: "/practice/assets/layouts/greenScreen.jpg",
-		layoutDataGetter: getGreenScreenLayoutData,
+		name: "Chroma Key",
+		imagePath: "/practice/assets/layouts/chromaKey.jpg",
+		layoutDataGetter: getChromaKeyScreenLayoutData,
 	},
 	{
 		name: "Classic",

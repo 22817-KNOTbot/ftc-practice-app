@@ -1,7 +1,7 @@
 # FTC Practice App
 FTC Practice App is a web app designed to improve your driving performance
 
-Developed by KNOTbot 22817
+Developed by 22817 KNOTbot
 
 ![Video showing the home page and stats page of the app](docs/images/overview.gif)
 

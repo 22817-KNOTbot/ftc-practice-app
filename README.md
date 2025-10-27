@@ -85,24 +85,32 @@ When scoring points, call the `addScore(score, name)` method, where score is the
 // When scoring a point, call the method
 
 // Hang a specimen
-// ...
-RobotEvent.addScore(10, "Specimen"); // Add points for a high-rung specimen
+if (gamepad1.aWasPressed()) {
+	openClaw(); // Include any code necessary to hang the specimen
+	RobotEvent.addScore(10, "Specimen"); // Add points for a high-rung specimen
+}
 
 // Release a sample
 // ...
-RobotEvent.addScore(8, "Sample"); // Add points for a high-basket sample
+if (gamepad1.bWasPressed()) {
+	openClaw(); // Include any code necessary to deposit the sample
+	RobotEvent.addScore(8, "Sample"); // Add points for a high-basket sample
+}
 ```
 
 For autonomous points that should count again when starting TeleOp, just double the point value. This is to distinguish between other point types that should not double
 
 ```java
 // Hang a specimen
-// ...
-RobotEvent.addScore(20, "Specimen"); // Doubled to account for recount during TeleOp
+if (gamepad1.aWasPressed()) {
+	openClaw(); // Include any code necessary to hang the specimen
+	RobotEvent.addScore(20, "Specimen"); // Doubled to account for recount during TeleOp
+}
 
 // Park
-// ...
-RobotEvent.addScore(3, "Park"); // Not doubled because parking points do not double
+if (gamepad1.xWasPressed()) { // You can use more complex logic such as odometry or timers instead
+	RobotEvent.addScore(3, "Park"); // Not doubled because parking points do not double
+}
 ```
 
 &nbsp;\

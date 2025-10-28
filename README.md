@@ -37,7 +37,7 @@ repositories {
 depdencies {
 	// ...
 
-	implementation 'com.github.22817-knotbot:ftc-practice-app:0.1.0'
+	implementation 'com.github.22817-KNOTbot:ftc-practice-app:v0.1.0'
 }
 ```
 

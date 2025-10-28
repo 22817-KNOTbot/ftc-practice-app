@@ -1,4 +1,5 @@
 # FTC Practice App
+[![JitPack Badge](https://jitpack.io/v/22817-KNOTbot/ftc-practice-app.svg)](https://jitpack.io/#22817-KNOTbot/ftc-practice-app)\
 FTC Practice App is a web app designed to improve your driving performance
 
 Developed by 22817 KNOTbot

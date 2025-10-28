@@ -78,7 +78,7 @@ publishing {
 		release(MavenPublication) {
 			groupId = 'com.github.22817-knotbot'
 			artifactId = 'practiceapp'
-			version = '0.1.0-alpha'
+			version = '0.1.0'
 
 			pom {
 				name = "FTC Practice App"

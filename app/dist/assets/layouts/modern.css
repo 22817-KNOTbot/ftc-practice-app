@@ -1,0 +1,139 @@
+:root {
+	--secondary-bg-color: #202020;
+}
+
+nav {
+	--total-height: 40vh;
+	width: 6vw;
+	height: calc(var(--total-height) + 4vw);
+	position: fixed;
+	left: 1%;
+	top: 2%;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	border-radius: 100vmax;
+	padding: 0.5vw 0.3vw;
+	gap: 0.2lh;
+	box-sizing: border-box;
+	background: var(--secondary-bg-color);
+	overflow-y: hidden;
+
+	transition: height 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+nav.collapsed {
+	height: 6vw;
+	transition-duration: 1s;
+	transition-timing-function: unset;
+}
+
+nav>a {
+	flex: 1;
+	width: 100%;
+	min-height: 2.3vw;
+	max-height: 2.3vw;
+	font-size: 1.2vw;
+	text-align: center;
+}
+
+nav.collapsed>a:not(.navbar-img) {
+	transition-duration: 1s;
+	transition-timing-function: unset;
+}
+
+nav>a.navbar-img {
+	flex: 2;
+	min-height: 5vw;
+	max-height: 5vw;
+	height: 5vw;
+
+	&>img {
+		aspect-ratio: 1;
+		height: 100%;
+	}
+}
+
+#timer-container {
+	height: 100%;
+	display: grid;
+	grid-template-rows: 8fr 2fr;
+	row-gap: 5vh;
+}
+
+#timer {
+	font-size: 30vw;
+	font-weight: 600;
+	width: 85%;
+	height: 90%;
+	border-radius: 3vmax;
+	place-content: center;
+}
+
+#bottom-section {
+	align-items: end;
+}
+
+#score-box {
+	height: 100%;
+	background-color: var(--text-color);
+	padding-top: 5vh;
+	border-radius: 2vmax 2vmax 0 0;
+}
+
+#score {
+	height: 100%;
+	font-size: 1.8em;
+}
+
+#chart-div {
+	width: 95vw;
+	height: 100vh;
+	float: right;
+}
+
+#loading-spinner-container {
+	position: fixed;
+	display: none;
+	width: 100vw;
+	height: 100vh;
+}
+
+#loading-spinner-container:has(.shownSpinner) {
+	display: grid;
+}
+
+#settings-container,
+#about-container {
+	width: 95vw;
+	height: 100vh;
+	float: right;
+	display: grid;
+	place-items: center;
+}
+
+#settings-content,
+#about-content {
+	width: 90%;
+	height: 90%;
+	background-color: var(--secondary-bg-color);
+	border-radius: 2vmax;
+}
+
+#settings-content {
+	display: grid;
+	grid-template-columns: 8fr 3fr;
+	grid-template-rows: 5fr 5fr;
+}
+
+#about-content {
+	overflow-y: scroll;
+	padding: 0 20vw;
+	box-sizing: border-box;
+}
+
+#about-content>p {
+	font-size: 1.2em;
+	margin: 0.5lh
+}

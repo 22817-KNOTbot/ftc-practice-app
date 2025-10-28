@@ -3,7 +3,6 @@ buildscript {
 }
 
 plugins {
-	id "com.github.node-gradle.node" version "2.2.4"
 	id 'maven-publish'
 }
 
@@ -31,14 +30,6 @@ android {
 	}
 }
 
-node {
-	version = "22.15.0"
-	download = true
-	nodeModulesDir = file("${project.projectDir}/../app")
-}
-
-npm_run_build.dependsOn npmInstall
-
 task cleanAppAssets(type: Delete) {
 	delete "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
 }
@@ -51,7 +42,6 @@ task copyAppAssets(type: Copy) {
 }
 
 copyAppAssets.dependsOn cleanAppAssets
-copyAppAssets.dependsOn npm_run_build
 
 android.libraryVariants.all { variant ->
 	variant.preBuildProvider.get().dependsOn copyAppAssets

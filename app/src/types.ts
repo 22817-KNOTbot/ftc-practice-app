@@ -68,6 +68,7 @@ export type LayoutData = {
 		stats: string;
 		settings: string;
 		about: string;
+		edit: string;
 	};
 };
 

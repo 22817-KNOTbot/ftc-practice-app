@@ -18,6 +18,7 @@ getData().then((d) => {
 
 const chosenLayout = getSetting("layout");
 const storedTimerValues = getSetting("timerValues");
+const chosenMode = getSetting("mode");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";
@@ -53,6 +54,7 @@ updateSelectedLayout(chosenLayout);
 const currentSettings: Settings = {
 	layout: chosenLayout,
 	timerValues: storedTimerValues,
+	mode: chosenMode,
 };
 
 for (const option of layoutSettingsOptions) {

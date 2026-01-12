@@ -77,4 +77,5 @@ export type Settings = {
 	timerValues: {
 		[key: string]: number;
 	};
+	mode: "view" | "edit";
 };

@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS: Settings = {
 		teleop: 120,
 		endgame: 20,
 	},
+	mode: "view",
 };
 const SETTINGS_STORAGE_KEY = "settings";
 

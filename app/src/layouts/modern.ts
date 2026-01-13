@@ -113,6 +113,13 @@ ${nav}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
+		<div id="mode-dropdown-container">
+			<h1>Mode</h1>
+			<select name="modes" id="modes">
+				<option value="view">View</option>
+				<option value="edit">Edit</option>
+			</select>
+		</div>
 		<div id="settings-danger-container" class="settings-section-container">
 			<div class="settings-section settings-danger-section">
 				<h1>Danger Zone</h1>
@@ -183,6 +190,11 @@ ${nav}
 		<div id="cycle-time-box">
 			<div id="cycle-timer">0.00</div>
 		</div>
+	</div>
+</div>
+<div id="pointsList" class="points-list">
+	<h1 id="pointsListHeader">Points</h1>
+	<div id="pointsContent">
 	</div>
 </div>
 <div id="saveModal" class="modal">

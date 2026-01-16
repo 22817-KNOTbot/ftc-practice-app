@@ -167,6 +167,10 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		DataStorage.tempSaveRun(runData, "unsaved");
 	}
 
+	public static Data.RunData getRunData() {
+		return runData;
+	}
+
 	@Override
 	public void onOpModePreInit(OpMode opMode) {
 	}

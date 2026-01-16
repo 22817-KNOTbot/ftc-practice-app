@@ -203,7 +203,15 @@ ${nav}
 		Modal content
 	</div>
 </div>
-
+<div id="scores-container">
+	<table id="scores-table">
+		<tr>
+			<th>Score Name</th>
+			<th>Points</th>
+			<th>Time</th>
+		</tr>
+	</table>
+</div>
 `,
 		},
 	};

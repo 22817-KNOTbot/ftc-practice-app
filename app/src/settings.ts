@@ -98,6 +98,13 @@ for (const input of timerSettingsInputs) {
 	});
 }
 
+const modeSettingsInput = document.getElementById("settings-mode-dropdown") as HTMLSelectElement
+
+modeSettingsInput?.addEventListener('change', () => {
+	const modeValue = modeSettingsInput.value;
+	currentSettings.mode = modeValue as Settings["mode"];
+})
+
 const saveChanges = (settings: Settings) => {
 	const newTimerValues: { [key: string]: number } = {};
 	for (const input of timerSettingsInputs) {

@@ -13,7 +13,7 @@ ${mode == "view" ? `
 	<a href="/practice/stats">Stats</a>
 	` : mode == "edit" ? `
 	<a href="/practice/edit" class="navbar-img"><img src="${faviconUrl}"></a>
-	<a href="/practice/edit">Timer</a>
+	<a href="/practice/edit">Edit</a>
 	` : ""}
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
@@ -113,9 +113,9 @@ ${nav}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
-		<div id="mode-dropdown-container">
+		<div id="settings-mode-dropdown-container">
 			<h1>Mode</h1>
-			<select name="modes" id="modes">
+			<select id="settings-mode-dropdown">
 				<option value="view">View</option>
 				<option value="edit">Edit</option>
 			</select>
@@ -171,46 +171,18 @@ ${nav}
 // placeholder html
 			edit: `
 ${nav}
-<div id="timer-container">
-	<div id="timer-section">
-		<div id="timer">2:30</div>
+<div id="edit-container">
+	<div id="scores-container">
+		<table id="scores-table">
+			<tr>
+				<th>Functions</th>
+				<th>Score Name</th>
+				<th>Points</th>
+				<th>Time</th>
+			</tr>
+		</table>
+		<button id="submit">Submit</button>
 	</div>
-	<div id="bottom-section">
-		<div id="changes-box">
-			<div class="change change-0"><div></div></div>
-			<div class="change change-1"><div></div></div>
-			<div class="change change-2"><div></div></div>
-			<div class="change change-3"><div></div></div>
-		</div>
-		<div id="score-box">
-			<div id="score">
-				0
-			</div>
-		</div>
-		<div id="cycle-time-box">
-			<div id="cycle-timer">0.00</div>
-		</div>
-	</div>
-</div>
-<div id="pointsList" class="points-list">
-	<h1 id="pointsListHeader">Points</h1>
-	<div id="pointsContent">
-	</div>
-</div>
-<div id="saveModal" class="modal">
-	<h1 id="modalHeader">Modal</h1>
-	<div id="modalContent">
-		Modal content
-	</div>
-</div>
-<div id="scores-container">
-	<table id="scores-table">
-		<tr>
-			<th>Score Name</th>
-			<th>Points</th>
-			<th>Time</th>
-		</tr>
-	</table>
 </div>
 `,
 		},

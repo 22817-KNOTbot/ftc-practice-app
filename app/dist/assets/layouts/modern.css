@@ -105,7 +105,8 @@ nav>a.navbar-img {
 }
 
 #settings-container,
-#about-container {
+#about-container,
+#edit-container {
 	width: 95vw;
 	height: 100vh;
 	float: right;

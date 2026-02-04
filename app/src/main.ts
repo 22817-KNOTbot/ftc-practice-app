@@ -617,14 +617,21 @@ const handleMessage = (data: Message) => {
 			timer.stopTimer();
 			stopStopwatch();
 			break;
-		case "resetCycle":
-			resetStopwatch(cycleTimer);
-			displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
-			break;
-		case "setScore":
-			if (Object.prototype.hasOwnProperty.call(data, "value")) {
-				setScore(score, data.value!);
-			}
+		//case "resetCycle":
+		//	resetStopwatch(cycleTimer);
+		//	displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
+		//	break;
+		//case "setScore":
+		//	if (Object.prototype.hasOwnProperty.call(data, "value")) {
+		//		setScore(score, data.value!);
+		//	}
+		//	break;
+		case "addCycle":
+				resetStopwatch(cycleTimer);
+				displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
+				if (Object.prototype.hasOwnProperty.call(data, "value")) {
+					setScore(score, data.value!);
+				}
 			break;
 		case "playSound":
 			if (data.name) {

@@ -183,6 +183,29 @@ public class Data {
 		public String toString() {
 			return "Cycle [time=" + time + ", type=" + type + ", score=" + score + "]";
 		}
+
+		protected static Cycle toData(String json) {
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<Cycle> jsonAdapter = moshi.adapter(Cycle.class);
+
+			try {
+				Cycle runData = jsonAdapter.fromJson(json);
+				// Log.v(TAG, runData.toString());
+				return runData;
+			} catch (IOException | JsonDataException err) {
+				Log.e(TAG, "Error deserializing JSON", err);
+			}
+			return null;
+		}
+		
+		protected static String toJson(Cycle runData) {
+			Moshi moshi = new Moshi.Builder().build();
+			JsonAdapter<Cycle> jsonAdapter = moshi.adapter(Cycle.class);
+
+			String json = jsonAdapter.toJson(runData);
+			// Log.v(TAG, json);
+			return json;
+		}
 	}
 
 	protected static class PeriodTime {

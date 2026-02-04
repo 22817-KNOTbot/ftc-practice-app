@@ -405,6 +405,10 @@ public class PracticeApp {
 				RobotLog.logStackTrace(err);
 			}
 		}
+
+		public void recieve() {
+
+		}
 	}
 
 	protected static class WsHandler {
@@ -492,6 +496,14 @@ public class PracticeApp {
 						return;
 					}
 					DataStorage.saveRun(Data.RunData.toData(message.name));
+					RobotEvent.runData = null;
+					break;
+				case "editRun":
+					if (message.name == null || message.name == "") {
+						Log.e(TAG, "Malformed edit. Given data \"" + json + "\"");
+						return;
+					}
+					DataStorage.editRun(Data.RunData.toData(message.name));
 					RobotEvent.runData = null;
 					break;
 				default:

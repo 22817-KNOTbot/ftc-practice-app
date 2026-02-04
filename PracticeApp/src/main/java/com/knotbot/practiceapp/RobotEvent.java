@@ -127,10 +127,10 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 
 			Data.Cycle cycle = new Data.Cycle(timeMs / 1000f, type, score);
 			runData.cycles.add(cycle);
-		}
-		if (wsHandler != null) {
-			wsHandler.sendMessage(new PracticeApp.Message("setScore", RobotEvent.score));
-			wsHandler.sendMessage(new PracticeApp.Message("resetCycle", type, timeMs));
+			if (wsHandler != null) {
+				wsHandler.sendMessage(new PracticeApp.Message("addCycle", cycle, RobotEvent.score));
+				//wsHandler.sendMessage(new PracticeApp.Message("resetCycle", type, timeMs));
+			}
 		}
 		return RobotEvent.score;
 	}
@@ -169,6 +169,10 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 
 	public static Data.RunData getRunData() {
 		return runData;
+	}
+
+	public static void setRunData(Data.RunData newRunData) {
+		runData = newRunData;
 	}
 
 	@Override

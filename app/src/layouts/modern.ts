@@ -174,12 +174,15 @@ ${nav}
 <div id="edit-container">
 	<div id="scores-container">
 		<table id="scores-table">
-			<tr>
-				<th>Functions</th>
-				<th>Score Name</th>
-				<th>Points</th>
-				<th>Time</th>
-			</tr>
+			<thead>
+				<tr>
+					<th>Functions</th>
+					<th>Score Name</th>
+					<th>Points</th>
+					<th>Time</th>
+				</tr>
+			</thead>
+			<tbody id = "table-body"></tbody>
 		</table>
 		<button id="submit">Submit</button>
 	</div>

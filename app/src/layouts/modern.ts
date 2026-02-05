@@ -184,7 +184,7 @@ ${nav}
 			</thead>
 			<tbody id = "table-body"></tbody>
 		</table>
-		<button id="submit">Submit</button>
+		<button id="submit-button">Submit</button>
 	</div>
 </div>
 `,

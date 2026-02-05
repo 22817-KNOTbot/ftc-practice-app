@@ -70,84 +70,81 @@ const handleMessage = (data: Message) => {
 	}
 }
 //placeholdercode
-// const runData: RunState = {
-// 	running: true,
-// 	matchPeriod: MatchPeriod.AUTO,
-// 	periodTime: 25,
-// 	score: 30,
-// 	cycles: [
-// 		{
-// 			time: 2,
-// 			type: "shoot",
-// 			score: 1
-// 		},
-// 		{
-// 			time: 2,
-// 			type: "leave",
-// 			score: 2
-// 		},
-// 		{
-// 			time: 2,
-// 			type: "shoot",
-// 			score: 3
-// 		},
-// 		{
-// 			time: 2,
-// 			type: "shoot",
-// 			score: 4
-// 		},
-// 		{
-// 			time: 2,
-// 			type: "shoot",
-// 			score: 5
-// 		},
-// 		{
-// 			time: 2,
-// 			type: "shoot",
-// 			score: 6
-// 		},
-// 	],
-// 	cycleTime: 12
-// }
-
+const runData: RunState = {
+	running: true,
+	matchPeriod: MatchPeriod.AUTO,
+	periodTime: 25,
+	score: 30,
+	cycles: [
+		{
+			time: 2,
+			type: "shoot",
+			score: 1
+		},
+		{
+			time: 2,
+			type: "leave",
+			score: 2
+		},
+		{
+			time: 2,
+			type: "shoot",
+			score: 3
+		},
+		{
+			time: 2,
+			type: "shoot",
+			score: 4
+		},
+		{
+			time: 2,
+			type: "shoot",
+			score: 5
+		},
+		{
+			time: 2,
+			type: "shoot",
+			score: 6
+		},
+	],
+	cycleTime: 12
+}
+updateDataDisplay(runData);
 function updateDataDisplay(runData: RunState) {
-	// const table = document.getElementById("scores-table") as HTMLTableElement;
-	const submit = document.getElementById("submit");
+	const table = document.getElementById("scores-table") as HTMLTableElement;
+	const submit = document.getElementById("submit-button");
 	let tableBody = document.getElementById("table-body");
-	const newTableBody = document.createElement('tbody');
-	tableBody = newTableBody
+	tableBody?.remove();
+	tableBody = document.createElement('tbody');
+	tableBody.id = "table-body";
+	table.appendChild(tableBody);
 
-	const rows: HTMLTableRowElement[] = [];
-	const typeInputs: HTMLInputElement[] = [];
-	const timeInputs: HTMLInputElement[] = [];
-	const scoreInputs: HTMLInputElement[] = [];
-	
 	if (!runData.running) {
 		return;
 	}
 
+	
 	for (let i = 0; i < runData.cycles.length; i++){
 		const row = tableBody.appendChild(document.createElement("tr"));
-		rows.push(row)
-		row.className = String(i) + "data-row"
+		row.className = "data-row"
 		const deleteButton = document.createElement("button");
 		const functionsDiv = document.createElement("div");
+		functionsDiv.className = "functions-div";
 		functionsDiv.appendChild(deleteButton);
 		deleteButton.textContent = "delete";
-		deleteButton.className = String(i) + "delete-button";
-	
+		deleteButton.className = "delete-button";
+		
 		row.insertCell(0).appendChild(functionsDiv);
 		let tableData = row.appendChild(document.createElement("td"));
 		const typeInput = tableData.appendChild(document.createElement("input"));
+		typeInput.className = "data-input";
 		typeInput.defaultValue = runData.cycles[i].type;
-		typeInputs.push(typeInput)
-		typeInput.addEventListener("focusout", () => {
-		});
+		typeInput.addEventListener("focusout", () => {});
 	
 		tableData = row.appendChild(document.createElement("td"));
 		const scoreInput = tableData.appendChild(document.createElement("input"));
 		scoreInput.defaultValue = String(runData.cycles[i].score);
-		scoreInputs.push(scoreInput)
+		scoreInput.className = "data-input";
 		scoreInput.addEventListener("focusout", () => {
 			const parsedValue = Number(scoreInput.value);
 			if ((isNaN(parsedValue) || 
@@ -158,11 +155,10 @@ function updateDataDisplay(runData: RunState) {
 			}
 		});
 		
-	
 		tableData = row.appendChild(document.createElement("td"));
 		const timeInput = tableData.appendChild(document.createElement("input"));
 		timeInput.defaultValue = String(runData.cycles[i].time);
-		timeInputs.push(timeInput)
+		timeInput.className = "data-input";
 		timeInput.addEventListener("focusout", () => {
 			const parsedValue = Number(timeInput.value);
 			if ((isNaN(parsedValue) || 
@@ -172,15 +168,8 @@ function updateDataDisplay(runData: RunState) {
 				timeInput.value = timeInput.defaultValue;
 			}
 		});
-	
-		// const buttonId = deleteButton.className[0]+1
-	
+		
 		deleteButton.addEventListener("click", () => {
-			runData.cycles.splice(rows.indexOf(row), 1);
-			rows.splice(rows.indexOf(row), 1)
-			typeInputs.splice(typeInputs.indexOf(typeInput), 1)
-			timeInputs.splice(timeInputs.indexOf(timeInput), 1)
-			scoreInputs.splice(scoreInputs.indexOf(scoreInput), 1)
 			tableBody.removeChild(row);
 			// const listItems = tableBody.querySelectorAll('tr')
 			// console.log(listItems);
@@ -190,26 +179,27 @@ function updateDataDisplay(runData: RunState) {
 		});
 	}
 	
-	
 	submit?.addEventListener("click", () => {
 		if (!runData) return;
 		updateData(runData);
 	});
 }
 
-function addTableRow(typeNew: string, timeNew: number, scoreNew: Number) {
+function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 	const tableBody = document.getElementById("table-body")!;
 	const row = tableBody.appendChild(document.createElement("tr"));
-	row.className = "extra-data-row"
+	row.className = "data-row"
 	const deleteButton = document.createElement("button");
 	const functionsDiv = document.createElement("div");
+	functionsDiv.className = "functions-div";
 	functionsDiv.appendChild(deleteButton);
 	deleteButton.textContent = "delete";
-	deleteButton.className = "extra-delete-button";
+	deleteButton.className = "delete-button";
 
-	row.insertCell(0).appendChild(functionsDiv);
+	row.insertCell(0).appendChild(deleteButton);
 	let tableData = row.appendChild(document.createElement("td"));
 	const typeInput = tableData.appendChild(document.createElement("input"));
+	typeInput.className = "data-input";
 	typeInput.defaultValue = typeNew;
 	typeInput.addEventListener("focusout", () => {
 	});
@@ -217,6 +207,7 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: Number) {
 	tableData = row.appendChild(document.createElement("td"));
 	const scoreInput = tableData.appendChild(document.createElement("input"));
 	scoreInput.defaultValue = String(scoreNew);
+	scoreInput.className = "data-input";
 	scoreInput.addEventListener("focusout", () => {
 		const parsedValue = Number(scoreInput.value);
 		if ((isNaN(parsedValue) || 
@@ -226,11 +217,11 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: Number) {
 			scoreInput.value = scoreInput.defaultValue;
 		}
 	});
-	
 
 	tableData = row.appendChild(document.createElement("td"));
 	const timeInput = tableData.appendChild(document.createElement("input"));
 	timeInput.defaultValue = String(timeNew);
+	timeInput.className = "data-input";
 	timeInput.addEventListener("focusout", () => {
 		const parsedValue = Number(timeInput.value);
 		if ((isNaN(parsedValue) || 
@@ -240,8 +231,6 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: Number) {
 			timeInput.value = timeInput.defaultValue;
 		}
 	});
-
-	// const buttonId = deleteButton.className[0]+1
 
 	deleteButton.addEventListener("click", () => {
 		tableBody.removeChild(row);
@@ -256,10 +245,10 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: Number) {
 const updateData = (runData: RunState) => {
 	const table = document.getElementById("scores-table") as HTMLTableElement;
 	if (runData.running) {
-		let newRunData = runData
+		const newRunData = runData
 		newRunData.cycles = [];
 		for (let i = 1; i < table.rows.length; i++){
-			var cells = table.rows[i].getElementsByTagName("td");
+			const cells = table.rows[i].getElementsByTagName("td");
 			runData.cycles[i].time = parseFloat(cells[1].querySelector("input")!.value);
 			runData.cycles[i].score = parseInt(cells[2].querySelector("input")!.value);
 			runData.cycles[i].type = cells[3].querySelector("input")!.value;

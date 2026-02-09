@@ -112,13 +112,13 @@ ${nav}
 				<label for="settings-timer-endgame">Endgame Length</label>
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
-		</div>
-		<div id="settings-mode-dropdown-container">
-			<h1>Mode</h1>
-			<select id="settings-mode-dropdown">
-				<option value="view">View</option>
-				<option value="edit">Edit</option>
-			</select>
+			<div id="settings-mode-dropdown-container">
+				<h1>Mode</h1>
+				<select id="settings-mode-dropdown">
+					<option value="view">View</option>
+					<option value="edit">Edit</option>
+				</select>
+			</div>
 		</div>
 		<div id="settings-danger-container" class="settings-section-container">
 			<div class="settings-section settings-danger-section">

@@ -122,13 +122,15 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 			runData.score = RobotEvent.score;
 
 			int count = runData.info.getOrDefault(type, 0);
+
 			count++;
 			runData.info.put(type, count);
 
 			Data.Cycle cycle = new Data.Cycle(timeMs / 1000f, type, score);
 			runData.cycles.add(cycle);
 			if (wsHandler != null) {
-				wsHandler.sendMessage(new PracticeApp.Message("addCycle", cycle, RobotEvent.score));
+				//final String CYCLEJSON = Data.SaveRunData.toJson(cycle);
+				wsHandler.sendMessage(new PracticeApp.Message("addCycle", Data.Cycle.toJson(cycle), RobotEvent.score));
 				//wsHandler.sendMessage(new PracticeApp.Message("resetCycle", type, timeMs));
 			}
 		}

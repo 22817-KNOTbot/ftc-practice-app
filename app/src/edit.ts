@@ -2,7 +2,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { getLayout } from "./layouts.ts";
 import { registerNavbar } from "./navbar.ts";
 import { getSetting } from "./settingsManager.ts";
-import { Cycle, MatchPeriod, Message, RunState } from "./types.ts";
+import { Cycle, Message, RunState } from "./types.ts";
 import { createSocket } from "./socket.ts";
 
 
@@ -39,6 +39,7 @@ socket.onmessage = (event) => {
 
 const handleMessage = (data: Message) => {
 	console.debug(data);
+	console.log("get something")
 	if (data.event == "setState") {
 		if (data.name) {
 			console.log("Received run state, updating info");
@@ -54,6 +55,7 @@ const handleMessage = (data: Message) => {
 			updateDataDisplay(runState);
 		}
 	} else if (data.event == "addCycle") {
+		console.log("begin get data")
 		if(data.name) {
 			console.log("Received run state, updating info");
 			let newestCycle: Cycle;
@@ -70,47 +72,48 @@ const handleMessage = (data: Message) => {
 	}
 }
 //placeholdercode
-const runData: RunState = {
-	running: true,
-	matchPeriod: MatchPeriod.AUTO,
-	periodTime: 25,
-	score: 30,
-	cycles: [
-		{
-			time: 2,
-			type: "shoot",
-			score: 1
-		},
-		{
-			time: 2,
-			type: "leave",
-			score: 2
-		},
-		{
-			time: 2,
-			type: "shoot",
-			score: 3
-		},
-		{
-			time: 2,
-			type: "shoot",
-			score: 4
-		},
-		{
-			time: 2,
-			type: "shoot",
-			score: 5
-		},
-		{
-			time: 2,
-			type: "shoot",
-			score: 6
-		},
-	],
-	cycleTime: 12
-}
-updateDataDisplay(runData);
+// const runData: RunState = {
+	// running: true,
+	// matchPeriod: MatchPeriod.AUTO,
+	// periodTime: 25,
+	// score: 30,
+	// cycles: [
+		// {
+			// time: 2,
+			// type: "shoot",
+			// score: 1
+		// },
+		// {
+			// time: 2,
+			// type: "leave",
+			// score: 2
+		// },
+		// {
+			// time: 2,
+			// type: "shoot",
+			// score: 3
+		// },
+		// {
+			// time: 2,
+			// type: "shoot",
+			// score: 4
+		// },
+		// {
+			// time: 2,
+			// type: "shoot",
+			// score: 5
+		// },
+		// {
+			// time: 2,
+			// type: "shoot",
+			// score: 6
+		// },
+	// ],
+	// cycleTime: 12
+// }
+//updateDataDisplay(runData);
 function updateDataDisplay(runData: RunState) {
+	//console.log(runData)
 	const table = document.getElementById("scores-table") as HTMLTableElement;
 	const submit = document.getElementById("submit-button");
 	let tableBody = document.getElementById("table-body");
@@ -171,16 +174,13 @@ function updateDataDisplay(runData: RunState) {
 		
 		deleteButton.addEventListener("click", () => {
 			tableBody.removeChild(row);
-			// const listItems = tableBody.querySelectorAll('tr')
-			// console.log(listItems);
-			// console.log(runData.cycles);
-			// console.log(buttonId);
-			// console.log(row.className);
 		});
 	}
 	
 	submit?.addEventListener("click", () => {
 		if (!runData) return;
+		console.log("begin send");
+		//console.log(runData)
 		updateData(runData);
 	});
 }
@@ -234,24 +234,27 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 
 	deleteButton.addEventListener("click", () => {
 		tableBody.removeChild(row);
-		// const listItems = tableBody.querySelectorAll('tr')
-		// console.log(listItems);
-		// console.log(runData.cycles);
-		// console.log(buttonId);
-		// console.log(row.className);
 	});
 }
 
 const updateData = (runData: RunState) => {
+	console.log("created data")
+	//console.log(runData)
 	const table = document.getElementById("scores-table") as HTMLTableElement;
 	if (runData.running) {
-		const newRunData = runData
-		newRunData.cycles = [];
+		//console.log(runData)
+		//const newRunData = runData
+		//newRunData.cycles = [];
+		console.log(runData.cycles)
 		for (let i = 1; i < table.rows.length; i++){
 			const cells = table.rows[i].getElementsByTagName("td");
-			runData.cycles[i].time = parseFloat(cells[1].querySelector("input")!.value);
-			runData.cycles[i].score = parseInt(cells[2].querySelector("input")!.value);
-			runData.cycles[i].type = cells[3].querySelector("input")!.value;
+			//console.log(cells)
+			//console.log(runData)
+			console.log("begin")
+			runData.cycles[i-1].type = cells[1].querySelector("input")!.value;
+			runData.cycles[i-1].score = parseInt(cells[2].querySelector("input")!.value);
+			runData.cycles[i-1].time = parseFloat(cells[3].querySelector("input")!.value);
+			console.log(runData.cycles[i-1].type)
 		}
 
 		if (socket.readyState == WebSocket.OPEN) {

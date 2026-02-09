@@ -13,6 +13,7 @@ export default defineConfig({
 				stats: "./stats.html",
 				settings: "./settings.html",
 				about: "./about.html",
+				edit: "./edit.html",
 			},
 			output: {
 				entryFileNames: `assets/[name].js`,

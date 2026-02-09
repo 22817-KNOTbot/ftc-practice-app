@@ -99,6 +99,7 @@ public class PracticeApp {
 		manager.register(WEB_PATH + "/stats", createWebHandler("practice/stats.html"));
 		manager.register(WEB_PATH + "/settings", createWebHandler("practice/settings.html"));
 		manager.register(WEB_PATH + "/about", createWebHandler("practice/about.html"));
+		manager.register(WEB_PATH + "/edit", createWebHandler("practice/edit.html"));
 	}
 
 	private void attachAssetWebHandlers(WebHandlerManager manager, String path) {
@@ -504,7 +505,7 @@ public class PracticeApp {
 						return;
 					}
 					DataStorage.editRun(Data.RunData.toData(message.name));
-					RobotEvent.runData = null;
+					//RobotEvent.runData = null;
 					break;
 				default:
 					break;

@@ -143,7 +143,7 @@ ${nav}
 			href="https://github.com/22817-KNOTbot/ftc-practice-app/blob/main/LICENSE" target="_blank">MIT License</a>.
 	</p>
 </div>
-`,
+`,			edit: ``,
 		},
 	};
 }

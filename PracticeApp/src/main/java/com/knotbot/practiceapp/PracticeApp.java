@@ -505,7 +505,6 @@ public class PracticeApp {
 						return;
 					}
 					DataStorage.editRun(Data.RunData.toData(message.name));
-					//RobotEvent.runData = null;
 					break;
 				default:
 					break;

@@ -54,9 +54,11 @@ nav>a {
 }
 
 #settings-container {
+	padding: 3vh 2vw;
 	display: grid;
-	grid-template-columns: 8fr 3fr;
-	grid-template-rows: 5fr 5fr;
+	grid-template-areas: 
+		"layout layout layout layout layout layout layout layout save save save"
+		"timer timer mode mode mode mode mode mode danger danger danger";
 }
 
 #about-container {

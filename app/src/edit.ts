@@ -5,7 +5,6 @@ import { getSetting } from "./settingsManager.ts";
 import { Cycle, Message, RunState } from "./types.ts";
 import { createSocket } from "./socket.ts";
 
-
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
@@ -39,7 +38,6 @@ socket.onmessage = (event) => {
 
 const handleMessage = (data: Message) => {
 	console.debug(data);
-	console.log("get something")
 	if (data.event == "setState") {
 		if (data.name) {
 			console.log("Received run state, updating info");
@@ -48,224 +46,194 @@ const handleMessage = (data: Message) => {
 				runState = JSON.parse(data.name) as RunState;
 			} catch {
 				console.error(
-					`Invalid state JSON received. Got "${data.name}"`
+					`Invalid state JSON received. Got "${data.name}"`,
 				);
 				return;
 			}
 			updateDataDisplay(runState);
 		}
 	} else if (data.event == "addCycle") {
-		console.log("begin get data")
-		if(data.name) {
-			console.log("Received run state, updating info");
+		if (data.name) {
 			let newestCycle: Cycle;
 			try {
 				newestCycle = JSON.parse(data.name) as Cycle;
 			} catch {
 				console.error(
-					`Invalid state JSON received. Got "${data.name}"`
+					`Invalid state JSON received. Got "${data.name}"`,
 				);
 				return;
 			}
-			addTableRow(newestCycle.type, newestCycle.time, newestCycle.score)
+			addTableRow(newestCycle.type, newestCycle.time, newestCycle.score);
 		}
 	}
-}
-//placeholdercode
-// const runData: RunState = {
-	// running: true,
-	// matchPeriod: MatchPeriod.AUTO,
-	// periodTime: 25,
-	// score: 30,
-	// cycles: [
-		// {
-			// time: 2,
-			// type: "shoot",
-			// score: 1
-		// },
-		// {
-			// time: 2,
-			// type: "leave",
-			// score: 2
-		// },
-		// {
-			// time: 2,
-			// type: "shoot",
-			// score: 3
-		// },
-		// {
-			// time: 2,
-			// type: "shoot",
-			// score: 4
-		// },
-		// {
-			// time: 2,
-			// type: "shoot",
-			// score: 5
-		// },
-		// {
-			// time: 2,
-			// type: "shoot",
-			// score: 6
-		// },
-	// ],
-	// cycleTime: 12
-// }
-//updateDataDisplay(runData);
+};
+
+let timeInputs: HTMLInputElement[] = [];
+let typeInputs: HTMLInputElement[] = [];
+let scoreInputs: HTMLInputElement[] = [];
+
 function updateDataDisplay(runData: RunState) {
-	//console.log(runData)
-	const table = document.getElementById("scores-table") as HTMLTableElement;
-	const submit = document.getElementById("submit-button");
-	let tableBody = document.getElementById("table-body");
+	const table = document.getElementById(
+		"edit-scores-table",
+	) as HTMLTableElement;
+	let submit = document.getElementById("edit-table-save-button");
+	let tableBody = document.getElementById("edit-table-body");
 	tableBody?.remove();
-	tableBody = document.createElement('tbody');
-	tableBody.id = "table-body";
+	tableBody = document.createElement("tbody");
+	tableBody.id = "edit-table-body";
 	table.appendChild(tableBody);
 
 	if (!runData.running) {
 		return;
 	}
 
-	
-	for (let i = 0; i < runData.cycles.length; i++){
-		const row = tableBody.appendChild(document.createElement("tr"));
-		row.className = "data-row"
-		const deleteButton = document.createElement("button");
-		const functionsDiv = document.createElement("div");
-		functionsDiv.className = "functions-div";
-		functionsDiv.appendChild(deleteButton);
-		deleteButton.textContent = "delete";
-		deleteButton.className = "delete-button";
-		
-		row.insertCell(0).appendChild(functionsDiv);
-		let tableData = row.appendChild(document.createElement("td"));
-		const typeInput = tableData.appendChild(document.createElement("input"));
-		typeInput.className = "data-input";
-		typeInput.defaultValue = runData.cycles[i].type;
-		typeInput.addEventListener("focusout", () => {});
-	
-		tableData = row.appendChild(document.createElement("td"));
-		const scoreInput = tableData.appendChild(document.createElement("input"));
-		scoreInput.defaultValue = String(runData.cycles[i].score);
-		scoreInput.className = "data-input";
-		scoreInput.addEventListener("focusout", () => {
-			const parsedValue = Number(scoreInput.value);
-			if ((isNaN(parsedValue) || 
-						!isFinite(parsedValue) || 
-						parsedValue <= 0) && 
-						scoreInput.value.length > 0) {
-				scoreInput.value = scoreInput.defaultValue;
-			}
-		});
-		
-		tableData = row.appendChild(document.createElement("td"));
-		const timeInput = tableData.appendChild(document.createElement("input"));
-		timeInput.defaultValue = String(runData.cycles[i].time);
-		timeInput.className = "data-input";
-		timeInput.addEventListener("focusout", () => {
-			const parsedValue = Number(timeInput.value);
-			if ((isNaN(parsedValue) || 
-						!isFinite(parsedValue) || 
-						parsedValue <= 0) && 
-						timeInput.value.length > 0) {
-				timeInput.value = timeInput.defaultValue;
-			}
-		});
-		
-		deleteButton.addEventListener("click", () => {
-			tableBody.removeChild(row);
-		});
+	timeInputs = [];
+	typeInputs = [];
+	scoreInputs = [];
+
+	for (const cycle of runData.cycles) {
+		addTableRow(cycle.type, cycle.time, cycle.score);
 	}
-	
+
+	const oldSubmit = submit;
+	submit = oldSubmit?.cloneNode(true) as HTMLElement;
+	oldSubmit?.parentNode?.replaceChild(submit, oldSubmit);
 	submit?.addEventListener("click", () => {
 		if (!runData) return;
-		console.log("begin send");
-		//console.log(runData)
-		updateData(runData);
+
+		const cycles: Cycle[] = [];
+		for (let i = 0; i < timeInputs.length; i++) {
+			const timeInput = timeInputs[i];
+			const typeInput = typeInputs[i];
+			const scoreInput = scoreInputs[i];
+
+			if (
+				(timeInput.value.trim().length <= 0 &&
+					timeInput.placeholder.trim().length <= 0) ||
+				(typeInput.value.trim().length <= 0 &&
+					typeInput.placeholder.trim().length <= 0) ||
+				(scoreInput.value.trim().length <= 0 &&
+					scoreInput.placeholder.trim().length <= 0)
+			)
+				continue;
+
+			let timeValue = Number(timeInput.value);
+			let typeValue = typeInput.value;
+			let scoreValue = Number(scoreInput.value);
+
+			if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+				timeValue = Number(timeInput.placeholder);
+			}
+			if (typeValue.trim().length == 0) {
+				typeValue = typeInput.placeholder;
+			}
+			if (
+				isNaN(scoreValue) ||
+				!isFinite(scoreValue) ||
+				!Number.isInteger(scoreValue) ||
+				scoreInput.value.trim().length <= 0
+			) {
+				scoreValue = Number(scoreInput.placeholder);
+			}
+
+			cycles.push({
+				time: timeValue,
+				type: typeValue,
+				score: scoreValue,
+			});
+		}
+
+		sendEditedCycles(cycles);
 	});
 }
 
 function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
-	const tableBody = document.getElementById("table-body")!;
+	const tableBody = document.getElementById("edit-table-body")!;
 	const row = tableBody.appendChild(document.createElement("tr"));
-	row.className = "data-row"
-	const deleteButton = document.createElement("button");
+	row.className = "data-row";
 	const functionsDiv = document.createElement("div");
 	functionsDiv.className = "functions-div";
+	const deleteButton = document.createElement("button");
+	deleteButton.classList.add("delete-button");
+	deleteButton.classList.add("edit-table-button");
 	functionsDiv.appendChild(deleteButton);
-	deleteButton.textContent = "delete";
-	deleteButton.className = "delete-button";
+	// const addButton = document.createElement("button");
+	// addButton.classList.add("add-button");
+	// addButton.classList.add("edit-table-button");
+	// functionsDiv.appendChild(addButton);
+	row.insertCell(0).appendChild(functionsDiv);
 
-	row.insertCell(0).appendChild(deleteButton);
 	let tableData = row.appendChild(document.createElement("td"));
-	const typeInput = tableData.appendChild(document.createElement("input"));
-	typeInput.className = "data-input";
-	typeInput.defaultValue = typeNew;
-	typeInput.addEventListener("focusout", () => {
-	});
-
-	tableData = row.appendChild(document.createElement("td"));
-	const scoreInput = tableData.appendChild(document.createElement("input"));
-	scoreInput.defaultValue = String(scoreNew);
-	scoreInput.className = "data-input";
-	scoreInput.addEventListener("focusout", () => {
-		const parsedValue = Number(scoreInput.value);
-		if ((isNaN(parsedValue) || 
-					!isFinite(parsedValue) || 
-					parsedValue <= 0) && 
-					scoreInput.value.length > 0) {
-			scoreInput.value = scoreInput.defaultValue;
+	const timeInput = tableData.appendChild(document.createElement("input"));
+	timeInputs.push(timeInput);
+	timeInput.value = String(timeNew);
+	timeInput.placeholder = String(timeNew);
+	timeInput.className = "data-input";
+	timeInput.addEventListener("focusout", () => {
+		const parsedValue = Number(timeInput.value);
+		if (
+			(isNaN(parsedValue) ||
+				!isFinite(parsedValue) ||
+				parsedValue <= 0) &&
+			timeInput.value.length > 0
+		) {
+			timeInput.classList.add("invalid");
+		} else {
+			timeInput.classList.remove("invalid");
 		}
 	});
 
 	tableData = row.appendChild(document.createElement("td"));
-	const timeInput = tableData.appendChild(document.createElement("input"));
-	timeInput.defaultValue = String(timeNew);
-	timeInput.className = "data-input";
-	timeInput.addEventListener("focusout", () => {
-		const parsedValue = Number(timeInput.value);
-		if ((isNaN(parsedValue) || 
-					!isFinite(parsedValue) || 
-					parsedValue <= 0) && 
-					timeInput.value.length > 0) {
-			timeInput.value = timeInput.defaultValue;
+	const typeInput = tableData.appendChild(document.createElement("input"));
+	typeInputs.push(typeInput);
+	typeInput.className = "data-input";
+	typeInput.value = typeNew;
+	typeInput.placeholder = typeNew;
+	typeInput.addEventListener("focusout", () => {
+		const value = typeInput.value;
+		if (value.trim().length == 0 && value.length > 0) {
+			typeInput.classList.add("invalid");
+		} else {
+			typeInput.classList.remove("invalid");
+		}
+	});
+
+	tableData = row.appendChild(document.createElement("td"));
+	const scoreInput = tableData.appendChild(document.createElement("input"));
+	scoreInputs.push(scoreInput);
+	scoreInput.value = String(scoreNew);
+	scoreInput.placeholder = String(scoreNew);
+	scoreInput.className = "data-input";
+	scoreInput.addEventListener("focusout", () => {
+		const parsedValue = Number(scoreInput.value);
+		if (
+			(isNaN(parsedValue) ||
+				!isFinite(parsedValue) ||
+				parsedValue <= 0) &&
+			scoreInput.value.length > 0
+		) {
+			scoreInput.classList.add("invalid");
+		} else {
+			scoreInput.classList.remove("invalid");
 		}
 	});
 
 	deleteButton.addEventListener("click", () => {
 		tableBody.removeChild(row);
+		timeInputs.splice(timeInputs.indexOf(timeInput), 1);
+		typeInputs.splice(typeInputs.indexOf(typeInput), 1);
+		scoreInputs.splice(scoreInputs.indexOf(scoreInput), 1);
 	});
 }
 
-const updateData = (runData: RunState) => {
-	console.log("created data")
-	//console.log(runData)
-	const table = document.getElementById("scores-table") as HTMLTableElement;
-	if (runData.running) {
-		//console.log(runData)
-		//const newRunData = runData
-		//newRunData.cycles = [];
-		console.log(runData.cycles)
-		for (let i = 1; i < table.rows.length; i++){
-			const cells = table.rows[i].getElementsByTagName("td");
-			//console.log(cells)
-			//console.log(runData)
-			console.log("begin")
-			runData.cycles[i-1].type = cells[1].querySelector("input")!.value;
-			runData.cycles[i-1].score = parseInt(cells[2].querySelector("input")!.value);
-			runData.cycles[i-1].time = parseFloat(cells[3].querySelector("input")!.value);
-			console.log(runData.cycles[i-1].type)
-		}
-
-		if (socket.readyState == WebSocket.OPEN) {
-			const data: Message = {
-				event: "editRun",
-				name: JSON.stringify(runData),
-			};
-			socket.send(JSON.stringify(data));
-		} else {
-			console.error("Edited Run could not be saved. Disconnected from WS");
-		}
+const sendEditedCycles = (cycles: Cycle[]) => {
+	if (socket.readyState == WebSocket.OPEN) {
+		const data: Message = {
+			event: "editRun",
+			name: JSON.stringify({ cycles: cycles }),
+		};
+		socket.send(JSON.stringify(data));
+	} else {
+		console.error("Edited Run could not be saved. Disconnected from WS");
 	}
-
-}
+};

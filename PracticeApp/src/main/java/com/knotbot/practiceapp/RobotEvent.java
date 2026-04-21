@@ -1,9 +1,9 @@
 package com.knotbot.practiceapp;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.knotbot.practiceapp.Data.Cycle;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 
@@ -169,12 +169,11 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		DataStorage.tempSaveRun(runData, "unsaved");
 	}
 
-	public static Data.RunData getRunData() {
-		return runData;
-	}
+	public static void editCycles(List<Cycle> cycles) {
+		if (!running) return;
 
-	public static void setRunData(Data.RunData newRunData) {
-		runData = newRunData;
+		runData.cycles = cycles;
+
 	}
 
 	@Override

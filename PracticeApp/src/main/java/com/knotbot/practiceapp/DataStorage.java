@@ -77,10 +77,6 @@ public class DataStorage {
 		addRunToMain(runData, fileName);
 	}
 
-	protected static void editRun(Data.RunData runData) {
-		RobotEvent.setRunData(runData);
-	}
-
 	protected static void tempSaveRun(Data.RunData runData, String name) {
 		String json = Data.RunData.toJson(runData);
 		File file = writeString(name, json);

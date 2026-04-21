@@ -44,7 +44,7 @@ const updateSelectedLayout = (selectedLayout: string) => {
 	}
 
 	const newlySelected = document.querySelector<HTMLDivElement>(
-		`.settings-layout[data-layout="${selectedLayout}"`
+		`.settings-layout[data-layout="${selectedLayout}"`,
 	);
 	newlySelected?.classList.add("selected");
 };
@@ -72,7 +72,7 @@ for (const option of layoutSettingsOptions) {
 }
 
 const timerSettingsInputs = document.querySelectorAll<HTMLInputElement>(
-	".settings-timer-value>input"
+	".settings-timer-value>input",
 );
 
 for (const input of timerSettingsInputs) {
@@ -98,12 +98,16 @@ for (const input of timerSettingsInputs) {
 	});
 }
 
-const modeSettingsInput = document.getElementById("settings-mode-dropdown") as HTMLSelectElement
+const modeSettingsInput = document.getElementById(
+	"settings-mode-dropdown",
+) as HTMLSelectElement;
 
-modeSettingsInput?.addEventListener('change', () => {
+modeSettingsInput.value = currentSettings.mode;
+
+modeSettingsInput?.addEventListener("change", () => {
 	const modeValue = modeSettingsInput.value;
 	currentSettings.mode = modeValue as Settings["mode"];
-})
+});
 
 const saveChanges = (settings: Settings) => {
 	const newTimerValues: { [key: string]: number } = {};
@@ -126,7 +130,7 @@ const saveChanges = (settings: Settings) => {
 };
 
 const submitButtonList = document.querySelectorAll<HTMLElement>(
-	"#settings-save-button"
+	"#settings-save-button",
 );
 for (const submitButton of submitButtonList) {
 	submitButton.addEventListener("click", () => saveChanges(currentSettings));
@@ -153,7 +157,7 @@ const showResetConfirmationModal = () => {
 	title.textContent = "Reset all settings";
 
 	const infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader.textContent = "Are you sure you want to reset all settings?";
@@ -192,7 +196,7 @@ const showDeleteRunsConfirmationModal = () => {
 	title.textContent = "Delete all runs";
 
 	const infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader.textContent = "Are you sure you want to delete all runs?";
@@ -232,7 +236,7 @@ const showDeleteRunsConfirmationModal = () => {
 			}).then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");

@@ -53,7 +53,7 @@ Chart.register(
 	PointElement,
 	TimeSeriesScale,
 	LinearScale,
-	Tooltip
+	Tooltip,
 );
 
 const textColor = window
@@ -222,13 +222,13 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 						.then((runData) => {
 							showRunData(
 								runData,
-								data[elements[0].index].filename
+								data[elements[0].index].filename,
 							);
 						})
 						.catch((reason) => {
 							showRunError(
 								data[elements[0].index].filename,
-								reason
+								reason,
 							);
 						})
 						.finally(() => {
@@ -265,7 +265,7 @@ function showRunData(data: RunData, filename?: string) {
 	});
 
 	let infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
@@ -299,7 +299,7 @@ function showRunData(data: RunData, filename?: string) {
 		const cycleTable = content.appendChild(document.createElement("table"));
 		cycleTable.id = "cycleTable";
 		const tableHeaderRow = cycleTable.appendChild(
-			document.createElement("tr")
+			document.createElement("tr"),
 		);
 		let header = tableHeaderRow.appendChild(document.createElement("th"));
 		header.textContent = "Time (s)";
@@ -321,7 +321,7 @@ function showRunData(data: RunData, filename?: string) {
 		}
 
 		const cycleInfoSubtitle = content.appendChild(
-			document.createElement("h3")
+			document.createElement("h3"),
 		);
 		cycleInfoSubtitle.className = "modalContentSubtitle";
 		cycleInfoSubtitle.textContent = "Statistics";
@@ -338,21 +338,16 @@ function showRunData(data: RunData, filename?: string) {
 		const secsPerPoint = cycleTimeSum / data.score;
 		const pointsPerSec = data.score / cycleTimeSum;
 
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Min: ${minTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Max: ${maxTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Mean: ${averageTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
+		cycleInfoList.appendChild(document.createElement("li")).textContent =
+			`Min: ${minTime.toFixed(3)}s`;
+		cycleInfoList.appendChild(document.createElement("li")).textContent =
+			`Max: ${maxTime.toFixed(3)}s`;
+		cycleInfoList.appendChild(document.createElement("li")).textContent =
+			`Mean: ${averageTime.toFixed(3)}s`;
+		cycleInfoList.appendChild(document.createElement("li")).textContent =
+			`Secs/point: ${secsPerPoint.toFixed(3)}s`;
+		cycleInfoList.appendChild(document.createElement("li")).textContent =
+			`Points/sec: ${pointsPerSec.toFixed(3)}`;
 	}
 
 	if (
@@ -366,7 +361,7 @@ function showRunData(data: RunData, filename?: string) {
 		teleopTimesHeader.textContent = "TeleOp Times";
 
 		const teleopTimesStart = content.appendChild(
-			document.createElement("div")
+			document.createElement("div"),
 		);
 		if (data.teleopTimes[0] != undefined) {
 			teleopTimesStart.textContent =
@@ -375,13 +370,13 @@ function showRunData(data: RunData, filename?: string) {
 					data.teleopTimes[0] == 0
 						? ""
 						: data.teleopTimes[0] > 0
-						? "late"
-						: "early"
+							? "late"
+							: "early"
 				}`;
 		}
 
 		const teleopTimesEnd = content.appendChild(
-			document.createElement("div")
+			document.createElement("div"),
 		);
 		if (data.teleopTimes[1] != undefined) {
 			teleopTimesEnd.textContent =
@@ -390,8 +385,8 @@ function showRunData(data: RunData, filename?: string) {
 					data.teleopTimes[1] == 0
 						? ""
 						: data.teleopTimes[1] > 0
-						? "late"
-						: "early"
+							? "late"
+							: "early"
 				}`;
 		}
 	}
@@ -406,7 +401,7 @@ function showRunData(data: RunData, filename?: string) {
 
 	const downloadLink = content.appendChild(document.createElement("a"));
 	const downloadButton = downloadLink.appendChild(
-		document.createElement("button")
+		document.createElement("button"),
 	);
 	downloadLink.id = "downloadRun";
 	downloadLink.href = `/practice/data/${filename}`;
@@ -436,7 +431,7 @@ function showRunData(data: RunData, filename?: string) {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");
@@ -577,7 +572,8 @@ function showRunEditModal(data: RunData, filename?: string) {
 			if (
 				isNaN(scoreValue) ||
 				!isFinite(scoreValue) ||
-				!Number.isInteger(scoreValue)
+				!Number.isInteger(scoreValue) ||
+				scoreInput.value.trim().length <= 0
 			) {
 				scoreValue = Number(scoreInput.placeholder);
 			}
@@ -605,7 +601,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 			teleopTimes = [
 				Math.floor(
 					(isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue) *
-						1000
+						1000,
 				),
 				Math.floor(teleopTimesEndValue * 1000),
 			];
@@ -644,25 +640,25 @@ function showRunEditModal(data: RunData, filename?: string) {
 			const pointsPerSec = data.score / cycleTimeSum;
 
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Min: ${minTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Max: ${maxTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Mean: ${averageTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
 		}
 	};
 
 	let infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
@@ -671,7 +667,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 	const subtitleDiv = content.appendChild(document.createElement("div"));
 	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
 	const subtitleInput = subtitleDiv.appendChild<HTMLInputElement>(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	subtitle.className = "modalContentSubtitle editModalSubtitle";
 	subtitleInput.type = "datetime-local";
@@ -719,13 +715,13 @@ function showRunEditModal(data: RunData, filename?: string) {
 		const row = cycleTable.appendChild(document.createElement("tr"));
 		let tableData = row.appendChild(document.createElement("td"));
 		const deleteButton = tableData.appendChild(
-			document.createElement("button")
+			document.createElement("button"),
 		);
 		deleteButton.classList.add("editModalDeleteButton");
 
 		tableData = row.appendChild(document.createElement("td"));
 		const timeInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		timeInput.classList.add("editModalInput", "editModalTableInput");
 		timeInputs.push(timeInput);
@@ -734,7 +730,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 
 		tableData = row.appendChild(document.createElement("td"));
 		const typeInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		typeInput.classList.add("editModalInput", "editModalTableInput");
 		typeInputs.push(typeInput);
@@ -743,7 +739,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 
 		tableData = row.appendChild(document.createElement("td"));
 		const scoreInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		scoreInput.classList.add("editModalInput", "editModalTableInput");
 		scoreInputs.push(scoreInput);
@@ -831,7 +827,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 	teleopTimesStart.classList.add("editModalTeleopLine");
 	teleopTimesStart.textContent = "TeleOp start: ";
 	const teleopTimesStartInput = teleopTimesStart.appendChild(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	teleopTimesStartInput.classList.add("editModalInput");
 
@@ -858,7 +854,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 	teleopTimesEnd.classList.add("editModalTeleopLine");
 	teleopTimesEnd.textContent = "TeleOp end: ";
 	const teleopTimesEndInput = teleopTimesEnd.appendChild(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	teleopTimesEndInput.classList.add("editModalInput");
 
@@ -898,7 +894,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");

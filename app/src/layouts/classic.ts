@@ -1,10 +1,22 @@
 import { getLayouts } from "../layouts";
+import { getSetting } from "../settingsManager";
 import { LayoutData } from "../types";
+
+const mode = getSetting("mode");
 
 const nav = `
 <nav>
-	<a href="/practice">Timer</a>
-	<a href="/practice/stats">Stats</a>
+${
+	mode == "view"
+		? `
+			<a href="/practice">Timer</a>
+		`
+		: mode == "edit"
+			? `
+				<a href="/practice/edit">Edit</a>
+			`
+			: ""
+}	<a href="/practice/stats">Stats</a>
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>
@@ -100,6 +112,13 @@ ${nav}
 			<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 		</div>
 	</div>
+	<div id="settings-mode-container" class="settings-section-container">
+		<h1>Mode</h1>
+		<select id="settings-mode-dropdown">
+			<option value="view">View</option>
+			<option value="edit">Edit</option>
+		</select>
+	</div>
 	<div id="settings-danger-container" class="settings-section-container">
 		<div class="settings-section settings-danger-section">
 			<h1>Danger Zone</h1>
@@ -143,7 +162,26 @@ ${nav}
 			href="https://github.com/22817-KNOTbot/ftc-practice-app/blob/main/LICENSE" target="_blank">MIT License</a>.
 	</p>
 </div>
-`,			edit: ``,
+`,
+			edit: `
+${nav}
+<div id="edit-container">
+	<div id="edit-scores-container">
+		<table id="edit-scores-table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Time (s)</th>
+					<th>Type</th>
+					<th>Score</th>
+				</tr>
+			</thead>
+		<tbody id="edit-table-body"></tbody>
+		</table>
+		<button id="edit-table-save-button" class="edit-table-button">Save</button>
+	</div>
+</div>
+`,
 		},
 	};
 }

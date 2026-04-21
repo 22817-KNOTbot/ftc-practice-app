@@ -1,5 +1,6 @@
 package com.knotbot.practiceapp;
 
+import com.knotbot.practiceapp.Data.RunState;
 import com.qualcomm.ftccommon.FtcEventLoop;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.WebHandlerManager;
@@ -454,42 +455,8 @@ public class PracticeApp {
 
 			switch (message.event) {
 				case "getState":
-					Data.RunState runState;
-					float runTime = (float) RobotEvent.runTimer.time();
-
-					if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
-						if (runTime >= 30 && runTime < 38) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
-							RobotEvent.periodTimerOffset = runTime - 30;
-							RobotEvent.periodTimer.reset();
-						} else if (runTime >= 38) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-							RobotEvent.periodTimerOffset = runTime - 38;
-							RobotEvent.periodTimer.reset();
-						}
-					} else if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
-						if (runTime >= 8) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-							RobotEvent.periodTimerOffset = runTime - 8;
-							RobotEvent.periodTimer.reset();
-						}
-					}
-
-					if (!RobotEvent.running || RobotEvent.runData == null) {
-						runState = new Data.RunState(false);
-					} else {
-						runState = new Data.RunState(
-								RobotEvent.running,
-								RobotEvent.matchPeriod,
-								(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
-								RobotEvent.score,
-								RobotEvent.runData.cycles,
-								(float) RobotEvent.cycleTimer.time());
-					}
-
-					String runStateJson = Data.RunState.toJson(runState);
-					sendMessage(new Message("setState", runStateJson));
-					Log.v(TAG, "Sent run state: \"" + runStateJson + "\"");
+					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
+					Log.v(TAG, "Sent run state in response to getState");
 					break;
 				case "saveRun":
 					if (message.name == null || message.name == "") {
@@ -504,11 +471,51 @@ public class PracticeApp {
 						Log.e(TAG, "Malformed edit. Given data \"" + json + "\"");
 						return;
 					}
-					DataStorage.editRun(Data.RunData.toData(message.name));
+					RobotEvent.editCycles(Data.RunData.toData(message.name).cycles);
+
+					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
+					Log.v(TAG, "Sent run state in response to editRun");
 					break;
 				default:
 					break;
 			}
+		}
+
+		private RunState getRunState() {
+			Data.RunState runState;
+			float runTime = (float) RobotEvent.runTimer.time();
+
+			if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
+				if (runTime >= 30 && runTime < 38) {
+					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+					RobotEvent.periodTimerOffset = runTime - 30;
+					RobotEvent.periodTimer.reset();
+				} else if (runTime >= 38) {
+					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					RobotEvent.periodTimerOffset = runTime - 38;
+					RobotEvent.periodTimer.reset();
+				}
+			} else if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
+				if (runTime >= 8) {
+					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					RobotEvent.periodTimerOffset = runTime - 8;
+					RobotEvent.periodTimer.reset();
+				}
+			}
+
+			if (!RobotEvent.running || RobotEvent.runData == null) {
+				runState = new Data.RunState(false);
+			} else {
+				runState = new Data.RunState(
+						RobotEvent.running,
+						RobotEvent.matchPeriod,
+						(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
+						RobotEvent.score,
+						RobotEvent.runData.cycles,
+						(float) RobotEvent.cycleTimer.time());
+			}
+
+			return runState;
 		}
 
 		public void sendMessage(Message message) {

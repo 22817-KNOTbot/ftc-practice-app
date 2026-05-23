@@ -138,7 +138,11 @@ const print = (text) => {
 	screen.render();
 };
 
-let sendFunction = (msg) => {};
+let sendFunction = (msg) => {
+	wss.clients.forEach((client) => {
+		client.send(msg);
+	});
+};
 
 input.on("submit", (text) => {
 	input.clearValue();
@@ -168,7 +172,6 @@ input.on("submit", (text) => {
 
 wss.on("connection", (socket) => {
 	print("Client connected");
-	sendFunction = (msg) => socket.send(msg);
 
 	socket.on("message", (data) => {
 		print(`Received: ${data}`);
@@ -198,14 +201,12 @@ wss.on("connection", (socket) => {
 					score += cycle.score;
 				}
 				newState.score = score;
-				wss.clients.forEach((client) => {
-					client.send(
-						JSON.stringify({
-							event: "setState",
-							name: JSON.stringify(newState),
-						}),
-					);
-				});
+				sendFunction(
+					JSON.stringify({
+						event: "setState",
+						name: JSON.stringify(newState),
+					}),
+				);
 				print("Sending state after edit");
 		}
 		if (response) socket.send(JSON.stringify(response));
@@ -213,7 +214,6 @@ wss.on("connection", (socket) => {
 
 	socket.on("close", () => {
 		print("Client disconnected");
-		sendFunction = (msg) => {};
 	});
 });
 

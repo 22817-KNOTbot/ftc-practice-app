@@ -1,10 +1,12 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
 import {
+	addScore,
 	clearChanges,
 	displayChange,
 	displayInfo,
 	displayInfoColor,
 	setScore,
+	updateChangesTextSize,
 } from "./score.ts";
 import { Sounds } from "./sfx.ts";
 import { createSocket } from "./socket.ts";
@@ -54,13 +56,14 @@ const timerElement = document.getElementById("timer")!;
 const timer = new Timer(timerElement);
 const timerValues = getSetting("timerValues");
 timerElement.textContent = secsToMins(
-	timerValues["auto"] + timerValues["teleop"]
+	timerValues["auto"] + timerValues["teleop"],
 );
 
 const cycleTimer = document.getElementById("cycle-timer")!;
 
 const score = document.getElementById("score")!;
 const changesElement = document.getElementById("changes-box")!;
+window.addEventListener("resize", updateChangesTextSize);
 
 const showSavePrompt = (data: SaveRunData) => {
 	const modal = document.getElementById("saveModal")!;
@@ -171,7 +174,7 @@ const showSavePrompt = (data: SaveRunData) => {
 			teleopTimes = [
 				Math.floor(
 					(isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue) *
-						1000
+						1000,
 				),
 				Math.floor(teleopTimesEndValue * 1000),
 			];
@@ -210,25 +213,25 @@ const showSavePrompt = (data: SaveRunData) => {
 			const pointsPerSec = data.score / cycleTimeSum;
 
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Min: ${minTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Max: ${maxTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Mean: ${averageTime.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
 			cycleInfoList.appendChild(
-				document.createElement("li")
+				document.createElement("li"),
 			).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
 		}
 	};
 
 	let infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
 	infoHeader.textContent = "Info";
@@ -236,7 +239,7 @@ const showSavePrompt = (data: SaveRunData) => {
 	const subtitleDiv = content.appendChild(document.createElement("div"));
 	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
 	const subtitleInput = subtitleDiv.appendChild<HTMLInputElement>(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	subtitle.className = "modalContentSubtitle editModalSubtitle";
 	subtitleInput.type = "datetime-local";
@@ -284,13 +287,13 @@ const showSavePrompt = (data: SaveRunData) => {
 		const row = cycleTable.appendChild(document.createElement("tr"));
 		let tableData = row.appendChild(document.createElement("td"));
 		const deleteButton = tableData.appendChild(
-			document.createElement("button")
+			document.createElement("button"),
 		);
 		deleteButton.classList.add("editModalDeleteButton");
 
 		tableData = row.appendChild(document.createElement("td"));
 		const timeInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		timeInput.classList.add("editModalInput", "editModalTableInput");
 		timeInputs.push(timeInput);
@@ -299,7 +302,7 @@ const showSavePrompt = (data: SaveRunData) => {
 
 		tableData = row.appendChild(document.createElement("td"));
 		const typeInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		typeInput.classList.add("editModalInput", "editModalTableInput");
 		typeInputs.push(typeInput);
@@ -308,7 +311,7 @@ const showSavePrompt = (data: SaveRunData) => {
 
 		tableData = row.appendChild(document.createElement("td"));
 		const scoreInput = tableData.appendChild(
-			document.createElement("input")
+			document.createElement("input"),
 		);
 		scoreInput.classList.add("editModalInput", "editModalTableInput");
 		scoreInputs.push(scoreInput);
@@ -392,13 +395,13 @@ const showSavePrompt = (data: SaveRunData) => {
 		data.startingMatchPeriod == "AUTO"
 			? timerValues["auto"] + timerValues["transition"]
 			: data.startingMatchPeriod == "TRANSITION"
-			? timerValues["transition"]
-			: 0;
+				? timerValues["transition"]
+				: 0;
 	const teleopStartDifference: number | null =
 		data.periodTimes[0] == null || data.periodTimes[1] == null
 			? null
 			: (data.periodTimes[1] - data.periodTimes[0]) / 1e3 -
-			  expectedStartTime;
+				expectedStartTime;
 	if (teleopStartDifference != null) {
 		data.teleopTimes[0] = Math.floor(teleopStartDifference * 1e3);
 	}
@@ -407,7 +410,7 @@ const showSavePrompt = (data: SaveRunData) => {
 		data.periodTimes[1] == null || data.periodTimes[2] == null
 			? null
 			: (data.periodTimes[2] - data.periodTimes[1]) / 1e3 -
-			  timerValues["teleop"];
+				timerValues["teleop"];
 	if (teleopEndDifference != null) {
 		data.teleopTimes[1] = Math.floor(teleopEndDifference * 1e3);
 	}
@@ -422,7 +425,7 @@ const showSavePrompt = (data: SaveRunData) => {
 	teleopTimesStart.classList.add("editModalTeleopLine");
 	teleopTimesStart.textContent = "TeleOp start: ";
 	const teleopTimesStartInput = teleopTimesStart.appendChild(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	teleopTimesStartInput.classList.add("editModalInput");
 
@@ -449,7 +452,7 @@ const showSavePrompt = (data: SaveRunData) => {
 	teleopTimesEnd.classList.add("editModalTeleopLine");
 	teleopTimesEnd.textContent = "TeleOp end: ";
 	const teleopTimesEndInput = teleopTimesEnd.appendChild(
-		document.createElement("input")
+		document.createElement("input"),
 	);
 	teleopTimesEndInput.classList.add("editModalInput");
 
@@ -564,7 +567,7 @@ const handleMessage = (data: Message) => {
 					runState = JSON.parse(data.name) as RunState;
 				} catch {
 					console.error(
-						`Invalid state JSON received. Got "${data.name}"`
+						`Invalid state JSON received. Got "${data.name}"`,
 					);
 					break;
 				}
@@ -596,8 +599,8 @@ const handleMessage = (data: Message) => {
 					data.name == "AUTO"
 						? timerValues["auto"] + timerValues["transition"]
 						: data.name == "TRANSITION"
-						? timerValues["transition"]
-						: 0;
+							? timerValues["transition"]
+							: 0;
 				const difference = data.value - expectedTime;
 				const positive = difference > 0;
 				displayInfoColor(
@@ -605,7 +608,7 @@ const handleMessage = (data: Message) => {
 					"TeleOp started: " +
 						(positive ? "+" : "-") +
 						Math.abs(difference).toFixed(3),
-					positive ? "var(--failure-color)" : "var(--success-color)"
+					positive ? "var(--failure-color)" : "var(--success-color)",
 				);
 			} else {
 				displayInfo(changesElement, "TeleOp started");
@@ -617,22 +620,19 @@ const handleMessage = (data: Message) => {
 			timer.stopTimer();
 			stopStopwatch();
 			break;
-		//case "resetCycle":
-		//	resetStopwatch(cycleTimer);
-		//	displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
-		//	break;
-		//case "setScore":
-		//	if (Object.prototype.hasOwnProperty.call(data, "value")) {
-		//		setScore(score, data.value!);
-		//	}
-		//	break;
-		case "addCycle":
-				resetStopwatch(cycleTimer);
-				displayChange(changesElement, data.name, (data.value ?? 0) / 1000);
-				if (Object.prototype.hasOwnProperty.call(data, "value")) {
-					setScore(score, data.value!);
-				}
+		case "addCycle": {
+			resetStopwatch(cycleTimer);
+			if (!data.name) break;
+			const cycle = JSON.parse(data.name) as Cycle;
+			displayChange(
+				changesElement,
+				cycle.type,
+				cycle.time ?? 0,
+				cycle.score,
+			);
+			addScore(score, cycle.score);
 			break;
+		}
 		case "playSound":
 			if (data.name) {
 				sounds.playSound(data.name);
@@ -651,7 +651,7 @@ const handleMessage = (data: Message) => {
 						? null
 						: (runData.periodTimes[2] - runData.periodTimes[1]) /
 								1e3 -
-						  timerValues["teleop"];
+							timerValues["teleop"];
 				if (difference != null) {
 					const positive = difference > 0;
 					displayInfoColor(
@@ -661,7 +661,7 @@ const handleMessage = (data: Message) => {
 							Math.abs(difference).toFixed(3),
 						positive
 							? "var(--failure-color)"
-							: "var(--success-color)"
+							: "var(--success-color)",
 					);
 				} else {
 					displayInfo(changesElement, "Run ended");

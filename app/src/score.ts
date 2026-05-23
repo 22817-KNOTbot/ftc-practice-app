@@ -1,11 +1,16 @@
 import { updateTextSize } from "auto-text-size";
 
-let oldScore = 0;
 let currentScore = 0;
 export function setScore(element: HTMLElement, score: number) {
 	score = Math.floor(score);
 	element.textContent = `${score}`;
 	currentScore = score;
+}
+
+export function addScore(element: HTMLElement, score: number) {
+	score = Math.floor(score);
+	currentScore += score;
+	element.textContent = `${currentScore}`;
 }
 
 const changes: { score: number; type: string; time: number }[] = [];
@@ -29,9 +34,9 @@ export function displayChange(
 	element: HTMLElement,
 	type?: string,
 	time?: number,
-	score?: number
+	score?: number,
 ) {
-	score ??= currentScore - oldScore;
+	score ??= 0;
 	type ??= "Score";
 
 	const info = `
@@ -42,7 +47,6 @@ export function displayChange(
 
 	displayInfo(element, info);
 
-	oldScore = currentScore;
 	changes.push({ score: score, type: type, time: time ?? 0 });
 	if (changes.length > 2) {
 		changes.shift();
@@ -68,7 +72,7 @@ export function displayInfo(element: HTMLElement, info: string) {
 export function displayInfoColor(
 	element: HTMLElement,
 	info: string,
-	color: string
+	color: string,
 ) {
 	const newChange = element.getElementsByClassName("change-3")[0]!
 		.children[0] as HTMLElement;
@@ -86,9 +90,21 @@ export function displayInfoColor(
 }
 
 export function clearChanges(element: HTMLElement) {
-	oldScore = 0;
 	changes.length = 0;
 	for (const child of element.children) {
 		child.children[0].textContent = "";
+	}
+}
+
+export function updateChangesTextSize() {
+	const changesBox = document.getElementById("changes-box");
+	if (!changesBox) return;
+	for (const box of changesBox.children) {
+		const change = box.children[0] as HTMLElement;
+		updateTextSize({
+			innerEl: change,
+			containerEl: change.parentElement!,
+			mode: "boxoneline",
+		});
 	}
 }

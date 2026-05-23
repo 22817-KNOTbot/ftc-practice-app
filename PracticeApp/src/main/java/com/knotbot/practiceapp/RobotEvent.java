@@ -174,6 +174,10 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 
 		runData.cycles = cycles;
 
+		score = 0;
+		for (Cycle cycle : cycles) {
+			score += cycle.score;
+		}
 	}
 
 	@Override

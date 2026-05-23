@@ -83,7 +83,7 @@ const screen = blessed.screen({
 	smartCSR: true,
 });
 const box = blessed.log({
-	height: "100%-1",
+	height: "100%-2",
 	width: "100%",
 	top: 0,
 	left: 0,
@@ -91,6 +91,17 @@ const box = blessed.log({
 	keys: true,
 	alwaysScroll: true,
 	scrollable: true,
+});
+
+const labels = blessed.textbox({
+	left: 0,
+	bottom: 1,
+	width: "100%",
+	height: 1,
+	style: {
+		bg: "blue",
+		text: "white",
+	},
 });
 
 const input = blessed.textbox({
@@ -106,6 +117,7 @@ const input = blessed.textbox({
 	},
 });
 screen.append(box);
+screen.append(labels);
 screen.append(input);
 input.focus();
 screen.key(["escape", "C-c"], (ch, key) => process.exit(0));
@@ -145,8 +157,8 @@ input.on("submit", (text) => {
 	const msg = JSON.stringify({
 		event: "addCycle",
 		name: JSON.stringify({
-			type: parts[0],
-			time: parseInt(parts[1]),
+			type: parts[1],
+			time: parseInt(parts[0]),
 			score: parseInt(parts[2]),
 		}),
 	});
@@ -177,6 +189,24 @@ wss.on("connection", (socket) => {
 				};
 				print("Sending state");
 				break;
+			case "editRun":
+				const newState = state;
+				const cycles = JSON.parse(json.name).cycles;
+				newState.cycles = cycles;
+				let score = 0;
+				for (const cycle of cycles) {
+					score += cycle.score;
+				}
+				newState.score = score;
+				wss.clients.forEach((client) => {
+					client.send(
+						JSON.stringify({
+							event: "setState",
+							name: JSON.stringify(newState),
+						}),
+					);
+				});
+				print("Sending state after edit");
 		}
 		if (response) socket.send(JSON.stringify(response));
 	});
@@ -188,3 +218,4 @@ wss.on("connection", (socket) => {
 });
 
 print("WebSocket server is running on ws://localhost:8888");
+labels.setContent("Time | Type | Score");

@@ -99,8 +99,6 @@ function updateDataDisplay(runData: RunState) {
 	submit = oldSubmit?.cloneNode(true) as HTMLElement;
 	oldSubmit?.parentNode?.replaceChild(submit, oldSubmit);
 	submit?.addEventListener("click", () => {
-		if (!runData) return;
-
 		const cycles: Cycle[] = [];
 		for (let i = 0; i < timeInputs.length; i++) {
 			const timeInput = timeInputs[i];
@@ -147,9 +145,22 @@ function updateDataDisplay(runData: RunState) {
 	});
 }
 
-function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
+function addTableRow(
+	typeNew: string,
+	timeNew: number | undefined,
+	scoreNew: number | undefined,
+	afterRow?: HTMLTableRowElement,
+) {
 	const tableBody = document.getElementById("edit-table-body")!;
-	const row = tableBody.appendChild(document.createElement("tr"));
+	const row = afterRow
+		? tableBody.insertBefore(
+				document.createElement("tr"),
+				afterRow.nextSibling,
+			)
+		: tableBody.appendChild(document.createElement("tr"));
+	const newIndex = afterRow
+		? Array.prototype.indexOf.call(tableBody.children, afterRow) + 1
+		: tableBody.children.length;
 	row.className = "data-row";
 	const functionsDiv = document.createElement("div");
 	functionsDiv.className = "functions-div";
@@ -157,17 +168,19 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 	deleteButton.classList.add("delete-button");
 	deleteButton.classList.add("edit-table-button");
 	functionsDiv.appendChild(deleteButton);
-	// const addButton = document.createElement("button");
-	// addButton.classList.add("add-button");
-	// addButton.classList.add("edit-table-button");
-	// functionsDiv.appendChild(addButton);
+	const addButton = document.createElement("button");
+	addButton.classList.add("add-button");
+	addButton.classList.add("edit-table-button");
+	functionsDiv.appendChild(addButton);
 	row.insertCell(0).appendChild(functionsDiv);
 
 	let tableData = row.appendChild(document.createElement("td"));
 	const timeInput = tableData.appendChild(document.createElement("input"));
-	timeInputs.push(timeInput);
-	timeInput.value = String(timeNew);
-	timeInput.placeholder = String(timeNew);
+	timeInputs.splice(newIndex, 0, timeInput);
+	if (timeNew != undefined) {
+		timeInput.value = String(timeNew);
+		timeInput.placeholder = String(timeNew);
+	}
 	timeInput.className = "data-input";
 	timeInput.addEventListener("focusout", () => {
 		const parsedValue = Number(timeInput.value);
@@ -185,7 +198,7 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 
 	tableData = row.appendChild(document.createElement("td"));
 	const typeInput = tableData.appendChild(document.createElement("input"));
-	typeInputs.push(typeInput);
+	typeInputs.splice(newIndex, 0, typeInput);
 	typeInput.className = "data-input";
 	typeInput.value = typeNew;
 	typeInput.placeholder = typeNew;
@@ -200,9 +213,11 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 
 	tableData = row.appendChild(document.createElement("td"));
 	const scoreInput = tableData.appendChild(document.createElement("input"));
-	scoreInputs.push(scoreInput);
-	scoreInput.value = String(scoreNew);
-	scoreInput.placeholder = String(scoreNew);
+	scoreInputs.splice(newIndex, 0, scoreInput);
+	if (scoreNew != undefined) {
+		scoreInput.value = String(scoreNew);
+		scoreInput.placeholder = String(scoreNew);
+	}
 	scoreInput.className = "data-input";
 	scoreInput.addEventListener("focusout", () => {
 		const parsedValue = Number(scoreInput.value);
@@ -223,6 +238,11 @@ function addTableRow(typeNew: string, timeNew: number, scoreNew: number) {
 		timeInputs.splice(timeInputs.indexOf(timeInput), 1);
 		typeInputs.splice(typeInputs.indexOf(typeInput), 1);
 		scoreInputs.splice(scoreInputs.indexOf(scoreInput), 1);
+	});
+
+	addButton.classList.add("editModalAddButton");
+	addButton.addEventListener("click", () => {
+		addTableRow("", undefined, undefined, row);
 	});
 }
 

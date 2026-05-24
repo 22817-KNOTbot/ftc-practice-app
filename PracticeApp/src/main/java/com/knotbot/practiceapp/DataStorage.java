@@ -2,6 +2,8 @@ package com.knotbot.practiceapp;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import com.knotbot.practiceapp.Data.Cycle;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -115,6 +117,12 @@ public class DataStorage {
 		newOverview.timestamp = runData.timestamp;
 		newOverview.score = runData.score;
 		newOverview.filename = fileName;
+		Float cycleTimeSum = 0f;
+		for (Cycle cycle : runData.cycles) {
+			cycleTimeSum += cycle.time;
+		}
+		newOverview.meanCycleTime = cycleTimeSum / runData.cycles.size();
+		newOverview.pointsPerSecond = runData.score / cycleTimeSum;
 		if (data.data == null) {
 			data.data = new ArrayList<Data.MainData.RunOverview>();
 		}
@@ -198,6 +206,12 @@ public class DataStorage {
 			newOverview.timestamp = runData.timestamp;
 			newOverview.score = runData.score;
 			newOverview.filename = file.getName();
+			Float cycleTimeSum = 0f;
+			for (Cycle cycle : runData.cycles) {
+				cycleTimeSum += cycle.time;
+			}
+			newOverview.meanCycleTime = cycleTimeSum / runData.cycles.size();
+			newOverview.pointsPerSecond = runData.score / cycleTimeSum;
 
 			data.data.add(newOverview);
 		}

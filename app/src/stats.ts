@@ -6,6 +6,7 @@ import {
 	TimeSeriesScale,
 	LinearScale,
 	Tooltip,
+	LegendOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
@@ -20,15 +21,6 @@ import {
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
 import { getSetting } from "./settingsManager";
-
-let data: Data["data"];
-
-const showChart = () => {
-	getData().then((d) => {
-		data = d.data;
-		generateChart(document.getElementById("chart")! as HTMLCanvasElement);
-	});
-};
 
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
@@ -45,7 +37,58 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML =
 	styleTags + layoutData.html.stats;
 
 registerNavbar(document.querySelector("nav")!);
-showChart();
+
+let data: Data["data"] = [];
+let chart: Chart | undefined;
+
+const showChart = (graphValues?: number[]) => {
+	getData().then((d) => {
+		data = d.data;
+		generateChart(
+			document.getElementById("chart")! as HTMLCanvasElement,
+			data,
+			graphValues,
+		);
+	});
+};
+
+const updateChart = (graphValueLabel?: string, graphValues?: number[]) => {
+	if (chart) {
+		if (chart.options.scales?.y) {
+			(chart.options.scales.y as LegendOptions<"line">).title.text =
+				graphValueLabel ?? "Score";
+		}
+		chart.data.datasets[0].label = graphValueLabel ?? "Score";
+		chart.data.datasets[0].data = graphValues ?? data.map((e) => e.score);
+		chart.update();
+	}
+};
+
+const chartTypeDropdown = document.getElementById("chart-type-dropdown");
+chartTypeDropdown?.addEventListener("change", (e) => {
+	const value = (e.target as HTMLSelectElement).value;
+	switch (value) {
+		case "score":
+			updateChart();
+			break;
+		case "meanCycleTime":
+			updateChart(
+				"Mean cycle time (s)",
+				data.map((e) => {
+					return e.meanCycleTime ?? 0;
+				}),
+			);
+			break;
+		case "pointsPerSecond":
+			updateChart(
+				"Points/second",
+				data.map((e) => {
+					return e.pointsPerSecond ?? 0;
+				}),
+			);
+			break;
+	}
+});
 
 Chart.register(
 	LineController,
@@ -67,27 +110,40 @@ const fontFamily = window
 Chart.defaults.color = textColor;
 Chart.defaults.font.family = fontFamily;
 
-const generateChart = async (chartCanvas: HTMLCanvasElement) => {
-	const chartData: { name: string; time: number; score: number }[] = [];
-	data.sort((a, b) => {
-		return a.timestamp - b.timestamp;
-	});
-	data.forEach((e) => {
+// Graph values is the number used for the y-axis. Order should match the data argument to link
+const generateChart = async (
+	chartCanvas: HTMLCanvasElement,
+	data: Data["data"],
+	graphValues?: number[],
+) => {
+	graphValues ??= data.map((e) => e.score);
+	const chartData: {
+		name: string;
+		time: number;
+		score: number;
+		value: number;
+	}[] = [];
+	for (let i = 0; i < data.length; i++) {
+		const e = data[i];
 		chartData.push({
 			name: e.name,
 			time: e.timestamp * 1000,
 			score: e.score,
+			value: graphValues[i],
 		});
+	}
+	chartData.sort((a, b) => {
+		return a.time - b.time;
 	});
 
-	new Chart(chartCanvas, {
+	chart = new Chart(chartCanvas, {
 		type: "line",
 		data: {
 			labels: chartData.map((e) => e.time),
 			datasets: [
 				{
 					label: "Score",
-					data: chartData.map((e) => e.score),
+					data: chartData.map((e) => e.value),
 				},
 			],
 		},
@@ -198,7 +254,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 					title: {
 						display: true,
 						align: "center",
-						text: "Points",
+						text: "Score",
 						font: {
 							size: 15,
 						},
@@ -245,6 +301,8 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 		},
 	});
 };
+
+showChart();
 
 function showRunData(data: RunData, filename?: string) {
 	filename ??= data.timestamp + ".json";
@@ -632,19 +690,24 @@ function showRunEditModal(data: RunData, filename?: string) {
 			const cycleTimes = data.cycles.map((cycle) => {
 				return cycle.time;
 			});
-			const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-			const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-			const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
+			let minTime: number | undefined;
+			let maxTime: number | undefined;
+			let cycleTimeSum = 0;
+			cycleTimes.forEach((time) => {
+				minTime = minTime == undefined ? time : Math.min(minTime, time);
+				maxTime = maxTime == undefined ? time : Math.max(maxTime, time);
+				cycleTimeSum += time;
+			});
 			const averageTime = cycleTimeSum / cycleTimes.length;
 			const secsPerPoint = cycleTimeSum / data.score;
 			const pointsPerSec = data.score / cycleTimeSum;
 
 			cycleInfoList.appendChild(
 				document.createElement("li"),
-			).textContent = `Min: ${minTime.toFixed(3)}s`;
+			).textContent = `Min: ${minTime!.toFixed(3)}s`;
 			cycleInfoList.appendChild(
 				document.createElement("li"),
-			).textContent = `Max: ${maxTime.toFixed(3)}s`;
+			).textContent = `Max: ${maxTime!.toFixed(3)}s`;
 			cycleInfoList.appendChild(
 				document.createElement("li"),
 			).textContent = `Mean: ${averageTime.toFixed(3)}s`;

@@ -147,11 +147,33 @@ input[type="submit"] {
 }
 
 #chart-div {
-	display: grid;
+	display: flex;
+	flex-direction: column;
 	place-content: center;
 	padding: 2vh 2vw;
 	box-sizing: border-box;
-	place-self: center;
+	gap: 2vh;
+}
+
+#chart-options-container {
+	justify-self: end;
+	align-self: end;
+}
+
+#chart-type-dropdown {
+	background-color: var(--accent-color);
+	color: var(--text-color);
+	border: solid 1px;
+	border-radius: 100vmax;
+	padding: 0.5vh 1vw;
+	font-size: 1.2em;
+	cursor: pointer;
+	height: 2.5lh;
+}
+
+#chart-container {
+	width: 100%;
+	height: 100%;
 }
 
 .modal {
@@ -176,6 +198,10 @@ input[type="submit"] {
 	overflow-x: hidden;
 	filter: blur(5px);
 	transition: transform 250ms, opacity 250ms, filter 250ms;
+
+	&:not(.shownModal) {
+		pointer-events: none;
+	}
 }
 
 .modal#saveModal,
@@ -186,10 +212,6 @@ input[type="submit"] {
 
 .modal#confirmationModal {
 	height: 60vh;
-
-	&:not(.shownModal) {
-		display: none;
-	}
 }
 
 .modal.shownModal {

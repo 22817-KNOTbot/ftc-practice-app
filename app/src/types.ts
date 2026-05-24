@@ -30,6 +30,8 @@ export type Data = {
 		timestamp: number;
 		score: number;
 		filename: string;
+		meanCycleTime?: number;
+		pointsPerSecond?: number;
 	}[];
 };
 

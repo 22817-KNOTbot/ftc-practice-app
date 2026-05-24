@@ -205,19 +205,24 @@ const showSavePrompt = (data: SaveRunData) => {
 			const cycleTimes = data.cycles.map((cycle) => {
 				return cycle.time;
 			});
-			const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-			const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-			const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
+			let minTime: number | undefined;
+			let maxTime: number | undefined;
+			let cycleTimeSum = 0;
+			cycleTimes.forEach((time) => {
+				minTime = minTime == undefined ? time : Math.min(minTime, time);
+				maxTime = maxTime == undefined ? time : Math.max(maxTime, time);
+				cycleTimeSum += time;
+			});
 			const averageTime = cycleTimeSum / cycleTimes.length;
 			const secsPerPoint = cycleTimeSum / data.score;
 			const pointsPerSec = data.score / cycleTimeSum;
 
 			cycleInfoList.appendChild(
 				document.createElement("li"),
-			).textContent = `Min: ${minTime.toFixed(3)}s`;
+			).textContent = `Min: ${minTime!.toFixed(3)}s`;
 			cycleInfoList.appendChild(
 				document.createElement("li"),
-			).textContent = `Max: ${maxTime.toFixed(3)}s`;
+			).textContent = `Max: ${maxTime!.toFixed(3)}s`;
 			cycleInfoList.appendChild(
 				document.createElement("li"),
 			).textContent = `Mean: ${averageTime.toFixed(3)}s`;

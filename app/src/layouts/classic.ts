@@ -59,7 +59,16 @@ ${nav}
 			stats: `
 ${nav}
 <div id="chart-div">
-	<canvas id="chart"></canvas>
+	<div id="chart-options-container">
+		<select id="chart-type-dropdown">
+			<option value="score">Score</option>
+			<option value="meanCycleTime">Mean cycle time</option>
+			<option value="pointsPerSecond">Points/second</option>
+		</select>
+	</div>
+	<div id="chart-container">
+		<canvas id="chart"></canvas>
+	</div>
 </div>
 <div id="runModal" class="modal">
 	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>

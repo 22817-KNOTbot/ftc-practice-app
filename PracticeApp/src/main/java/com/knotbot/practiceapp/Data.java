@@ -24,11 +24,13 @@ public class Data {
 			public long timestamp;
 			public int score;
 			public String filename;
+			public Float meanCycleTime;
+			public Float pointsPerSecond;
 
 			@Override
 			public String toString() {
 				return "RunOverview [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", filename="
-						+ filename
+						+ filename + ", meanCycleTime=" + meanCycleTime + ", pointsPerSecond=" + pointsPerSecond
 						+ "]";
 			}
 		}

@@ -1,4 +1,4 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))v(i);new MutationObserver(i=>{for(const s of i)if(s.type==="childList")for(const c of s.addedNodes)c.tagName==="LINK"&&c.rel==="modulepreload"&&v(c)}).observe(document,{childList:!0,subtree:!0});function a(i){const s={};return i.integrity&&(s.integrity=i.integrity),i.referrerPolicy&&(s.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?s.credentials="include":i.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function v(i){if(i.ep)return;i.ep=!0;const s=a(i);fetch(i.href,s)}})();const g={layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view"},h="settings";function l(t){const e=localStorage.getItem(h)??"{}";let a=null;if(e)try{a=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(a??g)[t]??g[t]}function $(t){localStorage.setItem(h,JSON.stringify(t))}const m=l("mode"),n=`
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))o(i);new MutationObserver(i=>{for(const s of i)if(s.type==="childList")for(const r of s.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&o(r)}).observe(document,{childList:!0,subtree:!0});function a(i){const s={};return i.integrity&&(s.integrity=i.integrity),i.referrerPolicy&&(s.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?s.credentials="include":i.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function o(i){if(i.ep)return;i.ep=!0;const s=a(i);fetch(i.href,s)}})();const g={layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view"},h="settings";function v(t){const e=localStorage.getItem(h)??"{}";let a=null;if(e)try{a=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(a??g)[t]??g[t]}function L(t){localStorage.setItem(h,JSON.stringify(t))}const m=v("mode"),n=`
 <nav>
 ${m=="view"?`
 			<a href="/practice">Timer</a>
@@ -40,7 +40,16 @@ ${n}
 `,stats:`
 ${n}
 <div id="chart-div">
-	<canvas id="chart"></canvas>
+	<div id="chart-options-container">
+		<select id="chart-type-dropdown">
+			<option value="score">Score</option>
+			<option value="meanCycleTime">Mean cycle time</option>
+			<option value="pointsPerSecond">Points/second</option>
+		</select>
+	</div>
+	<div id="chart-container">
+		<canvas id="chart"></canvas>
+	</div>
 </div>
 <div id="runModal" class="modal">
 	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>
@@ -155,13 +164,13 @@ ${n}
 		<button id="edit-table-save-button" class="edit-table-button">Save</button>
 	</div>
 </div>
-`}}}const o="/practice/assets/favicon.ico",u=l("mode"),d=`
+`}}}const c="/practice/assets/favicon.ico",p=v("mode"),d=`
 <nav class="collapsed">
-${u=="view"?`
-			<a href="/practice" class="navbar-img"><img src="${o}"></a>
+${p=="view"?`
+			<a href="/practice" class="navbar-img"><img src="${c}"></a>
 			<a href="/practice">Timer</a>
-		`:u=="edit"?`
-				<a href="/practice/edit" class="navbar-img"><img src="${o}"></a>
+		`:p=="edit"?`
+				<a href="/practice/edit" class="navbar-img"><img src="${c}"></a>
 				<a href="/practice/edit">Edit</a>
 			`:""}
 	<a href="/practice/stats">Stats</a>
@@ -200,7 +209,16 @@ ${d}
 `,stats:`
 ${d}
 <div id="chart-div">
-	<canvas id="chart"></canvas>
+	<div id="chart-options-container">
+		<select id="chart-type-dropdown">
+			<option value="score">Score</option>
+			<option value="meanCycleTime">Mean cycle time</option>
+			<option value="pointsPerSecond">Points/second</option>
+		</select>
+	</div>
+	<div id="chart-container">
+		<canvas id="chart"></canvas>
+	</div>
 </div>
 <div id="runModal" class="modal">
 	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>
@@ -321,14 +339,14 @@ ${d}
 		<button id="edit-table-save-button" class="edit-table-button">Save</button>
 	</div>
 </div>
-`}}}const p=l("mode"),S=`
+`}}}const u=v("mode"),S=`
 <nav class="collapsed">
-${p=="view"?`
-	<a href="/practice" class="navbar-img"><img src="${o}"></a>
+${u=="view"?`
+	<a href="/practice" class="navbar-img"><img src="${c}"></a>
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
-	`:p=="edit"?`
-	<a href="/practice/edit" class="navbar-img"><img src="${o}"></a>
+	`:u=="edit"?`
+	<a href="/practice/edit" class="navbar-img"><img src="${c}"></a>
 	<a href="/practice/edit">Edit</a>
 	`:""}
 	<a href="/practice/settings">Settings</a>
@@ -366,4 +384,4 @@ ${S}
 		Modal content
 	</div>
 </div>
-`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const r=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:b},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:T},{name:"Classic",imagePath:"/practice/assets/layouts/classic.jpg",layoutDataGetter:f}];function L(t){for(const e of r)if(e.name==t)return e;return r[0]}function y(){return r}function w(t){t.addEventListener("mouseenter",()=>{let e=0;for(const a of t.children)e+=a.offsetHeight;t.style.setProperty("--total-height",`${e}px`),t.classList.remove("collapsed")}),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{L as a,l as g,w as r,$ as s};
+`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const l=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:b},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:T},{name:"Classic",imagePath:"/practice/assets/layouts/classic.jpg",layoutDataGetter:f}];function $(t){for(const e of l)if(e.name==t)return e;return l[0]}function y(){return l}function w(t){const e=()=>{let a=0;for(const o of t.children)a+=o.offsetHeight;t.style.setProperty("--total-height",`${a}px`),t.classList.remove("collapsed")};t.addEventListener("mouseenter",e),t.addEventListener("resize",e),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{$ as a,v as g,w as r,L as s};

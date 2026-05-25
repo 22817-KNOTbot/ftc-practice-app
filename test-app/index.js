@@ -180,7 +180,7 @@ wss.on("connection", (socket) => {
 		try {
 			json = JSON.parse(data);
 		} catch (e) {
-			box.error(`Invalid JSON received: ${data}`);
+			box.log(`Invalid JSON received: ${data}`);
 			return;
 		}
 		let response = undefined;

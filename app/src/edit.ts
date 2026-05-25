@@ -63,7 +63,12 @@ const handleMessage = (data: Message) => {
 				);
 				return;
 			}
-			addTableRow(newestCycle.type, newestCycle.time, newestCycle.score);
+			addTableRow(
+				null,
+				newestCycle.type,
+				newestCycle.time,
+				newestCycle.score,
+			);
 		}
 	}
 };
@@ -71,19 +76,73 @@ const handleMessage = (data: Message) => {
 let timeInputs: HTMLInputElement[] = [];
 let typeInputs: HTMLInputElement[] = [];
 let scoreInputs: HTMLInputElement[] = [];
+let sentCycles: Cycle[] | undefined = undefined;
+
+const saveAction = () => {
+	const cycles: Cycle[] = [];
+	for (let i = 0; i < timeInputs.length; i++) {
+		const timeInput = timeInputs[i];
+		const typeInput = typeInputs[i];
+		const scoreInput = scoreInputs[i];
+
+		if (
+			(timeInput.value.trim().length <= 0 &&
+				timeInput.placeholder.trim().length <= 0) ||
+			(typeInput.value.trim().length <= 0 &&
+				typeInput.placeholder.trim().length <= 0) ||
+			(scoreInput.value.trim().length <= 0 &&
+				scoreInput.placeholder.trim().length <= 0)
+		)
+			continue;
+
+		let timeValue = Number(timeInput.value);
+		let typeValue = typeInput.value;
+		let scoreValue = Number(scoreInput.value);
+
+		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+			timeValue = Number(timeInput.placeholder);
+		}
+		if (typeValue.trim().length == 0) {
+			typeValue = typeInput.placeholder;
+		}
+		if (
+			isNaN(scoreValue) ||
+			!isFinite(scoreValue) ||
+			!Number.isInteger(scoreValue) ||
+			scoreInput.value.trim().length <= 0
+		) {
+			scoreValue = Number(scoreInput.placeholder);
+		}
+
+		cycles.push({
+			time: timeValue,
+			type: typeValue,
+			score: scoreValue,
+		});
+	}
+
+	sendEditedCycles(cycles);
+	sentCycles = cycles;
+};
+
+const submit = document.getElementById("edit-table-save-button");
+submit?.addEventListener("click", saveAction);
 
 function updateDataDisplay(runData: RunState) {
 	const table = document.getElementById(
 		"edit-scores-table",
 	) as HTMLTableElement;
-	let submit = document.getElementById("edit-table-save-button");
-	let tableBody = document.getElementById("edit-table-body");
-	tableBody?.remove();
-	tableBody = document.createElement("tbody");
-	tableBody.id = "edit-table-body";
-	table.appendChild(tableBody);
+	const oldTableBody = document.getElementById("edit-table-body");
 
 	if (!runData.running) {
+		return;
+	}
+
+	if (
+		sentCycles &&
+		sentCycles.length == runData.cycles.length &&
+		JSON.stringify(sentCycles) === JSON.stringify(runData.cycles)
+	) {
 		return;
 	}
 
@@ -91,67 +150,25 @@ function updateDataDisplay(runData: RunState) {
 	typeInputs = [];
 	scoreInputs = [];
 
+	oldTableBody?.remove();
+	const newTableBody = document.createElement("tbody");
+	newTableBody.id = "edit-table-body";
+	table.appendChild(newTableBody);
 	for (const cycle of runData.cycles) {
-		addTableRow(cycle.type, cycle.time, cycle.score);
+		addTableRow(newTableBody, cycle.type, cycle.time, cycle.score);
 	}
-
-	const oldSubmit = submit;
-	submit = oldSubmit?.cloneNode(true) as HTMLElement;
-	oldSubmit?.parentNode?.replaceChild(submit, oldSubmit);
-	submit?.addEventListener("click", () => {
-		const cycles: Cycle[] = [];
-		for (let i = 0; i < timeInputs.length; i++) {
-			const timeInput = timeInputs[i];
-			const typeInput = typeInputs[i];
-			const scoreInput = scoreInputs[i];
-
-			if (
-				(timeInput.value.trim().length <= 0 &&
-					timeInput.placeholder.trim().length <= 0) ||
-				(typeInput.value.trim().length <= 0 &&
-					typeInput.placeholder.trim().length <= 0) ||
-				(scoreInput.value.trim().length <= 0 &&
-					scoreInput.placeholder.trim().length <= 0)
-			)
-				continue;
-
-			let timeValue = Number(timeInput.value);
-			let typeValue = typeInput.value;
-			let scoreValue = Number(scoreInput.value);
-
-			if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
-				timeValue = Number(timeInput.placeholder);
-			}
-			if (typeValue.trim().length == 0) {
-				typeValue = typeInput.placeholder;
-			}
-			if (
-				isNaN(scoreValue) ||
-				!isFinite(scoreValue) ||
-				!Number.isInteger(scoreValue) ||
-				scoreInput.value.trim().length <= 0
-			) {
-				scoreValue = Number(scoreInput.placeholder);
-			}
-
-			cycles.push({
-				time: timeValue,
-				type: typeValue,
-				score: scoreValue,
-			});
-		}
-
-		sendEditedCycles(cycles);
-	});
 }
 
 function addTableRow(
+	tableBody: HTMLTableSectionElement | null,
 	typeNew: string,
 	timeNew: number | undefined,
 	scoreNew: number | undefined,
 	afterRow?: HTMLTableRowElement,
 ) {
-	const tableBody = document.getElementById("edit-table-body")!;
+	tableBody ??= document.getElementById(
+		"edit-table-body",
+	)! as HTMLTableSectionElement;
 	const row = afterRow
 		? tableBody.insertBefore(
 				document.createElement("tr"),
@@ -195,6 +212,11 @@ function addTableRow(
 			timeInput.classList.remove("invalid");
 		}
 	});
+	timeInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			saveAction();
+		}
+	});
 
 	tableData = row.appendChild(document.createElement("td"));
 	const typeInput = tableData.appendChild(document.createElement("input"));
@@ -208,6 +230,11 @@ function addTableRow(
 			typeInput.classList.add("invalid");
 		} else {
 			typeInput.classList.remove("invalid");
+		}
+	});
+	typeInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			saveAction();
 		}
 	});
 
@@ -224,12 +251,17 @@ function addTableRow(
 		if (
 			(isNaN(parsedValue) ||
 				!isFinite(parsedValue) ||
-				parsedValue <= 0) &&
+				!Number.isInteger(parsedValue)) &&
 			scoreInput.value.length > 0
 		) {
 			scoreInput.classList.add("invalid");
 		} else {
 			scoreInput.classList.remove("invalid");
+		}
+	});
+	scoreInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			saveAction();
 		}
 	});
 
@@ -242,7 +274,7 @@ function addTableRow(
 
 	addButton.classList.add("editModalAddButton");
 	addButton.addEventListener("click", () => {
-		addTableRow("", undefined, undefined, row);
+		addTableRow(tableBody, "", undefined, undefined, row);
 	});
 }
 

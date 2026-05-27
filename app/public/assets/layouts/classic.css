@@ -58,7 +58,7 @@ nav>a {
 	display: grid;
 	grid-template-areas: 
 		"layout layout layout layout layout layout layout layout save save save"
-		"timer timer mode mode mode mode mode mode danger danger danger";
+		"timer timer mode mode mode mode mode . danger danger danger";
 }
 
 #about-container {

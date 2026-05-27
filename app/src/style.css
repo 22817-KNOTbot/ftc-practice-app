@@ -479,6 +479,7 @@ input[type="submit"] {
 
 #settings-container #settings-mode-container {
 	grid-area: mode;
+	min-width: 20vw;
 	/* background-color: pink; */
 }
 

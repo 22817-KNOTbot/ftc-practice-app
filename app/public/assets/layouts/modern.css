@@ -144,7 +144,7 @@ nav>a.navbar-img {
 	grid-template-columns: repeat(11, 1fr);
 	grid-template-areas: 
 		"layout layout layout layout layout layout layout layout save save save"
-		"timer timer timer mode mode mode . . danger danger danger";
+		"timer timer timer timer mode mode mode . danger danger danger";
 }
 
 #about-content {

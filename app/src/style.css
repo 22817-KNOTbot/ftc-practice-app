@@ -326,7 +326,8 @@ input[type="submit"] {
 #modalContent .editModalDeleteButton,
 #modalContent .editModalAddButton,
 .edit-table-button.delete-button,
-.edit-table-button.add-button {
+.edit-table-button.add-button,
+.edit-table-button.send-button {
 	background-color: transparent;
 	background-size: contain;
 	width: 1.5lh;
@@ -334,7 +335,9 @@ input[type="submit"] {
 	vertical-align: middle;
 	padding: 0;
 	border-style: solid;
-	border-radius: 100%;
+	border-radius: 100vmax;
+	background-position: center;
+	background-repeat: no-repeat;
 }
 
 #modalContent .editModalDeleteButton,
@@ -347,6 +350,12 @@ input[type="submit"] {
 	background-image: url("/practice/assets/icons/plus.svg");
 }
 
+.edit-table-button.send-button {
+	width: 4.5lh;
+	height: 2.5lh;
+	background-image: url("/practice/assets/icons/send.svg");
+}
+	
 #modalContent ul {
 	margin: 0;
 }
@@ -387,7 +396,7 @@ input[type="submit"] {
 	border: solid 1px;
 	border-radius: 100vmax;
 	background-color: var(--accent-color);
-	
+
 	&:hover {
 		background-color: var(--accent-hover-color);
 	}
@@ -609,26 +618,31 @@ input[type="submit"] {
 #edit-container {
 	width: 90vw;
 	height: 100vh;
-	
+
 	float: right;
 	display: grid;
 	place-items: center;
 	overflow-y: scroll;
 }
 
-#edit-scores-container {
-	width: 95%;
-	padding: 5vh 2vw 0 2vw;
+#edit-container h1 {
+	margin: 0;
+	margin-bottom: 2vh
 }
 
-#edit-scores-table {
+.edit-page-container {
+	width: 95%;
+	padding: 5vh 2vw;
+}
+
+.edit-page-table {
 	border-radius: 7vmin;
 	border-spacing: 0;
 	border: white solid 1px;
 	overflow: hidden;
 }
 
-#edit-scores-table th {
+.edit-page-table th {
 	color: var(--text-color);
 	background-color: var(--accent-color);
 	font-size: 1.5em;
@@ -644,12 +658,12 @@ input[type="submit"] {
 	}
 }
 
-#edit-scores-table td {
+.edit-page-table td {
 	background-color: var(--secondary-bg-color);
 	font-size: 1.5em;
 	padding: 2%;
 	margin: auto;
-	justify-content: center;	
+	justify-content: center;
 }
 
 .functions-div {

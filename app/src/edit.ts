@@ -1,7 +1,7 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { getLayout } from "./layouts.ts";
 import { registerNavbar } from "./navbar.ts";
-import { getSetting } from "./settingsManager.ts";
+import { getSetting, updateSetting } from "./settingsManager.ts";
 import { Cycle, Message, RunState } from "./types.ts";
 import { createSocket } from "./socket.ts";
 
@@ -72,6 +72,10 @@ const handleMessage = (data: Message) => {
 		}
 	}
 };
+
+/*
+	Edit run
+*/
 
 let timeInputs: HTMLInputElement[] = [];
 let typeInputs: HTMLInputElement[] = [];
@@ -283,6 +287,235 @@ const sendEditedCycles = (cycles: Cycle[]) => {
 		const data: Message = {
 			event: "editRun",
 			name: JSON.stringify({ cycles: cycles }),
+		};
+		socket.send(JSON.stringify(data));
+	} else {
+		console.error("Edited Run could not be saved. Disconnected from WS");
+	}
+};
+
+/*
+	Manual Scoring
+*/
+const manualScoringPresets = getSetting("manualScoringPresets");
+const manualScoringPresetsGetters: (() => void)[] = [];
+
+function setupManualScoringTable(manualScoringPresets: Cycle[]) {
+	if (manualScoringPresets.length <= 0) {
+		addScoringTableRow(null, "", undefined, undefined);
+		return;
+	}
+	for (const cycle of manualScoringPresets) {
+		addScoringTableRow(null, cycle.type, cycle.time, cycle.score);
+	}
+}
+
+function addScoringTableRow(
+	tableBody: HTMLTableSectionElement | null,
+	typeNew: string,
+	timeNew: number | undefined,
+	scoreNew: number | undefined,
+	afterRow?: HTMLTableRowElement,
+) {
+	tableBody ??= document.getElementById(
+		"manual-scoring-table-body",
+	)! as HTMLTableSectionElement;
+	const row = afterRow
+		? tableBody.insertBefore(
+				document.createElement("tr"),
+				afterRow.nextSibling,
+			)
+		: tableBody.appendChild(document.createElement("tr"));
+	row.className = "data-row";
+	const functionsDiv = document.createElement("div");
+	functionsDiv.className = "functions-div";
+	const deleteButton = document.createElement("button");
+	deleteButton.classList.add("delete-button");
+	deleteButton.classList.add("edit-table-button");
+	functionsDiv.appendChild(deleteButton);
+	const addButton = document.createElement("button");
+	addButton.classList.add("add-button");
+	addButton.classList.add("edit-table-button");
+	functionsDiv.appendChild(addButton);
+	row.insertCell(0).appendChild(functionsDiv);
+
+	let tableData = row.appendChild(document.createElement("td"));
+	const timeInput = tableData.appendChild(document.createElement("input"));
+	if (timeNew != undefined) {
+		timeInput.value = String(timeNew);
+	}
+	timeInput.className = "data-input";
+	timeInput.addEventListener("focusout", () => {
+		const parsedValue = Number(timeInput.value);
+		if (isNaN(parsedValue) || !isFinite(parsedValue) || parsedValue <= 0) {
+			timeInput.classList.add("invalid");
+		} else {
+			timeInput.classList.remove("invalid");
+		}
+		saveAllPresetsRows();
+	});
+	timeInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			sendAction();
+		}
+	});
+
+	tableData = row.appendChild(document.createElement("td"));
+	const typeInput = tableData.appendChild(document.createElement("input"));
+	typeInput.className = "data-input";
+	typeInput.value = typeNew;
+	typeInput.addEventListener("focusout", () => {
+		const value = typeInput.value;
+		if (value.trim().length == 0) {
+			typeInput.classList.add("invalid");
+		} else {
+			typeInput.classList.remove("invalid");
+		}
+		saveAllPresetsRows();
+	});
+	typeInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			sendAction();
+		}
+	});
+
+	tableData = row.appendChild(document.createElement("td"));
+	const scoreInput = tableData.appendChild(document.createElement("input"));
+	if (scoreNew != undefined) {
+		scoreInput.value = String(scoreNew);
+	}
+	scoreInput.className = "data-input";
+	scoreInput.addEventListener("focusout", () => {
+		const parsedValue = Number(scoreInput.value);
+		if (
+			isNaN(parsedValue) ||
+			!isFinite(parsedValue) ||
+			!Number.isInteger(parsedValue)
+		) {
+			scoreInput.classList.add("invalid");
+		} else {
+			scoreInput.classList.remove("invalid");
+		}
+		saveAllPresetsRows();
+	});
+	scoreInput.addEventListener("keypress", (e) => {
+		if (e.key === "Enter") {
+			sendAction();
+		}
+	});
+
+	tableData = row.appendChild(document.createElement("td"));
+	const sendDiv = document.createElement("div");
+	sendDiv.className = "functions-div send-div";
+	tableData.appendChild(sendDiv);
+
+	const sendButton = document.createElement("button");
+	sendButton.classList.add("send-button");
+	sendButton.classList.add("edit-table-button");
+	sendDiv.appendChild(sendButton);
+
+	deleteButton.addEventListener("click", () => {
+		tableBody.removeChild(row);
+		if (tableBody.children.length <= 0) {
+			addScoringTableRow(null, "", undefined, undefined);
+		}
+	});
+
+	addButton.classList.add("editModalAddButton");
+	addButton.addEventListener("click", () => {
+		addScoringTableRow(null, "", undefined, undefined, row);
+	});
+
+	sendButton.addEventListener("click", () => {
+		sendAction();
+	});
+
+	const sendAction = () => {
+		if (
+			timeInput.value.trim().length <= 0 ||
+			typeInput.value.trim().length <= 0
+		)
+			return;
+
+		const timeValue = Number(timeInput.value);
+		const typeValue = typeInput.value;
+		const scoreValue = Number(scoreInput.value);
+
+		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+			return;
+		}
+		if (typeValue.trim().length == 0) {
+			return;
+		}
+		if (
+			isNaN(scoreValue) ||
+			!isFinite(scoreValue) ||
+			!Number.isInteger(scoreValue)
+		) {
+			return;
+		}
+
+		addCycle({
+			time: timeValue,
+			type: typeValue,
+			score: scoreValue,
+		});
+	};
+
+	const getRowPreset: () => Cycle | void = () => {
+		if (
+			timeInput.value.trim().length <= 0 ||
+			typeInput.value.trim().length <= 0
+		)
+			return;
+
+		const timeValue = Number(timeInput.value);
+		const typeValue = typeInput.value;
+		const scoreValue = Number(scoreInput.value);
+
+		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+			return;
+		}
+		if (typeValue.trim().length == 0) {
+			return;
+		}
+		if (
+			isNaN(scoreValue) ||
+			!isFinite(scoreValue) ||
+			!Number.isInteger(scoreValue)
+		) {
+			return;
+		}
+
+		return {
+			time: timeValue,
+			type: typeValue,
+			score: scoreValue,
+		};
+	};
+
+	manualScoringPresetsGetters.push(getRowPreset);
+}
+
+setupManualScoringTable(manualScoringPresets);
+
+function saveAllPresetsRows() {
+	const presets: Cycle[] = [];
+	for (const getPresets of manualScoringPresetsGetters) {
+		const preset = getPresets();
+		if (preset != undefined) {
+			presets.push(preset);
+		}
+	}
+
+	updateSetting("manualScoringPresets", presets);
+}
+
+const addCycle = (cycle: Cycle) => {
+	if (socket.readyState == WebSocket.OPEN) {
+		const data: Message = {
+			event: "addCycle",
+			name: JSON.stringify(cycle),
 		};
 		socket.send(JSON.stringify(data));
 	} else {

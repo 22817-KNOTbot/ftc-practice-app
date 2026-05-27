@@ -9,11 +9,12 @@ const DEFAULT_SETTINGS: Settings = {
 		endgame: 20,
 	},
 	mode: "view",
+	manualScoringPresets: [],
 };
 const SETTINGS_STORAGE_KEY = "settings";
 
 export function getSetting<settingKey extends keyof Settings>(
-	setting: settingKey
+	setting: settingKey,
 ): Settings[settingKey] {
 	const currentSettings = localStorage.getItem(SETTINGS_STORAGE_KEY) ?? "{}";
 	let parsedCurrentSettings: Settings | null = null;
@@ -34,4 +35,25 @@ export function getSetting<settingKey extends keyof Settings>(
 
 export function saveSettings(settings: Settings) {
 	localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+}
+
+export function updateSetting<settingKey extends keyof Settings>(
+	setting: settingKey,
+	value: Settings[settingKey],
+) {
+	const currentSettings = localStorage.getItem(SETTINGS_STORAGE_KEY) ?? "{}";
+	let parsedSettings: Settings | null = null;
+	if (currentSettings) {
+		try {
+			parsedSettings = JSON.parse(currentSettings);
+		} catch {
+			console.error("Invalid stored settings! Resetting settings");
+			localStorage.clear();
+		}
+	}
+
+	parsedSettings ??= DEFAULT_SETTINGS;
+	parsedSettings[setting] = value;
+
+	localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(parsedSettings));
 }

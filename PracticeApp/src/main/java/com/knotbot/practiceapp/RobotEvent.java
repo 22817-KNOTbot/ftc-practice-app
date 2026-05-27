@@ -178,6 +178,13 @@ public class RobotEvent implements OpModeManagerImpl.Notifications {
 		}
 	}
 
+	public static void addCycle(Cycle cycle) {
+		if (!running) return;
+
+		runData.cycles.add(cycle);
+		score += cycle.score;
+	}
+
 	@Override
 	public void onOpModePreInit(OpMode opMode) {
 	}

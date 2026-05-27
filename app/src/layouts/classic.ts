@@ -175,8 +175,9 @@ ${nav}
 			edit: `
 ${nav}
 <div id="edit-container">
-	<div id="edit-scores-container">
-		<table id="edit-scores-table">
+	<div id="edit-scores-container" class="edit-page-container">
+		<h1>Edit Current Run</h1>
+		<table id="edit-scores-table" class="edit-page-table">
 			<thead>
 				<tr>
 					<th></th>
@@ -188,6 +189,21 @@ ${nav}
 		<tbody id="edit-table-body"></tbody>
 		</table>
 		<button id="edit-table-save-button" class="edit-table-button">Save</button>
+	</div>
+	<div id="manual-scoring-container" class="edit-page-container">
+		<h1>Manual Scoring</h1>
+		<table id="manual-scoring-table" class="edit-page-table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Time (s)</th>
+					<th>Type</th>
+					<th>Score</th>
+					<th>Send</th>
+				</tr>
+			</thead>
+			<tbody id="manual-scoring-table-body"></tbody>
+		</table>
 	</div>
 </div>
 `,

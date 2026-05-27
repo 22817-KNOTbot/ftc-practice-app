@@ -80,4 +80,5 @@ export type Settings = {
 		[key: string]: number;
 	};
 	mode: "view" | "edit";
+	manualScoringPresets: Cycle[];
 };

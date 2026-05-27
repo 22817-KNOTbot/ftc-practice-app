@@ -476,6 +476,14 @@ public class PracticeApp {
 					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
 					Log.v(TAG, "Sent run state in response to editRun");
 					break;
+				case "addCycle":
+					if (message.name == null || message.name == "") {
+						Log.e(TAG, "Malformed addCycle message. Given data \"" + json + "\"");
+						return;
+					}
+					RobotEvent.addCycle(Data.Cycle.toData(message.name));
+
+					break;
 				default:
 					break;
 			}

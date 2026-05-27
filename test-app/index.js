@@ -193,21 +193,31 @@ wss.on("connection", (socket) => {
 				print("Sending state");
 				break;
 			case "editRun":
-				const newState = state;
 				const cycles = JSON.parse(json.name).cycles;
-				newState.cycles = cycles;
 				let score = 0;
 				for (const cycle of cycles) {
 					score += cycle.score;
 				}
-				newState.score = score;
+				state.score = score;
 				sendFunction(
 					JSON.stringify({
 						event: "setState",
-						name: JSON.stringify(newState),
+						name: JSON.stringify(state),
 					}),
 				);
 				print("Sending state after edit");
+			case "addCycle":
+				const cycle = JSON.parse(json.name);
+				state.cycles.push(cycle);
+				state.score += cycle.score;
+				sendFunction(
+					JSON.stringify({
+						event: "setState",
+						name: JSON.stringify(state),
+					}),
+				);
+				print("Sending state after addCycle");
+				break;
 		}
 		if (response) socket.send(JSON.stringify(response));
 	});

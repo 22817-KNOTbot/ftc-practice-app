@@ -1,1 +1,0 @@
-import{g as o,a as l,r as s}from"./navbar.js";const r=o("layout"),y=l(r),t=y.layoutDataGetter();let e="";typeof t.stylePath=="object"?t.stylePath.forEach(a=>{e+=`<link rel="stylesheet" href="${a}">`}):e=`<link rel="stylesheet" href="${t.stylePath}">`;document.querySelector("#app").innerHTML=e+t.html.about;s(document.querySelector("nav"));

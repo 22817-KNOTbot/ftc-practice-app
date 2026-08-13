@@ -6,6 +6,8 @@ pluginManagement {
     }
 }
 
-include ':FtcRobotController'
-include ':TeamCode'
+if (!System.env.JITPACK) {
+    include ':FtcRobotController'
+    include ':TeamCode'
+}
 include ':PracticeApp'

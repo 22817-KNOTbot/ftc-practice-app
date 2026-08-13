@@ -3,6 +3,7 @@ buildscript {
 }
 
 plugins {
+	id "com.github.node-gradle.node" version "7.1.0"
 	id 'maven-publish'
 }
 
@@ -30,6 +31,23 @@ android {
 	}
 }
 
+node {
+	version = "22.15.0"
+	download = true
+	nodeProjectDir = file("${project.projectDir}/../app")
+}
+
+// Prevent rebuilds without changes
+tasks.named('npm_run_build') {
+	inputs.dir("${project.projectDir}/../app/src")
+	inputs.file("${project.projectDir}/../app/package.json")
+	inputs.file("${project.projectDir}/../app/package-lock.json")
+
+	outputs.dir("${project.projectDir}/../app/dist")
+}
+
+npm_run_build.dependsOn npmInstall
+
 task cleanAppAssets(type: Delete) {
 	delete "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
 }
@@ -42,6 +60,7 @@ task copyAppAssets(type: Copy) {
 }
 
 copyAppAssets.dependsOn cleanAppAssets
+copyAppAssets.dependsOn npm_run_build
 
 android.libraryVariants.all { variant ->
 	variant.preBuildProvider.get().dependsOn copyAppAssets

@@ -32,8 +32,8 @@ android {
 }
 
 node {
-	version = "22.15.0"
-	download = true
+	version = "26.3.0"
+	download = !System.env.JITPACK
 	nodeProjectDir = file("${project.projectDir}/../app")
 }
 
@@ -60,7 +60,9 @@ task copyAppAssets(type: Copy) {
 }
 
 copyAppAssets.dependsOn cleanAppAssets
-copyAppAssets.dependsOn npm_run_build
+if (!System.env.JITPACK) {
+	copyAppAssets.dependsOn npm_run_build
+}	
 
 android.libraryVariants.all { variant ->
 	variant.preBuildProvider.get().dependsOn copyAppAssets

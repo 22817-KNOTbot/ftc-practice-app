@@ -51,10 +51,12 @@ const updateSelectedLayout = (selectedLayout: string) => {
 
 updateSelectedLayout(chosenLayout);
 
+const manualScoringPresets = getSetting("manualScoringPresets");
 const currentSettings: Settings = {
 	layout: chosenLayout,
 	timerValues: storedTimerValues,
 	mode: chosenMode,
+	manualScoringPresets: manualScoringPresets,
 };
 
 for (const option of layoutSettingsOptions) {

@@ -12,10 +12,12 @@ apply plugin: "com.android.library"
 android {
 	namespace = "com.knotbot.practiceapp"
 
+	//noinspection GradleDependency
 	compileSdkVersion 28
 
 	defaultConfig {
 		minSdkVersion 24
+		//noinspection ExpiredTargetSdkVersion
 		targetSdkVersion 28
 	}
 
@@ -48,23 +50,23 @@ tasks.named('npm_run_build') {
 
 npm_run_build.dependsOn npmInstall
 
-task cleanAppAssets(type: Delete) {
-	delete "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
+tasks.register('cleanAppAssets', Delete) {
+	delete "${android.sourceSets.main.assets.srcDirs[0]}/practice"
 }
 
 clean.dependsOn cleanAppAssets
 
-task copyAppAssets(type: Copy) {
+tasks.register('copyAppAssets', Copy) {
 	from "${project.projectDir}/../app/dist"
-	into "${android.sourceSets.getByName("main").assets.srcDirs[0]}/practice"
+	into "${android.sourceSets.main.assets.srcDirs[0]}/practice"
 }
 
 copyAppAssets.dependsOn cleanAppAssets
 if (!System.env.JITPACK) {
 	copyAppAssets.dependsOn npm_run_build
-}	
+}
 
-android.libraryVariants.all { variant ->
+android.libraryVariants.configureEach { variant ->
 	variant.preBuildProvider.get().dependsOn copyAppAssets
 }
 
@@ -73,9 +75,13 @@ repositories {
 }
 
 dependencies {
+	//noinspection NewerVersionAvailable,Aligned16KB
 	implementation "org.firstinspires.ftc:RobotCore:$min_sdk_version"
+	//noinspection NewerVersionAvailable
 	implementation "org.firstinspires.ftc:Hardware:$min_sdk_version"
+	//noinspection NewerVersionAvailable
 	implementation "org.firstinspires.ftc:RobotServer:$min_sdk_version"
+	//noinspection NewerVersionAvailable
 	implementation "org.firstinspires.ftc:FtcCommon:$min_sdk_version"
 
 	implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {

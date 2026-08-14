@@ -4,6 +4,7 @@ import { registerNavbar } from "./navbar.ts";
 import { getSetting, updateSetting } from "./settingsManager.ts";
 import { Cycle, Message, RunState } from "./types.ts";
 import { createSocket } from "./socket.ts";
+import { setupDataInputs } from "./runData/runDataInput.ts";
 
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
@@ -203,19 +204,6 @@ function addTableRow(
 		timeInput.placeholder = String(timeNew);
 	}
 	timeInput.className = "data-input";
-	timeInput.addEventListener("focusout", () => {
-		const parsedValue = Number(timeInput.value);
-		if (
-			(isNaN(parsedValue) ||
-				!isFinite(parsedValue) ||
-				parsedValue <= 0) &&
-			timeInput.value.length > 0
-		) {
-			timeInput.classList.add("invalid");
-		} else {
-			timeInput.classList.remove("invalid");
-		}
-	});
 	timeInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			saveAction();
@@ -228,14 +216,6 @@ function addTableRow(
 	typeInput.className = "data-input";
 	typeInput.value = typeNew;
 	typeInput.placeholder = typeNew;
-	typeInput.addEventListener("focusout", () => {
-		const value = typeInput.value;
-		if (value.trim().length == 0 && value.length > 0) {
-			typeInput.classList.add("invalid");
-		} else {
-			typeInput.classList.remove("invalid");
-		}
-	});
 	typeInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			saveAction();
@@ -250,19 +230,6 @@ function addTableRow(
 		scoreInput.placeholder = String(scoreNew);
 	}
 	scoreInput.className = "data-input";
-	scoreInput.addEventListener("focusout", () => {
-		const parsedValue = Number(scoreInput.value);
-		if (
-			(isNaN(parsedValue) ||
-				!isFinite(parsedValue) ||
-				!Number.isInteger(parsedValue)) &&
-			scoreInput.value.length > 0
-		) {
-			scoreInput.classList.add("invalid");
-		} else {
-			scoreInput.classList.remove("invalid");
-		}
-	});
 	scoreInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			saveAction();
@@ -279,6 +246,12 @@ function addTableRow(
 	addButton.classList.add("editModalAddButton");
 	addButton.addEventListener("click", () => {
 		addTableRow(tableBody, "", undefined, undefined, row);
+	});
+
+	setupDataInputs({
+		timeInputs: [timeInput],
+		typeInputs: [typeInput],
+		scoreInputs: [scoreInput],
 	});
 }
 
@@ -345,15 +318,6 @@ function addScoringTableRow(
 		timeInput.value = String(timeNew);
 	}
 	timeInput.className = "data-input";
-	timeInput.addEventListener("focusout", () => {
-		const parsedValue = Number(timeInput.value);
-		if (isNaN(parsedValue) || !isFinite(parsedValue) || parsedValue <= 0) {
-			timeInput.classList.add("invalid");
-		} else {
-			timeInput.classList.remove("invalid");
-		}
-		saveAllPresetsRows();
-	});
 	timeInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			sendAction();
@@ -364,15 +328,6 @@ function addScoringTableRow(
 	const typeInput = tableData.appendChild(document.createElement("input"));
 	typeInput.className = "data-input";
 	typeInput.value = typeNew;
-	typeInput.addEventListener("focusout", () => {
-		const value = typeInput.value;
-		if (value.trim().length == 0) {
-			typeInput.classList.add("invalid");
-		} else {
-			typeInput.classList.remove("invalid");
-		}
-		saveAllPresetsRows();
-	});
 	typeInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			sendAction();
@@ -385,24 +340,20 @@ function addScoringTableRow(
 		scoreInput.value = String(scoreNew);
 	}
 	scoreInput.className = "data-input";
-	scoreInput.addEventListener("focusout", () => {
-		const parsedValue = Number(scoreInput.value);
-		if (
-			isNaN(parsedValue) ||
-			!isFinite(parsedValue) ||
-			!Number.isInteger(parsedValue)
-		) {
-			scoreInput.classList.add("invalid");
-		} else {
-			scoreInput.classList.remove("invalid");
-		}
-		saveAllPresetsRows();
-	});
 	scoreInput.addEventListener("keypress", (e) => {
 		if (e.key === "Enter") {
 			sendAction();
 		}
 	});
+
+	setupDataInputs(
+		{
+			timeInputs: [timeInput],
+			typeInputs: [typeInput],
+			scoreInputs: [scoreInput],
+		},
+		saveAllPresetsRows,
+	);
 
 	tableData = row.appendChild(document.createElement("td"));
 	const sendDiv = document.createElement("div");
@@ -431,61 +382,23 @@ function addScoringTableRow(
 	});
 
 	const sendAction = () => {
-		if (
-			timeInput.value.trim().length <= 0 ||
-			typeInput.value.trim().length <= 0
-		)
-			return;
-
-		const timeValue = Number(timeInput.value);
-		const typeValue = typeInput.value;
-		const scoreValue = Number(scoreInput.value);
-
-		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
-			return;
+		const cycle: Cycle | void = getRowPreset();
+		if (cycle !== undefined) {
+			addCycle(cycle);
 		}
-		if (typeValue.trim().length == 0) {
-			return;
-		}
-		if (
-			isNaN(scoreValue) ||
-			!isFinite(scoreValue) ||
-			!Number.isInteger(scoreValue)
-		) {
-			return;
-		}
-
-		addCycle({
-			time: timeValue,
-			type: typeValue,
-			score: scoreValue,
-		});
 	};
 
 	const getRowPreset: () => Cycle | void = () => {
 		if (
-			timeInput.value.trim().length <= 0 ||
-			typeInput.value.trim().length <= 0
+			timeInput.classList.contains("invalid") ||
+			typeInput.classList.contains("invalid") ||
+			scoreInput.classList.contains("invalid")
 		)
 			return;
 
 		const timeValue = Number(timeInput.value);
 		const typeValue = typeInput.value;
 		const scoreValue = Number(scoreInput.value);
-
-		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
-			return;
-		}
-		if (typeValue.trim().length == 0) {
-			return;
-		}
-		if (
-			isNaN(scoreValue) ||
-			!isFinite(scoreValue) ||
-			!Number.isInteger(scoreValue)
-		) {
-			return;
-		}
 
 		return {
 			time: timeValue,

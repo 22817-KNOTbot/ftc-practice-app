@@ -153,6 +153,25 @@ input.on("submit", (text) => {
 		box.setContent("");
 		screen.render();
 		return;
+	} else if (text == "end") {
+		const msg = JSON.stringify({
+			event: "end",
+			name: JSON.stringify({
+				name: "Lorem ipsum",
+				timestamp: 0,
+				score: state.score,
+				info: {
+					Artifact: 10,
+				},
+				cycles: state.cycles,
+				teleopTimes: [null, null],
+				startingMatchPeriod: "AUTO",
+				periodTimes: [0, 38e3, 158e3],
+			}),
+		});
+		sendFunction(msg);
+		print(`Sent: ${msg}`);
+		return;
 	}
 
 	const parts = text.split(" ");
@@ -199,6 +218,7 @@ wss.on("connection", (socket) => {
 					score += cycle.score;
 				}
 				state.score = score;
+				state.cycles = cycles;
 				sendFunction(
 					JSON.stringify({
 						event: "setState",
@@ -206,17 +226,18 @@ wss.on("connection", (socket) => {
 					}),
 				);
 				print("Sending state after edit");
+				break;
 			case "addCycle":
 				const cycle = JSON.parse(json.name);
 				state.cycles.push(cycle);
 				state.score += cycle.score;
 				sendFunction(
 					JSON.stringify({
-						event: "setState",
-						name: JSON.stringify(state),
+						event: "addCycle",
+						name: JSON.stringify(cycle),
 					}),
 				);
-				print("Sending state after addCycle");
+				print("Sending new cycle after addCycle");
 				break;
 		}
 		if (response) socket.send(JSON.stringify(response));

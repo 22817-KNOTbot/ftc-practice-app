@@ -1,4 +1,3 @@
-import { getLayoutData as getClassicLayoutData } from "./layouts/classic";
 import { getLayoutData as getModernLayoutData } from "./layouts/modern";
 import { getLayoutData as getChromaKeyScreenLayoutData } from "./layouts/chromaKey";
 import { Layout } from "./types";
@@ -13,11 +12,6 @@ const layouts: Layout[] = [
 		name: "Chroma Key",
 		imagePath: "/practice/assets/layouts/chromaKey.jpg",
 		layoutDataGetter: getChromaKeyScreenLayoutData,
-	},
-	{
-		name: "Classic",
-		imagePath: "/practice/assets/layouts/classic.jpg",
-		layoutDataGetter: getClassicLayoutData,
 	},
 ];
 

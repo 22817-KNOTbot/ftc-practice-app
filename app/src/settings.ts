@@ -1,15 +1,15 @@
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
-import { getSetting, saveSettings } from "./settingsManager";
+import {
+	CycleStat,
+	DEFAULT_SETTINGS,
+	getSetting,
+	saveSettings,
+} from "./settingsManager";
 import { getData } from "./stats/data";
-import { Settings } from "./types";
-
-const DEFAULT_TIMER_TIMES: { [key: string]: number } = {
-	auto: 30,
-	transition: 8,
-	teleop: 120,
-	endgame: 20,
-};
+import { Settings } from "./settingsManager";
+import Choices from "choices.js";
+import "choices.js/public/assets/styles/choices.css";
 
 let runCount = 0;
 getData().then((d) => {
@@ -52,11 +52,14 @@ const updateSelectedLayout = (selectedLayout: string) => {
 updateSelectedLayout(chosenLayout);
 
 const manualScoringPresets = getSetting("manualScoringPresets");
+const cycleStats = getSetting("cycleStats");
+
 const currentSettings: Settings = {
 	layout: chosenLayout,
 	timerValues: storedTimerValues,
 	mode: chosenMode,
 	manualScoringPresets: manualScoringPresets,
+	cycleStats: cycleStats,
 };
 
 for (const option of layoutSettingsOptions) {
@@ -81,9 +84,10 @@ for (const input of timerSettingsInputs) {
 	const period = input.dataset["timerPeriod"];
 	if (period) {
 		input.value =
-			currentSettings.timerValues[period]?.toString() ??
-			DEFAULT_TIMER_TIMES[period] ??
-			0;
+			(
+				currentSettings.timerValues[period] ??
+				DEFAULT_SETTINGS.timerValues[period]
+			).toString() ?? 0;
 	}
 	input.addEventListener("focusout", (e) => {
 		const targetElement = e.target as HTMLInputElement;
@@ -111,6 +115,26 @@ modeSettingsInput?.addEventListener("change", () => {
 	currentSettings.mode = modeValue as Settings["mode"];
 });
 
+const statsInputElement = <HTMLSelectElement>(
+	document.getElementById("settings-stats-input")
+);
+for (const stat of Object.values(CycleStat)) {
+	statsInputElement.add(
+		new Option(
+			stat,
+			stat,
+			false,
+			currentSettings.cycleStats.includes(stat),
+		),
+	);
+}
+
+const statsInput = new Choices(statsInputElement, {
+	removeItemButton: true,
+	shouldSort: false,
+	searchEnabled: true,
+});
+
 const saveChanges = (settings: Settings) => {
 	const newTimerValues: { [key: string]: number } = {};
 	for (const input of timerSettingsInputs) {
@@ -127,7 +151,9 @@ const saveChanges = (settings: Settings) => {
 	}
 	settings.timerValues = newTimerValues;
 
-	saveSettings(currentSettings);
+	settings.cycleStats = <CycleStat[]>statsInput.getValue(true);
+
+	saveSettings(settings);
 	document.location.reload();
 };
 

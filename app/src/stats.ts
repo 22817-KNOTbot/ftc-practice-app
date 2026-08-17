@@ -21,7 +21,7 @@ import {
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
 import { getSetting } from "./settingsManager";
-import { showEditModal } from "./runData/modals";
+import { showEditModal, updateLiveInfo } from "./runData/modals";
 
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
@@ -344,11 +344,6 @@ function showRunData(data: RunData, filename?: string) {
 
 	const infoList = content.appendChild(document.createElement("ul"));
 
-	for (const type in data.info) {
-		const li = infoList.appendChild(document.createElement("li"));
-		li.textContent = `${type}: ${data.info[type]}`;
-	}
-
 	if (data.cycles.length > 0) {
 		const cycleHeader = content
 			.appendChild(document.createElement("h2"))
@@ -386,27 +381,8 @@ function showRunData(data: RunData, filename?: string) {
 		cycleInfoSubtitle.textContent = "Statistics";
 
 		const cycleInfoList = content.appendChild(document.createElement("ul"));
-		const cycleTimes = data.cycles.map((cycle) => {
-			return cycle.time;
-		});
 
-		const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-		const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-		const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
-		const averageTime = cycleTimeSum / cycleTimes.length;
-		const secsPerPoint = cycleTimeSum / data.score;
-		const pointsPerSec = data.score / cycleTimeSum;
-
-		cycleInfoList.appendChild(document.createElement("li")).textContent =
-			`Min: ${minTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(document.createElement("li")).textContent =
-			`Max: ${maxTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(document.createElement("li")).textContent =
-			`Mean: ${averageTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(document.createElement("li")).textContent =
-			`Secs/point: ${secsPerPoint.toFixed(3)}s`;
-		cycleInfoList.appendChild(document.createElement("li")).textContent =
-			`Points/sec: ${pointsPerSec.toFixed(3)}`;
+		updateLiveInfo({ infoList, cycleInfoList }, data);
 	}
 
 	if (

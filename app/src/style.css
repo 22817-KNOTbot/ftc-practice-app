@@ -586,6 +586,36 @@ input[type="submit"] {
 	cursor: pointer;
 }
 
+#settings-stats-container {
+	margin-top: 1lh;
+	height: 8lh;
+}
+
+#settings-stats-container .choices {
+	--choices-bg-color: var(--secondary-bg-color);
+	--choices-bg-color-dropdown: var(--secondary-bg-color);
+	--choices-highlighted-color: var(--accent-color);
+	--choices-primary-color: var(--accent-color);
+	padding: 0;
+	margin-top: 1vh;
+}
+
+.choices:is([data-type*="select-multiple"], [data-type*="text"]) .choices__inner {
+	cursor: pointer !important;
+}
+
+#settings-stats-container .choices__inner,
+#settings-stats-container .choices__list--dropdown {
+	box-sizing: border-box;
+}
+
+#settings-stats-container .choices__inner {
+	height: auto;
+	place-content: center;
+	padding: 1vmin 1vmin;
+	border-radius: 1em;
+}
+
 .settings-danger-section {
 	display: flex;
 	flex-direction: column;

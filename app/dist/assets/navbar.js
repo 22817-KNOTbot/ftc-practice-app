@@ -1,4 +1,4 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))n(i);new MutationObserver(i=>{for(const a of i)if(a.type==="childList")for(const l of a.addedNodes)l.tagName==="LINK"&&l.rel==="modulepreload"&&n(l)}).observe(document,{childList:!0,subtree:!0});function s(i){const a={};return i.integrity&&(a.integrity=i.integrity),i.referrerPolicy&&(a.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?a.credentials="include":i.crossOrigin==="anonymous"?a.credentials="omit":a.credentials="same-origin",a}function n(i){if(i.ep)return;i.ep=!0;const a=s(i);fetch(i.href,a)}})();const v={layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view",manualScoringPresets:[]},c="settings";function u(t){const e=localStorage.getItem(c)??"{}";let s=null;if(e)try{s=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(s??v)[t]??v[t]}function L(t){localStorage.setItem(c,JSON.stringify(t))}function $(t,e){const s=localStorage.getItem(c)??"{}";let n=null;if(s)try{n=JSON.parse(s)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}n??(n=v),n[t]=e,localStorage.setItem(c,JSON.stringify(n))}const p=u("mode"),d=`
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))n(i);new MutationObserver(i=>{for(const a of i)if(a.type==="childList")for(const l of a.addedNodes)l.tagName==="LINK"&&l.rel==="modulepreload"&&n(l)}).observe(document,{childList:!0,subtree:!0});function s(i){const a={};return i.integrity&&(a.integrity=i.integrity),i.referrerPolicy&&(a.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?a.credentials="include":i.crossOrigin==="anonymous"?a.credentials="omit":a.credentials="same-origin",a}function n(i){if(i.ep)return;i.ep=!0;const a=s(i);fetch(i.href,a)}})();var f=(t=>(t.MIN="Min",t.MAX="Max",t.MEAN="Mean",t.MEDIAN="Median",t.SECS_PER_POINT="Secs/Point",t.POINTS_PER_SEC="Points/Sec",t.STD_DEV="Std Dev",t.HIGH_25="Best 25%",t.LOW_25="Worst 25%",t.HIGH_10="Best 10%",t.LOW_10="Worst 10%",t))(f||{});const v=Object.freeze({layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view",manualScoringPresets:[],cycleStats:["Min","Max","Mean","Secs/Point","Points/Sec"]}),c="settings";function u(t){const e=localStorage.getItem(c)??"{}";let s=null;if(e)try{s=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(s??v)[t]??v[t]}function L(t){localStorage.setItem(c,JSON.stringify(t))}function P(t,e){const s=localStorage.getItem(c)??"{}";let n=null;if(s)try{n=JSON.parse(s)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}n??(n=v),n[t]=e,localStorage.setItem(c,JSON.stringify(n))}const p=u("mode"),d=`
 <nav>
 ${p=="view"?`
 			<a href="/practice">Timer</a>
@@ -8,7 +8,7 @@ ${p=="view"?`
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>
-`;function f(){return{stylePath:"/practice/assets/layouts/classic.css",html:{timer:`
+`;function S(){return{stylePath:"/practice/assets/layouts/classic.css",html:{timer:`
 ${d}
 <div>
 	<div id="timer-section">
@@ -285,12 +285,18 @@ ${o}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
-		<div id="settings-mode-container" class="settings-section-container">
-			<h1>Mode</h1>
-			<select id="settings-mode-dropdown">
-				<option value="view">View</option>
-				<option value="edit">Edit</option>
-			</select>
+		<div class="settings-section-container">
+			<div id="settings-mode-container">
+				<h1>Mode</h1>
+				<select id="settings-mode-dropdown" class="settings-dropdown">
+					<option value="view">View</option>
+					<option value="edit">Edit</option>
+				</select>
+			</div>
+			<div id="settings-stats-container">
+				<h1>Cycle Stats</h1>
+				<select id="settings-stats-input" multiple></select>
+			</div>
 		</div>
 		<div id="settings-danger-container" class="settings-section-container">
 			<div class="settings-section settings-danger-section">
@@ -371,7 +377,7 @@ ${o}
 		</table>
 	</div>
 </div>
-`}}}const h=u("mode"),S=`
+`}}}const h=u("mode"),T=`
 <nav class="collapsed">
 ${h=="view"?`
 	<a href="/practice" class="navbar-img"><img src="${r}"></a>
@@ -384,8 +390,8 @@ ${h=="view"?`
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>
-`;function T(){const t=b();return{stylePath:["/practice/assets/layouts/modern.css","/practice/assets/layouts/chromaKey.css"],html:{timer:`
-${S}
+`;function M(){const t=b();return{stylePath:["/practice/assets/layouts/modern.css","/practice/assets/layouts/chromaKey.css"],html:{timer:`
+${T}
 <div id="timer-container">
 	<div id="timer-section">
 		<div id="chroma-screen"></div>
@@ -416,4 +422,4 @@ ${S}
 		Modal content
 	</div>
 </div>
-`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const g=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:b},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:T},{name:"Classic",imagePath:"/practice/assets/layouts/classic.jpg",layoutDataGetter:f}];function M(t){for(const e of g)if(e.name==t)return e;return g[0]}function y(){return g}function w(t){const e=()=>{let s=0;for(const n of t.children)s+=n.offsetHeight;t.style.setProperty("--total-height",`${s}px`),t.classList.remove("collapsed")};t.addEventListener("mouseenter",e),t.addEventListener("resize",e),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{M as a,u as g,w as r,L as s,$ as u};
+`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const g=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:b},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:M},{name:"Classic",imagePath:"/practice/assets/layouts/classic.jpg",layoutDataGetter:S}];function E(t){for(const e of g)if(e.name==t)return e;return g[0]}function y(){return g}function $(t){const e=()=>{let s=0;for(const n of t.children)s+=n.offsetHeight;t.style.setProperty("--total-height",`${s}px`),t.classList.remove("collapsed")};t.addEventListener("mouseenter",e),t.addEventListener("resize",e),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{f as C,v as D,E as a,u as g,$ as r,L as s,P as u};

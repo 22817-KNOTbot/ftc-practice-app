@@ -1,4 +1,4 @@
-import { getSetting } from "../settingsManager";
+import { CycleStat, getSetting } from "../settingsManager";
 import { Cycle, RunData, SaveRunData } from "../types";
 import { RunDataInputs, setupDataInputs, updateData } from "./runDataInput";
 
@@ -444,7 +444,12 @@ function updateModalData(modal: Modal, data: RunData): RunData {
 	});
 }
 
-function updateLiveInfo(modal: Modal, data: RunData) {
+// Function is designed for modals but can be reused for other elements that have the same structure
+// as a modal, therefore can also except only infoList and cycleInfoList instead of a full modal
+export function updateLiveInfo(
+	modal: Modal | { infoList: HTMLElement; cycleInfoList: HTMLElement },
+	data: RunData,
+) {
 	if (modal.infoList == undefined || modal.cycleInfoList == undefined) {
 		throw new Error("Modal inputs are not defined");
 	}
@@ -457,6 +462,12 @@ function updateLiveInfo(modal: Modal, data: RunData) {
 
 	modal.cycleInfoList.textContent = "";
 	if (data.cycles.length > 0) {
+		const cycleStats = getSetting("cycleStats");
+
+		if (cycleStats.length <= 0) {
+			return;
+		}
+
 		const cycleTimes = data.cycles.map((cycle) => {
 			return cycle.time;
 		});
@@ -468,24 +479,84 @@ function updateLiveInfo(modal: Modal, data: RunData) {
 			maxTime = maxTime == undefined ? time : Math.max(maxTime, time);
 			cycleTimeSum += time;
 		});
-		const averageTime = cycleTimeSum / cycleTimes.length;
-		const secsPerPoint = cycleTimeSum / data.score;
-		const pointsPerSec = data.score / cycleTimeSum;
+		const sortedCycleTimes = [...cycleTimes].sort((a, b) => a - b);
 
-		modal.cycleInfoList.appendChild(
-			document.createElement("li"),
-		).textContent = `Min: ${minTime!.toFixed(3)}s`;
-		modal.cycleInfoList.appendChild(
-			document.createElement("li"),
-		).textContent = `Max: ${maxTime!.toFixed(3)}s`;
-		modal.cycleInfoList.appendChild(
-			document.createElement("li"),
-		).textContent = `Mean: ${averageTime.toFixed(3)}s`;
-		modal.cycleInfoList.appendChild(
-			document.createElement("li"),
-		).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
-		modal.cycleInfoList.appendChild(
-			document.createElement("li"),
-		).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
+		for (const cycleStat of cycleStats) {
+			let output: string = "Unknown";
+			switch (cycleStat) {
+				case CycleStat.MIN:
+					output = `${minTime!.toFixed(3)}s`;
+					break;
+				case CycleStat.MAX:
+					output = `${maxTime!.toFixed(3)}s`;
+					break;
+				case CycleStat.MEAN:
+					output = `${(cycleTimeSum / cycleTimes.length).toFixed(3)}s`;
+					break;
+				case CycleStat.MEDIAN: {
+					const halfIndex = Math.floor(sortedCycleTimes.length / 2);
+					const median =
+						sortedCycleTimes.length % 2
+							? sortedCycleTimes[halfIndex]
+							: sortedCycleTimes[halfIndex - 1] +
+								sortedCycleTimes[halfIndex] / 2;
+					output = `${median.toFixed(3)}s`;
+					break;
+				}
+				case CycleStat.SECS_PER_POINT:
+					output = `${(cycleTimeSum / data.score).toFixed(3)}s`;
+					break;
+				case CycleStat.POINTS_PER_SEC:
+					output = `${(data.score / cycleTimeSum).toFixed(3)}pts`;
+					break;
+				case CycleStat.STD_DEV: {
+					const mean = cycleTimeSum / cycleTimes.length;
+					const stdDev = Math.sqrt(
+						cycleTimes
+							.map((x) => (x - mean) * (x - mean))
+							.reduce((a, b) => a + b) / cycleTimes.length,
+					);
+					output = `${stdDev.toFixed(3)}s`;
+					break;
+				}
+				// Sorted array is from lowest to highest.
+				// Lowest is considered best, therefore numbers will be reversed
+				case CycleStat.HIGH_25:
+				case CycleStat.LOW_25:
+				case CycleStat.HIGH_10:
+				case CycleStat.LOW_10: {
+					let percentileCoeff = 0;
+					switch (cycleStat) {
+						case CycleStat.HIGH_25:
+							percentileCoeff = 0.25;
+							break;
+						case CycleStat.LOW_25:
+							percentileCoeff = 0.75;
+							break;
+						case CycleStat.HIGH_10:
+							percentileCoeff = 0.1;
+							break;
+						case CycleStat.LOW_10:
+							percentileCoeff = 0.9;
+							break;
+					}
+					const rank =
+						(sortedCycleTimes.length - 1) * percentileCoeff;
+					const lowIndex = Math.floor(rank);
+					const low = sortedCycleTimes[lowIndex];
+					const high =
+						sortedCycleTimes.length > 1
+							? sortedCycleTimes[lowIndex + 1]
+							: low;
+					const num = low + (high - low) * (rank - Math.trunc(rank));
+					output = `${num.toFixed(3)}s`;
+					break;
+				}
+			}
+
+			modal.cycleInfoList.appendChild(
+				document.createElement("li"),
+			).textContent = `${cycleStat}: ${output}`;
+		}
 	}
 }

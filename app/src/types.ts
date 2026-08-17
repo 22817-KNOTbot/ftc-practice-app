@@ -73,12 +73,3 @@ export type LayoutData = {
 		edit: string;
 	};
 };
-
-export type Settings = {
-	layout: string;
-	timerValues: {
-		[key: string]: number;
-	};
-	mode: "view" | "edit";
-	manualScoringPresets: Cycle[];
-};

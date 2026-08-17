@@ -20,6 +20,7 @@
 		"auto-text-size": "^0.2.3",
 		"chart.js": "^4.5.0",
 		"chartjs-adapter-date-fns": "^3.0.0",
+		"choices.js": "^11.2.3",
 		"date-fns": "^4.1.0",
 		"reconnecting-websocket": "^4.4.0"
 	}

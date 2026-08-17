@@ -128,12 +128,18 @@ ${nav}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
-		<div id="settings-mode-container" class="settings-section-container">
-			<h1>Mode</h1>
-			<select id="settings-mode-dropdown">
-				<option value="view">View</option>
-				<option value="edit">Edit</option>
-			</select>
+		<div class="settings-section-container">
+			<div id="settings-mode-container">
+				<h1>Mode</h1>
+				<select id="settings-mode-dropdown" class="settings-dropdown">
+					<option value="view">View</option>
+					<option value="edit">Edit</option>
+				</select>
+			</div>
+			<div id="settings-stats-container">
+				<h1>Cycle Stats</h1>
+				<select id="settings-stats-input" multiple></select>
+			</div>
 		</div>
 		<div id="settings-danger-container" class="settings-section-container">
 			<div class="settings-section settings-danger-section">

@@ -1,6 +1,30 @@
-import { Settings } from "./types";
+import { Cycle } from "./types";
 
-const DEFAULT_SETTINGS: Settings = {
+export type Settings = {
+	layout: string;
+	timerValues: {
+		[key: string]: number;
+	};
+	mode: "view" | "edit";
+	manualScoringPresets: Cycle[];
+	cycleStats: CycleStat[];
+};
+
+export enum CycleStat {
+	MIN = "Min",
+	MAX = "Max",
+	MEAN = "Mean",
+	MEDIAN = "Median",
+	SECS_PER_POINT = "Secs/Point",
+	POINTS_PER_SEC = "Points/Sec",
+	STD_DEV = "Std Dev",
+	HIGH_25 = "Best 25%",
+	LOW_25 = "Worst 25%",
+	HIGH_10 = "Best 10%",
+	LOW_10 = "Worst 10%",
+}
+
+export const DEFAULT_SETTINGS: Settings = Object.freeze({
 	layout: "Modern",
 	timerValues: {
 		auto: 30,
@@ -10,7 +34,14 @@ const DEFAULT_SETTINGS: Settings = {
 	},
 	mode: "view",
 	manualScoringPresets: [],
-};
+	cycleStats: [
+		CycleStat.MIN,
+		CycleStat.MAX,
+		CycleStat.MEAN,
+		CycleStat.SECS_PER_POINT,
+		CycleStat.POINTS_PER_SEC,
+	],
+});
 const SETTINGS_STORAGE_KEY = "settings";
 
 export function getSetting<settingKey extends keyof Settings>(

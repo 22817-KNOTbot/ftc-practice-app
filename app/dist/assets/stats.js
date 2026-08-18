@@ -1,4 +1,4 @@
-var Mr=Object.defineProperty;var kr=(n,t,e)=>t in n?Mr(n,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):n[t]=e;var y=(n,t,e)=>kr(n,typeof t!="symbol"?t+"":t,e);import{g as vr,a as Dr,r as Tr}from"./navbar.js";import{g as Or,a as Pr}from"./data.js";import{u as _s,a as Cr,b as Sr}from"./modals.js";import"./runDataInput.js";/*!
+var Mr=Object.defineProperty;var kr=(n,t,e)=>t in n?Mr(n,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):n[t]=e;var y=(n,t,e)=>kr(n,typeof t!="symbol"?t+"":t,e);import{g as vr,a as Dr,r as Tr}from"./navbar.js";import{g as Or,a as Pr}from"./data.js";import{u as _s,a as Cr,b as Sr}from"./modals.js";import"./choices.js";import"./runDataInput.js";/*!
  * @kurkle/color v0.3.4
  * https://github.com/kurkle/color#readme
  * (c) 2024 Jukka Kurkela

@@ -1,7 +1,9 @@
+import Choices from "choices.js";
 import { CycleStat, getSetting } from "../settingsManager";
 import { Cycle, RunData, SaveRunData } from "../types";
 import { RunDataInputs, setupDataInputs, updateData } from "./runDataInput";
 import strftime from "strftime";
+import "choices.js/public/assets/styles/choices.css";
 
 interface Modal extends RunDataInputs {
 	modalElement: Element;
@@ -48,18 +50,37 @@ export function showSaveModal(
 
 	const nameInput = form.appendChild(document.createElement("input"));
 	nameInput.id = "runNameInput";
+	nameInput.classList.add("runSaveInput");
 	nameInput.setAttribute("type", "text");
 	nameInput.setAttribute("placeholder", "Run name");
 	nameInput.value = strftime(getSetting("defaultName"));
 
-	const inputNote = form.appendChild(document.createElement("p"));
-	inputNote.id = "runNameNote";
-	inputNote.textContent = "Leave empty to discard run";
+	const tagInputElement = form.appendChild(document.createElement("input"));
+	tagInputElement.id = "runTagInput";
+	tagInputElement.classList.add("runSaveInput");
+	tagInputElement.setAttribute("type", "text");
+	tagInputElement.setAttribute("placeholder", "Tags (optional)");
+
+	const tagInput = new Choices(tagInputElement, {
+		removeItemButton: true,
+		duplicateItemsAllowed: false,
+		items: getSetting("defaultTags"),
+		placeholderValue: tagInputElement.placeholder,
+	});
+
+	form.getElementsByClassName("choices")[0].id = "runTagInputBox";
+
+	console.log(tagInput.getValue(true));
+
+	const discard = form.appendChild(document.createElement("input"));
+	discard.id = "runDiscard";
+	discard.setAttribute("type", "button");
+	discard.value = "Discard";
 
 	const submit = form.appendChild(document.createElement("input"));
 	submit.id = "runNameSubmit";
 	submit.setAttribute("type", "submit");
-	submit.value = "Submit";
+	submit.value = "Save";
 
 	const modal: Modal = {
 		modalElement: modalElement,
@@ -77,6 +98,10 @@ export function showSaveModal(
 		event.preventDefault();
 		const runData = updateModalData(modal, data);
 		saveCallback(runData);
+		closeModal(modalElement);
+	});
+
+	discard.addEventListener("click", () => {
 		closeModal(modalElement);
 	});
 }

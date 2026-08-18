@@ -254,7 +254,8 @@ input[type="submit"] {
 }
 
 #saveModal>#modalContent>form {
-	height: 50%;
+	padding: 0 0.5ch;
+	margin: 0 0 5vh;
 	overflow: hidden;
 }
 
@@ -266,26 +267,49 @@ input[type="submit"] {
 	text-align: center;
 }
 
-#runNameInput,
-#runNameSubmit {
-	box-sizing: border-box;
+.runSaveInput {
+	border-radius: 1vmax;
 	width: 100%;
-	height: 20%;
-	margin: 3% 0 0;
+}
+
+.runSaveInput,
+#runNameSubmit,
+#runDiscard {
+	box-sizing: border-box;
+	height: 2.5lh;
+	margin: 0.5lh 0 0;
 	padding: 0 1em;
-	border: 1px solid;
+	border: var(--text-color) 1px solid;
+	background-color: var(--secondary-bg-color);
 	border-radius: 100vh;
 }
 
-#runNameSubmit {
+#runNameSubmit,
+#runDiscard {
 	cursor: pointer;
+	background-color: var(--accent-color);
+	width: calc(50% - 0.5vw);
+	
+	&:last-child {
+		float: right;
+	}
+
+	&:hover {
+		background-color: var(--accent-hover-color);
+	}
 }
 
-#runNameNote {
-	margin: 0 0 5%;
-	font-size: 0.8em;
-	width: 100%;
-	text-align: center;
+#runTagInputBox {
+	margin: 0.2lh 0 0;
+	--choices-font-size-md: 0.9em;
+	--choices-font-size-sm: 0.9em;
+	--choices-input-height: 1lh;
+	--choices-bg-color: var(--secondary-bg-color);
+	--choices-primary-color: var(--accent-color);
+
+	& .choices__inner {
+		border-radius: 1lh;
+	}
 }
 
 #modalContent h2 {
@@ -304,9 +328,9 @@ input[type="submit"] {
 .modal .editModalInput,
 .data-input {
 	padding: 1ch;
+	border: var(--text-color) 1px solid;
 	border-radius: 5vmax;
-	border-style: solid;
-	background-color: var(--accent-color);
+	background-color: var(--secondary-bg-color);
 
 	&.invalid {
 		border-style: solid;
@@ -319,7 +343,7 @@ input[type="submit"] {
 }
 
 #modalContent .editModalTableInput {
-	width: 80%;
+	width: 100%;
 	box-sizing: border-box;
 }
 
@@ -334,8 +358,8 @@ input[type="submit"] {
 	height: 1.5lh;
 	vertical-align: middle;
 	padding: 0;
-	border-style: solid;
 	border-radius: 100vmax;
+	border: var(--text-color) 1px solid;
 	background-position: center;
 	background-repeat: no-repeat;
 }

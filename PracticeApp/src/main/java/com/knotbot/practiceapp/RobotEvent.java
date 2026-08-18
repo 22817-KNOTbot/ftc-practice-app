@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 public class RobotEvent implements OpModeManagerImpl.Notifications {
 	protected static RobotEvent instance;
 	private static PracticeApp.WsHandler wsHandler;
-	protected static OpModeManagerImpl opModeManager;
 	public static boolean running = false;
 	private static boolean autoEnd = true;
 	protected static ElapsedTime runTimer = new ElapsedTime();

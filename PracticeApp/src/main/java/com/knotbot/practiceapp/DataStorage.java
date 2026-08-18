@@ -200,18 +200,23 @@ public class DataStorage {
 
 		for (File file : files) {
 			Data.RunData runData = Data.RunData.toData(readString(file));
+			if (runData == null) {
+				Log.w(TAG, "Skipping invalid run data for " + file);
+				continue;
+			}
 
 			Data.MainData.RunOverview newOverview = new Data.MainData.RunOverview();
 			newOverview.name = runData.name;
 			newOverview.timestamp = runData.timestamp;
 			newOverview.score = runData.score;
 			newOverview.filename = file.getName();
-			Float cycleTimeSum = 0f;
+			float cycleTimeSum = 0f;
 			for (Cycle cycle : runData.cycles) {
 				cycleTimeSum += cycle.time;
 			}
 			newOverview.meanCycleTime = cycleTimeSum / runData.cycles.size();
 			newOverview.pointsPerSecond = runData.score / cycleTimeSum;
+			newOverview.tags = runData.tags != null ? runData.tags : new ArrayList<>();
 
 			data.data.add(newOverview);
 		}

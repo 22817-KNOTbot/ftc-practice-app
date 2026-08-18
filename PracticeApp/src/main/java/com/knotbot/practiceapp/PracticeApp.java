@@ -22,7 +22,6 @@ import com.squareup.moshi.JsonDataException;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 public class PracticeApp {
@@ -68,14 +66,8 @@ public class PracticeApp {
 	@OnCreateEventLoop
 	public static void registerOpModeNotifications(Context context, FtcEventLoop eventLoop) {
 		OpModeManagerImpl opModeManager = eventLoop.getOpModeManager();
-		if (RobotEvent.opModeManager != null) {
-			opModeManager.unregisterListener(RobotEvent.instance);
-		}
-		RobotEvent.opModeManager = opModeManager;
-
-		if (RobotEvent.opModeManager != null) {
-			opModeManager.registerListener(RobotEvent.instance);
-		}
+		opModeManager.unregisterListener(RobotEvent.instance);
+		opModeManager.registerListener(RobotEvent.instance);
 	}
 
 	/*
@@ -408,7 +400,7 @@ public class PracticeApp {
 			}
 		}
 
-		public void recieve() {
+		public void receive() {
 
 		}
 	}

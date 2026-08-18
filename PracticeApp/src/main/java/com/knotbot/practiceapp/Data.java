@@ -26,12 +26,19 @@ public class Data {
 			public String filename;
 			public Float meanCycleTime;
 			public Float pointsPerSecond;
+			public List<String> tags;
 
 			@Override
 			public String toString() {
-				return "RunOverview [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", filename="
-						+ filename + ", meanCycleTime=" + meanCycleTime + ", pointsPerSecond=" + pointsPerSecond
-						+ "]";
+				return "RunOverview{" +
+						"name='" + name + '\'' +
+						", timestamp=" + timestamp +
+						", score=" + score +
+						", filename='" + filename + '\'' +
+						", meanCycleTime=" + meanCycleTime +
+						", pointsPerSecond=" + pointsPerSecond +
+						", tags=" + tags +
+						'}';
 			}
 		}
 
@@ -79,13 +86,14 @@ public class Data {
 		public List<Cycle> cycles;
 		public Integer[] teleopTimes;
 		public RunState.MatchPeriod startingMatchPeriod;
+		public List<String> tags;
 
 		public RunData() {
-			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE);
+			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE, new ArrayList<>());
 		}
 
 		public RunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles,
-				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod) {
+				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod, List<String> tags) {
 			this.name = name;
 			this.timestamp = timestamp;
 			this.score = score;
@@ -93,13 +101,21 @@ public class Data {
 			this.cycles = cycles;
 			this.teleopTimes = teleopTimes;
 			this.startingMatchPeriod = startingMatchPeriod;
+			this.tags = tags;
 		}
 
 		@Override
 		public String toString() {
-			return "RunData [name=" + name + ", timestamp=" + timestamp + ", score=" + score + ", info=" + info
-					+ ", cycles=" + cycles + ", teleopTimes=" + Arrays.toString(teleopTimes) + ", startingMatchPeriod="
-					+ startingMatchPeriod + "]";
+			return "RunData{" +
+					"name='" + name + '\'' +
+					", timestamp=" + timestamp +
+					", score=" + score +
+					", info=" + info +
+					", cycles=" + cycles +
+					", teleopTimes=" + Arrays.toString(teleopTimes) +
+					", startingMatchPeriod=" + startingMatchPeriod +
+					", tags=" + tags +
+					'}';
 		}
 
 		protected static RunData toData(String json) {
@@ -130,12 +146,17 @@ public class Data {
 		public Long[] periodTimes;
 
 		public SaveRunData() {
-			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE, new Long[] {null, null, null});
+			this(null, null, 0, new HashMap<>(), new ArrayList<>(), new Integer[] { null, null }, RunState.MatchPeriod.NONE, new Long[] {null, null, null}, new ArrayList<>());
 		}
 
 		public SaveRunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles,
 				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod, Long[] periodTimes) {
-			super(name, timestamp, score, info, cycles, teleopTimes, startingMatchPeriod);
+			this(name, timestamp, score, info, cycles, teleopTimes, startingMatchPeriod, periodTimes, new ArrayList<>());
+		}
+
+		public SaveRunData(String name, Long timestamp, int score, Map<String, Integer> info, List<Cycle> cycles,
+				Integer[] teleopTimes, RunState.MatchPeriod startingMatchPeriod, Long[] periodTimes, List<String> tags) {
+			super(name, timestamp, score, info, cycles, teleopTimes, startingMatchPeriod, tags);
 			this.periodTimes = periodTimes;
 		}
 

@@ -45,6 +45,7 @@ export interface RunData {
 	cycles: Cycle[];
 	teleopTimes: (number | null)[];
 	startingMatchPeriod: MatchPeriod;
+	tags: string[] | undefined;
 }
 
 export interface SaveRunData extends RunData {

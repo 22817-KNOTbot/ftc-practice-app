@@ -10,6 +10,7 @@ interface Modal extends RunDataInputs {
 	contentElement: Element;
 	type: "save" | "edit";
 	nameInput?: HTMLInputElement;
+	tagInput?: Choices;
 	dateInput?: HTMLInputElement;
 	teleopTimesStartInput?: HTMLInputElement;
 	teleopTimesEndInput?: HTMLInputElement;
@@ -64,13 +65,11 @@ export function showSaveModal(
 	const tagInput = new Choices(tagInputElement, {
 		removeItemButton: true,
 		duplicateItemsAllowed: false,
-		items: getSetting("defaultTags"),
+		items: [...getSetting("defaultTags"), ...(data.tags ?? [])],
 		placeholderValue: tagInputElement.placeholder,
 	});
 
 	form.getElementsByClassName("choices")[0].id = "runTagInputBox";
-
-	console.log(tagInput.getValue(true));
 
 	const discard = form.appendChild(document.createElement("input"));
 	discard.id = "runDiscard";
@@ -87,6 +86,7 @@ export function showSaveModal(
 		contentElement: content,
 		type: "save",
 		nameInput: nameInput,
+		tagInput: tagInput,
 		timeInputs: [],
 		typeInputs: [],
 		scoreInputs: [],
@@ -468,6 +468,7 @@ function updateModalData(modal: Modal, data: RunData): RunData {
 		cycles: [],
 		teleopTimes: teleopTimes,
 		startingMatchPeriod: data.startingMatchPeriod,
+		tags: <string[]>modal.tagInput?.getValue(true) ?? [],
 	});
 }
 

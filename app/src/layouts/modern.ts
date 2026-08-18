@@ -104,6 +104,19 @@ ${nav}
 				</div>
 			</div>
 		</div>
+		<div id="settings-saving-container" class="settings-section-container">
+			<h1>Saving</h1>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-name">Default Name</label>
+				<input type="text" id="settings-saving-name">
+				<p><a href="https://cplusplus.com/reference/ctime/strftime/#:~:text=format,-C" target="_blank"
+					rel="noopener noreferrer">Date variables allowed</a></p>
+			</div>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-tags">Default Tags</label>
+				<input type="text" id="settings-saving-tags">
+			</div>
+		</div>
 		<div id="settings-save-container" class="settings-section-container">
 			<div class="settings-section settings-save-section">
 				<input id="settings-save-button" class="settings-button" type="submit" value="Save Changes">
@@ -128,8 +141,8 @@ ${nav}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
-		<div class="settings-section-container">
-			<div id="settings-mode-container">
+		<div id="settings-mode-container" class="settings-section-container">
+			<div>
 				<h1>Mode</h1>
 				<select id="settings-mode-dropdown" class="settings-dropdown">
 					<option value="view">View</option>

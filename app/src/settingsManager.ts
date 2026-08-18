@@ -8,6 +8,8 @@ export type Settings = {
 	mode: "view" | "edit";
 	manualScoringPresets: Cycle[];
 	cycleStats: CycleStat[];
+	defaultName: string;
+	defaultTags: string[];
 };
 
 export enum CycleStat {
@@ -41,6 +43,8 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
 		CycleStat.SECS_PER_POINT,
 		CycleStat.POINTS_PER_SEC,
 	],
+	defaultName: "",
+	defaultTags: [],
 });
 const SETTINGS_STORAGE_KEY = "settings";
 
@@ -62,6 +66,29 @@ export function getSetting<settingKey extends keyof Settings>(
 		(parsedCurrentSettings ?? DEFAULT_SETTINGS)[setting] ??
 		DEFAULT_SETTINGS[setting]
 	);
+}
+
+export function getSettings(): Settings {
+	const currentSettings = localStorage.getItem(SETTINGS_STORAGE_KEY) ?? "{}";
+	let parsedCurrentSettings: Settings | null = null;
+	if (currentSettings) {
+		try {
+			parsedCurrentSettings = JSON.parse(currentSettings);
+		} catch {
+			console.error("Invalid stored settings! Resetting settings");
+			localStorage.clear();
+		}
+	}
+
+	parsedCurrentSettings ??= DEFAULT_SETTINGS;
+	(Object.keys(DEFAULT_SETTINGS) as Array<keyof Settings>).forEach(
+		(setting) => {
+			// @ts-expect-error TS doesn't understand the types match
+			parsedCurrentSettings[setting] ??= DEFAULT_SETTINGS[setting];
+		},
+	);
+
+	return parsedCurrentSettings;
 }
 
 export function saveSettings(settings: Settings) {

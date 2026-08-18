@@ -1,10 +1,10 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))n(i);new MutationObserver(i=>{for(const s of i)if(s.type==="childList")for(const c of s.addedNodes)c.tagName==="LINK"&&c.rel==="modulepreload"&&n(c)}).observe(document,{childList:!0,subtree:!0});function a(i){const s={};return i.integrity&&(s.integrity=i.integrity),i.referrerPolicy&&(s.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?s.credentials="include":i.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function n(i){if(i.ep)return;i.ep=!0;const s=a(i);fetch(i.href,s)}})();const o="/practice/assets/favicon.ico";var h=(t=>(t.MIN="Min",t.MAX="Max",t.MEAN="Mean",t.MEDIAN="Median",t.SECS_PER_POINT="Secs/Point",t.POINTS_PER_SEC="Points/Sec",t.STD_DEV="Std Dev",t.HIGH_25="Best 25%",t.LOW_25="Worst 25%",t.HIGH_10="Best 10%",t.LOW_10="Worst 10%",t))(h||{});const l=Object.freeze({layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view",manualScoringPresets:[],cycleStats:["Min","Max","Mean","Secs/Point","Points/Sec"]}),r="settings";function m(t){const e=localStorage.getItem(r)??"{}";let a=null;if(e)try{a=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(a??l)[t]??l[t]}function S(t){localStorage.setItem(r,JSON.stringify(t))}function M(t,e){const a=localStorage.getItem(r)??"{}";let n=null;if(a)try{n=JSON.parse(a)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}n??(n=l),n[t]=e,localStorage.setItem(r,JSON.stringify(n))}const g=m("mode"),d=`
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))n(s);new MutationObserver(s=>{for(const a of s)if(a.type==="childList")for(const l of a.addedNodes)l.tagName==="LINK"&&l.rel==="modulepreload"&&n(l)}).observe(document,{childList:!0,subtree:!0});function i(s){const a={};return s.integrity&&(a.integrity=s.integrity),s.referrerPolicy&&(a.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?a.credentials="include":s.crossOrigin==="anonymous"?a.credentials="omit":a.credentials="same-origin",a}function n(s){if(s.ep)return;s.ep=!0;const a=i(s);fetch(s.href,a)}})();const c="/practice/assets/favicon.ico";var h=(t=>(t.MIN="Min",t.MAX="Max",t.MEAN="Mean",t.MEDIAN="Median",t.SECS_PER_POINT="Secs/Point",t.POINTS_PER_SEC="Points/Sec",t.STD_DEV="Std Dev",t.HIGH_25="Best 25%",t.LOW_25="Worst 25%",t.HIGH_10="Best 10%",t.LOW_10="Worst 10%",t))(h||{});const d=Object.freeze({layout:"Modern",timerValues:{auto:30,transition:8,teleop:120,endgame:20},mode:"view",manualScoringPresets:[],cycleStats:["Min","Max","Mean","Secs/Point","Points/Sec"],defaultName:"",defaultTags:[]}),r="settings";function m(t){const e=localStorage.getItem(r)??"{}";let i=null;if(e)try{i=JSON.parse(e)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return(i??d)[t]??d[t]}function S(){const t=localStorage.getItem(r)??"{}";let e=null;if(t)try{e=JSON.parse(t)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}return e??(e=d),Object.keys(d).forEach(i=>{e[i]??(e[i]=d[i])}),e}function M(t){localStorage.setItem(r,JSON.stringify(t))}function T(t,e){const i=localStorage.getItem(r)??"{}";let n=null;if(i)try{n=JSON.parse(i)}catch{console.error("Invalid stored settings! Resetting settings"),localStorage.clear()}n??(n=d),n[t]=e,localStorage.setItem(r,JSON.stringify(n))}const g=m("mode"),o=`
 <nav class="collapsed">
 ${g=="view"?`
-			<a href="/practice" class="navbar-img"><img src="${o}"></a>
+			<a href="/practice" class="navbar-img"><img src="${c}"></a>
 			<a href="/practice">Timer</a>
 		`:g=="edit"?`
-				<a href="/practice/edit" class="navbar-img"><img src="${o}"></a>
+				<a href="/practice/edit" class="navbar-img"><img src="${c}"></a>
 				<a href="/practice/edit">Edit</a>
 			`:""}
 	<a href="/practice/stats">Stats</a>
@@ -12,7 +12,7 @@ ${g=="view"?`
 	<a href="/practice/about">About</a>
 </nav>
 `;function p(){return{stylePath:"/practice/assets/layouts/modern.css",html:{timer:`
-${d}
+${o}
 <div id="timer-container">
 	<div id="timer-section">
 		<div id="timer">2:30</div>
@@ -41,7 +41,7 @@ ${d}
 	</div>
 </div>
 `,stats:`
-${d}
+${o}
 <div id="chart-div">
 	<div id="chart-options-container">
 		<select id="chart-type-dropdown">
@@ -64,7 +64,7 @@ ${d}
 	<div id="loading-spinner"></div>
 </div>
 `,settings:`
-${d}
+${o}
 <div id="settings-container">
 	<div id="settings-content">
 		<div id="settings-normal-container" class="settings-section-container">
@@ -77,6 +77,19 @@ ${d}
 							</div>
 							`).reduce((t,e)=>t+e)}
 				</div>
+			</div>
+		</div>
+		<div id="settings-saving-container" class="settings-section-container">
+			<h1>Saving</h1>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-name">Default Name</label>
+				<input type="text" id="settings-saving-name">
+				<p><a href="https://cplusplus.com/reference/ctime/strftime/#:~:text=format,-C" target="_blank"
+					rel="noopener noreferrer">Date variables allowed</a></p>
+			</div>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-tags">Default Tags</label>
+				<input type="text" id="settings-saving-tags">
 			</div>
 		</div>
 		<div id="settings-save-container" class="settings-section-container">
@@ -103,8 +116,8 @@ ${d}
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
 			</div>
 		</div>
-		<div class="settings-section-container">
-			<div id="settings-mode-container">
+		<div id="settings-mode-container" class="settings-section-container">
+			<div>
 				<h1>Mode</h1>
 				<select id="settings-mode-dropdown" class="settings-dropdown">
 					<option value="view">View</option>
@@ -132,7 +145,7 @@ ${d}
 	</div>
 </div>
 `,about:`
-${d}
+${o}
 <div id="about-container">
 	<div id="about-content">
 		<h1 id="about-header">About</h1>
@@ -162,7 +175,7 @@ ${d}
 	</div>
 </div>
 `,edit:`
-${d}
+${o}
 <div id="edit-container">
 	<div id="edit-scores-container" class="edit-page-container">
 		<h1>Edit Current Run</h1>
@@ -195,21 +208,21 @@ ${d}
 		</table>
 	</div>
 </div>
-`}}}const u=m("mode"),b=`
+`}}}const u=m("mode"),f=`
 <nav class="collapsed">
 ${u=="view"?`
-	<a href="/practice" class="navbar-img"><img src="${o}"></a>
+	<a href="/practice" class="navbar-img"><img src="${c}"></a>
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
 	`:u=="edit"?`
-	<a href="/practice/edit" class="navbar-img"><img src="${o}"></a>
+	<a href="/practice/edit" class="navbar-img"><img src="${c}"></a>
 	<a href="/practice/edit">Edit</a>
 	`:""}
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>
-`;function f(){const t=p();return{stylePath:["/practice/assets/layouts/modern.css","/practice/assets/layouts/chromaKey.css"],html:{timer:`
-${b}
+`;function b(){const t=p();return{stylePath:["/practice/assets/layouts/modern.css","/practice/assets/layouts/chromaKey.css"],html:{timer:`
+${f}
 <div id="timer-container">
 	<div id="timer-section">
 		<div id="chroma-screen"></div>
@@ -240,4 +253,4 @@ ${b}
 		Modal content
 	</div>
 </div>
-`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const v=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:p},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:f}];function T(t){for(const e of v)if(e.name==t)return e;return v[0]}function y(){return v}function L(t){const e=()=>{let a=0;for(const n of t.children)a+=n.offsetHeight;t.style.setProperty("--total-height",`${a}px`),t.classList.remove("collapsed")};t.addEventListener("mouseenter",e),t.addEventListener("resize",e),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{h as C,l as D,T as a,m as g,L as r,S as s,M as u};
+`,stats:t.html.stats,settings:t.html.settings,about:t.html.about,edit:t.html.edit}}}const v=[{name:"Modern",imagePath:"/practice/assets/layouts/modern.jpg",layoutDataGetter:p},{name:"Chroma Key",imagePath:"/practice/assets/layouts/chromaKey.jpg",layoutDataGetter:b}];function E(t){for(const e of v)if(e.name==t)return e;return v[0]}function y(){return v}function L(t){const e=()=>{let i=0;for(const n of t.children)i+=n.offsetHeight;t.style.setProperty("--total-height",`${i}px`),t.classList.remove("collapsed")};t.addEventListener("mouseenter",e),t.addEventListener("resize",e),t.addEventListener("mouseleave",()=>{t.classList.add("collapsed")})}export{h as C,d as D,E as a,S as b,m as g,L as r,M as s,T as u};

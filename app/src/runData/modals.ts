@@ -1,6 +1,7 @@
 import { CycleStat, getSetting } from "../settingsManager";
 import { Cycle, RunData, SaveRunData } from "../types";
 import { RunDataInputs, setupDataInputs, updateData } from "./runDataInput";
+import strftime from "strftime";
 
 interface Modal extends RunDataInputs {
 	modalElement: Element;
@@ -49,6 +50,7 @@ export function showSaveModal(
 	nameInput.id = "runNameInput";
 	nameInput.setAttribute("type", "text");
 	nameInput.setAttribute("placeholder", "Run name");
+	nameInput.value = strftime(getSetting("defaultName"));
 
 	const inputNote = form.appendChild(document.createElement("p"));
 	inputNote.id = "runNameNote";

@@ -10,6 +10,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.18.0",
+		"@types/strftime": "^0.9.8",
 		"eslint": "^9.18.0",
 		"typescript": "~5.6.2",
 		"typescript-eslint": "^8.19.1",
@@ -22,6 +23,7 @@
 		"chartjs-adapter-date-fns": "^3.0.0",
 		"choices.js": "^11.2.3",
 		"date-fns": "^4.1.0",
-		"reconnecting-websocket": "^4.4.0"
+		"reconnecting-websocket": "^4.4.0",
+		"strftime": "^0.10.3"
 	}
 }

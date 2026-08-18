@@ -104,15 +104,6 @@ nav>a.navbar-img {
 	display: grid;
 }
 
-#settings-container,
-#about-container {
-	width: 95vw;
-	height: 100vh;
-	float: right;
-	display: grid;
-	place-items: center;
-}
-
 .data-input {
 	font-size: 0.8em;
 	flex-shrink: 100;
@@ -135,16 +126,6 @@ nav>a.navbar-img {
 	height: 90%;
 	background-color: var(--secondary-bg-color);
 	border-radius: 2vmax;
-}
-
-#settings-content {
-	padding: 3vh 2vw;
-	box-sizing: border-box;
-	display: grid;
-	grid-template-columns: repeat(11, 1fr);
-	grid-template-areas: 
-		"layout layout layout layout layout layout layout layout save save save"
-		"timer timer timer timer mode mode mode . danger danger danger";
 }
 
 #about-content {

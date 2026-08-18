@@ -4,6 +4,7 @@ import {
 	CycleStat,
 	DEFAULT_SETTINGS,
 	getSetting,
+	getSettings,
 	saveSettings,
 } from "./settingsManager";
 import { getData } from "./stats/data";
@@ -17,8 +18,6 @@ getData().then((d) => {
 });
 
 const chosenLayout = getSetting("layout");
-const storedTimerValues = getSetting("timerValues");
-const chosenMode = getSetting("mode");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";
@@ -51,16 +50,7 @@ const updateSelectedLayout = (selectedLayout: string) => {
 
 updateSelectedLayout(chosenLayout);
 
-const manualScoringPresets = getSetting("manualScoringPresets");
-const cycleStats = getSetting("cycleStats");
-
-const currentSettings: Settings = {
-	layout: chosenLayout,
-	timerValues: storedTimerValues,
-	mode: chosenMode,
-	manualScoringPresets: manualScoringPresets,
-	cycleStats: cycleStats,
-};
+const currentSettings = getSettings();
 
 for (const option of layoutSettingsOptions) {
 	option.addEventListener("click", (e) => {
@@ -75,6 +65,21 @@ for (const option of layoutSettingsOptions) {
 		}
 	});
 }
+
+const nameInputElement = document.getElementById(
+	"settings-saving-name",
+) as HTMLInputElement;
+nameInputElement.value = getSetting("defaultName");
+
+const tagInputElement = document.getElementById(
+	"settings-saving-tags",
+) as HTMLInputElement;
+
+const tagInput = new Choices(tagInputElement, {
+	removeItemButton: true,
+	duplicateItemsAllowed: false,
+	items: getSetting("defaultTags"),
+});
 
 const timerSettingsInputs = document.querySelectorAll<HTMLInputElement>(
 	".settings-timer-value>input",
@@ -136,6 +141,9 @@ const statsInput = new Choices(statsInputElement, {
 });
 
 const saveChanges = (settings: Settings) => {
+	settings.defaultName = nameInputElement.value;
+	settings.defaultTags = <string[]>tagInput.getValue(true);
+
 	const newTimerValues: { [key: string]: number } = {};
 	for (const input of timerSettingsInputs) {
 		const period = input.dataset["timerPeriod"];

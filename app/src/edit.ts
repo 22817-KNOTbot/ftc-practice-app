@@ -37,9 +37,19 @@ socket.onmessage = (event) => {
 	handleMessage(jsonData);
 };
 
+let running = false;
+
 const handleMessage = (data: Message) => {
 	console.debug(data);
-	if (data.event == "setState") {
+	if (data.event == "startAuto" || data.event == "startTransition") {
+		resetDataDisplay();
+		running = true;
+	} else if (data.event == "startTeleop") {
+		if (!running) {
+			resetDataDisplay();
+			running = true;
+		}
+	} else if (data.event == "setState") {
 		if (data.name) {
 			console.log("Received run state, updating info");
 			let runState: RunState;
@@ -54,7 +64,7 @@ const handleMessage = (data: Message) => {
 			updateDataDisplay(runState);
 		}
 	} else if (data.event == "addCycle") {
-		if (data.name) {
+		if (data.name && running) {
 			let newestCycle: Cycle;
 			try {
 				newestCycle = JSON.parse(data.name) as Cycle;
@@ -71,6 +81,9 @@ const handleMessage = (data: Message) => {
 				newestCycle.score,
 			);
 		}
+	} else if (data.event == "end") {
+		running = false;
+		resetDataDisplay();
 	}
 };
 
@@ -104,18 +117,13 @@ const saveAction = () => {
 		let typeValue = typeInput.value;
 		let scoreValue = Number(scoreInput.value);
 
-		if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
+		if (timeInput.classList.contains("invalid")) {
 			timeValue = Number(timeInput.placeholder);
 		}
-		if (typeValue.trim().length == 0) {
+		if (typeInput.classList.contains("invalid")) {
 			typeValue = typeInput.placeholder;
 		}
-		if (
-			isNaN(scoreValue) ||
-			!isFinite(scoreValue) ||
-			!Number.isInteger(scoreValue) ||
-			scoreInput.value.trim().length <= 0
-		) {
+		if (scoreInput.classList.contains("invalid")) {
 			scoreValue = Number(scoreInput.placeholder);
 		}
 
@@ -133,13 +141,30 @@ const saveAction = () => {
 const submit = document.getElementById("edit-table-save-button");
 submit?.addEventListener("click", saveAction);
 
+function resetDataDisplay() {
+	const table = document.getElementById(
+		"edit-scores-table",
+	) as HTMLTableElement;
+	const oldTableBody = document.getElementById("edit-table-body");
+
+	oldTableBody?.remove();
+	const newTableBody = document.createElement("tbody");
+	newTableBody.id = "edit-table-body";
+	table.appendChild(newTableBody);
+}
+
 function updateDataDisplay(runData: RunState) {
 	const table = document.getElementById(
 		"edit-scores-table",
 	) as HTMLTableElement;
 	const oldTableBody = document.getElementById("edit-table-body");
 
+	running = runData.running;
 	if (!runData.running) {
+		oldTableBody?.remove();
+		const newTableBody = document.createElement("tbody");
+		newTableBody.id = "edit-table-body";
+		table.appendChild(newTableBody);
 		return;
 	}
 

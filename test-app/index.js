@@ -172,6 +172,12 @@ input.on("submit", (text) => {
 		sendFunction(msg);
 		print(`Sent: ${msg}`);
 		return;
+	} else if (text == "auto") {
+		sendFunction(JSON.stringify({ event: "startAuto" }));
+		return;
+	} else if (text == "teleop") {
+		sendFunction(JSON.stringify({ event: "startTeleop" }));
+		return;
 	}
 
 	const parts = text.split(" ");

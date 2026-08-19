@@ -44,6 +44,7 @@ ${o}
 ${o}
 <div id="chart-div">
 	<div id="chart-options-container">
+		<input type="text" id="chart-filter-input">
 		<select id="chart-type-dropdown">
 			<option value="score">Score</option>
 			<option value="meanCycleTime">Mean cycle time</option>

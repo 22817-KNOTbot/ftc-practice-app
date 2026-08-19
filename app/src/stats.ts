@@ -22,6 +22,7 @@ import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
 import { getSetting } from "./settingsManager";
 import { showEditModal, updateLiveInfo } from "./runData/modals";
+import Choices from "choices.js";
 
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
@@ -40,11 +41,13 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML =
 registerNavbar(document.querySelector("nav")!);
 
 let data: Data["data"] = [];
+let filteredData: Data["data"] = [];
 let chart: Chart | undefined;
 
 const showChart = (graphValues?: number[]) => {
 	getData().then((d) => {
 		data = d.data;
+		filteredData = d.data;
 		generateChart(
 			document.getElementById("chart")! as HTMLCanvasElement,
 			data,
@@ -53,24 +56,56 @@ const showChart = (graphValues?: number[]) => {
 	});
 };
 
-const updateChart = (graphValueLabel?: string, graphValues?: number[]) => {
+let graphValueLabel: string;
+let graphValues: number[];
+let filters: string[];
+
+const updateChart = (
+	graphValueLabelParam?: string,
+	graphValuesParam?: number[],
+	filtersParam?: string[],
+) => {
+	if (graphValueLabelParam != undefined)
+		graphValueLabel = graphValueLabelParam;
+	if (graphValuesParam != undefined) graphValues = graphValuesParam;
+	if (filtersParam != undefined) filters = filtersParam;
 	if (chart) {
+		graphValueLabel ??= "Score";
+		graphValues ??= data.map((e) => e.score);
+		filters ??= [];
 		if (chart.options.scales?.y) {
 			(chart.options.scales.y as LegendOptions<"line">).title.text =
-				graphValueLabel ?? "Score";
+				graphValueLabel;
 		}
-		chart.data.datasets[0].label = graphValueLabel ?? "Score";
-		chart.data.datasets[0].data = graphValues ?? data.map((e) => e.score);
+		chart.data.datasets[0].label = graphValueLabel;
+		chart.data.datasets[0].data = [...graphValues];
+
+		filteredData = [...data];
+		// Iterate backwards to prevent indexes shifting
+		for (let i = data.length - 1; i >= 0; i--) {
+			const pass = filters.every((tag) => data[i].tags?.includes(tag));
+
+			if (!pass) {
+				chart.data.datasets[0].data.splice(i, 1);
+				filteredData.splice(i, 1);
+			}
+		}
+
 		chart.update();
 	}
 };
 
-const chartTypeDropdown = document.getElementById("chart-type-dropdown");
-chartTypeDropdown?.addEventListener("change", (e) => {
-	const value = (e.target as HTMLSelectElement).value;
+const chartTypeDropdown = <HTMLSelectElement>(
+	document.getElementById("chart-type-dropdown")
+);
+const chartTypeCallback = () => {
+	const value = chartTypeDropdown.value;
 	switch (value) {
 		case "score":
-			updateChart();
+			updateChart(
+				"Score",
+				data.map((e) => e.score),
+			);
 			break;
 		case "meanCycleTime":
 			updateChart(
@@ -89,6 +124,24 @@ chartTypeDropdown?.addEventListener("change", (e) => {
 			);
 			break;
 	}
+};
+chartTypeDropdown?.addEventListener("change", chartTypeCallback);
+
+const chartFilterInputElement = <HTMLInputElement>(
+	document.getElementById("chart-filter-input")
+);
+const chartFilterInput = new Choices(chartFilterInputElement, {
+	removeItemButton: true,
+	duplicateItemsAllowed: false,
+	placeholderValue: "Filter Tags",
+});
+
+chartFilterInputElement.addEventListener("change", () => {
+	updateChart(
+		undefined,
+		undefined,
+		<string[]>chartFilterInput.getValue(true),
+	);
 });
 
 Chart.register(
@@ -168,7 +221,8 @@ const generateChart = async (
 							let text = "";
 							if (context[0] != null) {
 								const timestamp =
-									data[context[0].dataIndex].timestamp * 1000;
+									filteredData[context[0].dataIndex]
+										.timestamp * 1000;
 								const date: Date = new Date(timestamp);
 								text = date.toLocaleString(undefined, {
 									month: "short",
@@ -177,6 +231,17 @@ const generateChart = async (
 									hour: "numeric",
 									minute: "2-digit",
 								});
+							}
+
+							return text;
+						},
+						afterBody: (context) => {
+							let text = "";
+							if (context[0] != null) {
+								const tagList =
+									filteredData[context[0].dataIndex]?.tags ??
+									[];
+								text = `Tags: ${tagList.length > 0 ? tagList.join(", ") : "None"}`;
 							}
 
 							return text;

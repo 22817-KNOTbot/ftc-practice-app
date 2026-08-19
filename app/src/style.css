@@ -158,6 +158,35 @@ input[type="submit"] {
 #chart-options-container {
 	justify-self: end;
 	align-self: end;
+	display: flex;
+	column-gap: 1vw;
+	min-height: 2.5lh;
+	max-height: 2.5lh;
+}
+
+#chart-options-container .choices {
+	margin: 0;
+	min-width: 20ch;
+	--choices-font-size-md: 0.9em;
+	--choices-font-size-sm: 0.9em;
+	--choices-input-height: 1lh;
+	--choices-bg-color: var(--secondary-bg-color);
+	--choices-primary-color: var(--accent-color);
+
+	& .choices__inner {
+		max-width: 50vw;
+		height: 100%;
+		margin: 0;
+		box-sizing: border-box;
+		border-radius: 1lh;
+		overflow-y: scroll;
+	}
+
+	& input {
+		margin: 0;
+		box-sizing: border-box;
+		height: 100%;
+	}
 }
 
 #chart-type-dropdown {
@@ -168,7 +197,7 @@ input[type="submit"] {
 	padding: 0.5vh 1vw;
 	font-size: 1.2em;
 	cursor: pointer;
-	height: 2.5lh;
+	height: 100%;
 }
 
 #chart-container {

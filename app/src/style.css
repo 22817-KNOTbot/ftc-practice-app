@@ -234,13 +234,14 @@ input[type="submit"] {
 }
 
 .modal#saveModal,
-.modal#runModal {
+.modal#runModal,
+.modal#confirmationModal {
 	height: 75vh;
 	min-width: 300px;
 }
 
 .modal#confirmationModal {
-	height: 60vh;
+	/* height: 60vh; */
 }
 
 .modal.shownModal {
@@ -349,9 +350,22 @@ input[type="submit"] {
 	}
 }
 
+#modalContent #modalRunTagContainer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4ch 0.3ch;
+}
+
 #modalContent .modalContentSubtitle {
 	font-size: 1em;
 	margin: 1vh 0;
+}
+
+#modalContent .modalRunTag {
+	font-size: 0.8em;
+	padding: 0.8ch 1ch;
+	border-radius: 100vmax;
+	background: var(--accent-color);
 }
 
 .modal .editModalInput,

@@ -40,6 +40,7 @@ export function showSaveModal(
 	data: SaveRunData,
 	saveCallback: (data: RunData) => void,
 ) {
+	modalElement.classList.remove("editModal");
 	const content = initModal(modalElement, "Save Run");
 
 	const form = content.appendChild(document.createElement("form"));
@@ -111,6 +112,7 @@ export function showEditModal(
 	data: RunData,
 	saveCallback: (data: RunData) => void,
 ) {
+	modalElement.classList.add("editModal");
 	const content = initModal(modalElement, "");
 
 	const title = modalElement.querySelector("#modalHeader")!;
@@ -119,6 +121,23 @@ export function showEditModal(
 	nameInput.classList.add("editModalInput", "editModalTitle");
 	nameInput.value = data.name;
 	nameInput.placeholder = data.name;
+
+	const tagInputElement = content.appendChild(
+		document.createElement("input"),
+	);
+	tagInputElement.id = "runTagInput";
+	tagInputElement.classList.add("runSaveInput");
+	tagInputElement.setAttribute("type", "text");
+	tagInputElement.setAttribute("placeholder", "Tags");
+
+	const tagInput = new Choices(tagInputElement, {
+		removeItemButton: true,
+		duplicateItemsAllowed: false,
+		items: data.tags ?? [],
+		placeholderValue: tagInputElement.placeholder,
+	});
+
+	content.getElementsByClassName("choices")[0].id = "runTagInputBox";
 
 	nameInput.addEventListener("focusout", () => {
 		const value = nameInput.value;
@@ -134,6 +153,7 @@ export function showEditModal(
 		contentElement: content,
 		type: "edit",
 		nameInput: nameInput,
+		tagInput: tagInput,
 		timeInputs: [],
 		typeInputs: [],
 		scoreInputs: [],
@@ -412,6 +432,7 @@ function setupCommonModalElements(modal: Modal, data: RunData | SaveRunData) {
 function updateModalData(modal: Modal, data: RunData): RunData {
 	if (
 		modal.nameInput == undefined ||
+		modal.tagInput == undefined ||
 		modal.dateInput == undefined ||
 		modal.teleopTimesStartInput == undefined ||
 		modal.teleopTimesEndInput == undefined ||
@@ -468,7 +489,7 @@ function updateModalData(modal: Modal, data: RunData): RunData {
 		cycles: [],
 		teleopTimes: teleopTimes,
 		startingMatchPeriod: data.startingMatchPeriod,
-		tags: <string[]>modal.tagInput?.getValue(true) ?? [],
+		tags: <string[]>modal.tagInput.getValue(true),
 	});
 }
 

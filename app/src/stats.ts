@@ -395,8 +395,21 @@ function showRunData(data: RunData, filename?: string) {
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
 	infoHeader.textContent = "Info";
 
-	const subtitle = content.appendChild(document.createElement("h3"));
-	subtitle.className = "modalContentSubtitle";
+	const tagsTitle = content.appendChild(document.createElement("h3"));
+	tagsTitle.className = "modalContentSubtitle";
+	tagsTitle.textContent = "Tags:";
+	const tagsContainer = content.appendChild(document.createElement("div"));
+	tagsContainer.id = "modalRunTagContainer";
+	data.tags?.forEach((tag) => {
+		const tagsText = tagsContainer.appendChild(
+			document.createElement("span"),
+		);
+		tagsText.className = "modalRunTag";
+		tagsText.textContent = tag;
+	});
+
+	const dateText = content.appendChild(document.createElement("h3"));
+	dateText.className = "modalContentSubtitle";
 	const date: Date = new Date(data.timestamp * 1000);
 	const formatDate = date.toLocaleString(undefined, {
 		month: "short",
@@ -405,7 +418,7 @@ function showRunData(data: RunData, filename?: string) {
 		hour: "numeric",
 		minute: "2-digit",
 	});
-	subtitle.textContent = `Date: ${formatDate}`;
+	dateText.textContent = `Date: ${formatDate}`;
 
 	const infoList = content.appendChild(document.createElement("ul"));
 

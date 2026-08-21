@@ -196,6 +196,14 @@ function addTableRow(
 	scoreNew: number | undefined,
 	afterRow?: HTMLTableRowElement,
 ) {
+	const container = document.getElementById("edit-container")!;
+	const shouldScroll =
+		Math.abs(
+			container.scrollTop +
+				container.clientHeight -
+				container.scrollHeight,
+		) <= 5 && container.scrollTop > container.clientHeight;
+
 	tableBody ??= document.getElementById(
 		"edit-table-body",
 	)! as HTMLTableSectionElement;
@@ -278,6 +286,10 @@ function addTableRow(
 		typeInputs: [typeInput],
 		scoreInputs: [scoreInput],
 	});
+
+	if (shouldScroll) {
+		container.scrollBy(0, row.scrollHeight);
+	}
 }
 
 const sendEditedCycles = (cycles: Cycle[]) => {

@@ -14,4 +14,20 @@ export function registerNavbar(navbar: HTMLElement) {
 	navbar.addEventListener("mouseleave", () => {
 		navbar.classList.add("collapsed");
 	});
+
+	navbar.addEventListener("touchend", (e) => {
+		if (
+			!navbar.classList.contains("collapsed") ||
+			window.getComputedStyle(navbar).getPropertyValue("--horizontal-nav")
+		)
+			return;
+		e.preventDefault();
+		updateSize();
+	});
+
+	document.addEventListener("click", (e) => {
+		if (e.target && !navbar.contains(e.target as HTMLElement)) {
+			navbar.classList.add("collapsed");
+		}
+	});
 }

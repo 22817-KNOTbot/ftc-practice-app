@@ -1,9 +1,10 @@
 :root {
 	font-family: Arial, system-ui, Avenir, Helvetica, sans-serif;
+	font-size: min(16px, 3vw);
 	line-height: 1.5;
 	font-weight: 400;
 
-	color-scheme: light dark;
+	color-scheme: dark;
 	--text-color: hsl(0, 0%, 90%);
 	--bg-color: hsl(0, 0%, 8%);
 	--secondary-bg-color: hsl(0, 0%, 10%);
@@ -20,6 +21,8 @@
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+
+	touch-action: manipulation;
 }
 
 body {
@@ -36,6 +39,11 @@ h1 {
 
 input {
 	font-family: inherit;
+	background-color: var(--secondary-bg-color);
+}
+
+button, input[type="button"] {
+	color: var(--text-color);
 }
 
 .text-center {
@@ -47,7 +55,38 @@ input {
 	height: 100vh;
 }
 
+nav {
+	--total-height: 40vh;
+	width: max(6vw, 60px);
+	height: calc(var(--total-height) + 4vw);
+	position: fixed;
+	left: 1%;
+	top: 2%;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	border-radius: 100vmax;
+	padding: 0.5vw 0.5vw;
+	gap: 0.2lh;
+	box-sizing: border-box;
+	background: var(--secondary-bg-color);
+	overflow-y: hidden;
+	box-sizing: border-box;
+
+	transition: height 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+
+	z-index: 100;
+}
+
 nav>a {
+	flex: 1;
+	width: 100%;
+	min-height: 2.3vw;
+	max-height: 2.3vw;
+	font-size: 1.2vw;
+	text-align: center;
+
 	display: block;
 	height: 100%;
 	text-align: center;
@@ -55,10 +94,67 @@ nav>a {
 	text-decoration: none;
 }
 
+nav>a.navbar-img {
+	flex: 2;
+	min-height: calc(max(6vw, 60px) - 1vw);
+	max-height: calc(max(6vw, 60px) - 1vw);
+	height: calc(max(6vw, 60px) - 1vw);
+
+	&>img {
+		aspect-ratio: 1;
+		height: 100%;
+	}
+}
+
+@media screen and (min-width: 701px) {
+	nav.collapsed {
+		height: max(6vw, 60px);
+		transition-duration: 1s;
+		transition-timing-function: unset;
+	}
+
+	nav.collapsed>a:not(.navbar-img) {
+		transition-duration: 1s;
+		transition-timing-function: unset;
+	}
+}
+
+@media screen and (max-width: 700px) {
+	nav {
+		--horizontal-nav: 1;
+		left: 50%;
+		top: 1%;
+		transform: translateX(-50%);
+		width: 90vw;
+		height: 8vh;
+		padding: 0.5vh 0.3vw;
+		flex-direction: row;
+	}
+
+	nav>a {
+		font-size: max(2vh, 3vw);
+		min-height: 1lh;
+		max-height: 1lh;
+	}
+
+	nav>a.navbar-img {
+		flex: 1;
+		min-height: 7vh;
+		max-height: 7vh;
+	}
+}
+
 button,
 input[type="submit"] {
 	cursor: pointer;
 	font-family: inherit;
+}
+
+#timer-container {
+	height: 100%;
+	display: grid;
+	grid-template-rows: 8fr 2fr;
+	row-gap: 5vh;
 }
 
 #timer-section {
@@ -71,6 +167,13 @@ input[type="submit"] {
 	color: black;
 	text-align: center;
 	line-height: 100%;
+
+	font-size: min(20rem, 30vw);
+	font-weight: 600;
+	width: 85%;
+	height: 90%;
+	border-radius: 3vmax;
+	place-content: center;
 }
 
 #bottom-section {
@@ -91,6 +194,7 @@ input[type="submit"] {
 
 #changes-box {
 	overflow: hidden;
+	grid-area: changes;
 }
 
 #changes-box .change {
@@ -131,6 +235,12 @@ input[type="submit"] {
 
 #score-box {
 	width: 60%;
+	grid-area: score;
+	
+	height: 100%;
+	background-color: var(--text-color);
+	padding-top: 5vh;
+	border-radius: 2vmax 2vmax 0 0;
 }
 
 #score {
@@ -140,19 +250,75 @@ input[type="submit"] {
 	place-items: center;
 }
 
+#cycle-time-box {
+	grid-area: timer;
+}
+
 #cycle-timer {
 	width: 50%;
 	justify-items: baseline;
-	margin-left: 20%
+	margin-left: 3ch;
+}
+
+@media screen and (max-width: 700px) {
+	#timer-container {
+		align-items: end;
+		padding-top: 10vh;
+		box-sizing: border-box;
+		/* grid-template-rows: 1fr 1fr; */
+	}
+
+	#timer-section {
+		height: 100%;
+	}
+
+	#timer {
+		max-height: 2lh;
+		height: 100%;
+	}
+
+	#bottom-section {
+		height: 55vh;
+		border: none;
+
+		display: grid;
+		grid-template-rows: 1fr 1fr 1fr;
+		grid-template-columns: 1fr;
+		grid-template-areas: "score" "changes" "timer";
+		justify-items: center;
+	}
+
+	#score-box {
+		box-sizing: border-box;
+		padding-top: 2vmax;
+	}
+
+	#cycle-time-box {
+		border-top: 1px solid white;
+	}
 }
 
 #chart-div {
+	width: 95vw;
+	height: 100vh;
+	float: right;
+
 	display: flex;
 	flex-direction: column;
 	place-content: center;
 	padding: 2vh 2vw;
 	box-sizing: border-box;
 	gap: 2vh;
+
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+@media screen and (max-width: 700px) {
+	#chart-div {
+		width: 100vw;
+		padding-top: 10vh;
+	}
 }
 
 #chart-options-container {
@@ -237,17 +403,20 @@ input[type="submit"] {
 .modal#runModal,
 .modal#confirmationModal {
 	height: 75vh;
-	min-width: 300px;
-}
-
-.modal#confirmationModal {
-	/* height: 60vh; */
+	min-width: 350px;
 }
 
 .modal.shownModal {
 	transform: translate(-50%, -50%) scale(1);
 	filter: none;
 	opacity: 1;
+}
+
+@media screen and (max-width: 700px) {
+	.modal {
+		width: min(350px, 95vw);
+		font-size: 1.3rem;
+	}
 }
 
 #modalHeaderContainer {
@@ -319,7 +488,7 @@ input[type="submit"] {
 	cursor: pointer;
 	background-color: var(--accent-color);
 	width: calc(50% - 0.5vw);
-	
+
 	&:last-child {
 		float: right;
 	}
@@ -422,7 +591,7 @@ input[type="submit"] {
 	height: 2.5lh;
 	background-image: url("/practice/assets/icons/send.svg");
 }
-	
+
 #modalContent ul {
 	margin: 0;
 }
@@ -459,7 +628,7 @@ input[type="submit"] {
 	display: block;
 	width: 90%;
 	height: 2.5lh;
-	font-size: 1rem;
+	font-size: max(0.8em, 1.3vw);
 	border: solid 1px;
 	border-radius: 100vmax;
 	background-color: var(--accent-color);
@@ -496,7 +665,7 @@ input[type="submit"] {
 }
 
 .loading-container {
-	--loading-size: 5vw;
+	--loading-size: max(5vw, 5vh);
 	--loading-color: white;
 	--loading-speed: .8s;
 	--loading-bg-opacity: 0.1;
@@ -536,15 +705,61 @@ input[type="submit"] {
 	align-items: center;
 }
 
+#settings-content,
+#about-content {
+	width: 90%;
+	height: 90%;
+	background-color: var(--secondary-bg-color);
+	border-radius: 2vmax;
+}
+
 #settings-content {
 	padding: 3vh 2vw;
 	box-sizing: border-box;
 	display: grid;
 	grid-template-columns: repeat(11, 1fr);
 	grid-template-rows: 1fr 1fr;
-	grid-template-areas: 
+	grid-template-areas:
 		"layout layout layout layout saving saving saving saving save save save"
 		"timer timer timer timer mode mode mode mode danger danger danger";
+}
+
+#about-content {
+	overflow-y: scroll;
+	padding: 0 20vw;
+	box-sizing: border-box;
+}
+
+@media screen and (max-width: 700px) {
+	#settings-container,
+	#about-container {
+		width: 100vw;
+		padding-top: 10vh;
+		box-sizing: border-box;
+		align-items: baseline;
+		overflow-y: scroll;
+	}
+	
+	#settings-content,
+	#about-content {
+		min-height: 95%;
+		height: fit-content;
+		margin-bottom: 3vh;
+	}
+
+	#settings-content {
+		height: fit-content;
+		margin-top: 0;
+		grid-template-rows: 1fr;
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			"save" "layout" "saving" "timer" "mode" "danger";
+		row-gap: 5vh;
+	}
+
+	#about-content {
+		padding: 0 min(20vw, 5vh);
+	}
 }
 
 #settings-container .settings-section-container {
@@ -783,9 +998,20 @@ input[type="submit"] {
 	height: 100vh;
 
 	float: right;
-	display: grid;
+	display: flex;
+	flex-direction: column;
+	gap: min(5vh, 2lh);
 	place-items: center;
 	overflow-y: scroll;
+	padding-bottom: 3vh;
+	box-sizing: border-box;
+}
+
+@media screen and (max-width: 700px) {
+	#edit-container {
+		width: 100vw;
+		padding-top: 10vh;
+	}
 }
 
 #edit-container h1 {
@@ -795,7 +1021,7 @@ input[type="submit"] {
 
 .edit-page-container {
 	width: 95%;
-	padding: 5vh 2vw;
+	padding: 0 2vw;
 }
 
 .edit-page-table {
@@ -803,28 +1029,26 @@ input[type="submit"] {
 	border-spacing: 0;
 	border: white solid 1px;
 	overflow: hidden;
+	width: 100%;
 }
 
 .edit-page-table th {
 	color: var(--text-color);
 	background-color: var(--accent-color);
 	font-size: 1.5em;
-	padding: 3vh;
-	padding-left: 3vw;
-	padding-right: 3vw;
-	min-width: 100px;
+	padding: 2vh 0;
 	justify-content: center;
 	border: 0;
 
 	&:first-child {
-		width: 10%;
+		width: max(10vw, 50px);
 	}
 }
 
 .edit-page-table td {
 	background-color: var(--secondary-bg-color);
 	font-size: 1.5em;
-	padding: 2%;
+	padding: 2vh 1vw;
 	margin: auto;
 	justify-content: center;
 }
@@ -833,6 +1057,7 @@ input[type="submit"] {
 	display: flex;
 	justify-content: center;
 	margin: auto;
+	font-size: 0.7em;
 }
 
 #edit-table-save-button {

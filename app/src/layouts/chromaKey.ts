@@ -1,20 +1,26 @@
 import { LayoutData } from "../types";
 import { getLayoutData as getModernLayoutData } from "./modern";
-import faviconUrl from "../assets/images/favicon.ico";
+import faviconUrl from "../assets/images/favicon.svg";
 import { getSetting } from "../settingsManager";
 
-const mode = getSetting("mode") ;
+const mode = getSetting("mode");
 
 const nav = `
 <nav class="collapsed">
-${mode == "view" ? `
+${
+	mode == "view"
+		? `
 	<a href="/practice" class="navbar-img"><img src="${faviconUrl}"></a>
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
-	` : mode == "edit" ? `
+	`
+		: mode == "edit"
+			? `
 	<a href="/practice/edit" class="navbar-img"><img src="${faviconUrl}"></a>
 	<a href="/practice/edit">Edit</a>
-	` : ""}
+	`
+			: ""
+}
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>

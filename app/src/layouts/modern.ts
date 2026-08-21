@@ -1,6 +1,6 @@
 import { getLayouts } from "../layouts";
 import { LayoutData } from "../types";
-import faviconUrl from "../assets/images/favicon.ico";
+import faviconUrl from "../assets/images/favicon.svg";
 import { getSetting } from "../settingsManager";
 
 const mode = getSetting("mode");

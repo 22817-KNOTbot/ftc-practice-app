@@ -1,6 +1,6 @@
 :root {
 	font-family: Arial, system-ui, Avenir, Helvetica, sans-serif;
-	font-size: min(16px, 3vw);
+	font-size: min(2vh, 3vw);
 	line-height: 1.5;
 	font-weight: 400;
 

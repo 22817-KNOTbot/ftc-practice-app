@@ -180,13 +180,13 @@ On this page, there are a number of things you can configure
 Make sure to save changes by clicking the "Save Changes" button on the top right
 
 #### <ins>Layouts</ins>
-You can choose between the 3 layouts: Modern, Chroma Key, and Classic.
+You can choose between the 2 layouts: Modern and Overlay.
 
-| Modern | Chroma Key |
+| Modern | Overlay |
 | ------ | ---------- |
-| A minimalist design with an emphasis on only the most important information | Similar to the Modern design but includes a large frame for chroma keying (commonly known as green screen), allowing you to insert live video streams of your runs |
-| ![Screenshot showing the modern layout](docs/images/modern.png) | ![Screenshot showing the chroma key layout](docs/images/chromaKey.png) |
-For instructions on chroma keying, check the wiki (coming soon).
+| A minimalist design with an emphasis on only the most important information | Similar to the Modern design but includes a large empty space, allowing you to insert live video streams of your runs. This allows you to create a recording with your run and a live score overlay |
+| ![Screenshot showing the modern layout](docs/images/modern.png) | ![Screenshot showing the overlay layout](docs/images/overlay.png) |
+For instructions on recording with the overlay layout, check the wiki (coming soon).
 
 #### <ins>Saving</ins>
 Choose your own default name and tags that automatically apply to each run. You can still edit them on the normal save screen if necessary. The default name supports [date variables](https://cplusplus.com/reference/ctime/strftime/#:~:text=format,-C), which automatically use the current date and time.

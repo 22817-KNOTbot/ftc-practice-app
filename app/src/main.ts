@@ -30,7 +30,10 @@ import { showSaveModal } from "./runData/modals.ts";
 
 let running = false;
 
-const chosenLayout = getSetting("layout");
+let chosenLayout = getSetting("layout");
+if ((window as unknown as { obsstudio: unknown }).obsstudio) {
+	chosenLayout = "Overlay";
+}
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";

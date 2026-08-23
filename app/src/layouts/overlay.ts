@@ -32,14 +32,13 @@ export function getLayoutData(): LayoutData {
 	return {
 		stylePath: [
 			"/practice/assets/layouts/modern.css",
-			"/practice/assets/layouts/chromaKey.css",
+			"/practice/assets/layouts/overlay.css",
 		],
 		html: {
 			timer: `
 ${nav}
 <div id="timer-container">
 	<div id="timer-section">
-		<div id="chroma-screen"></div>
 	</div>
 	<div id="bottom-section">
 		<div id="timer-box">

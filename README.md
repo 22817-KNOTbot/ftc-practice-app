@@ -8,18 +8,18 @@ Developed by 22817 KNOTbot
 
 # Features
 ## Key features
-- Easy to use interface with a straightforward design
-- Automatically keep track of points
+- Automatic score tracking - no human scorekeeper needed
+- Easy to use interface with a design resembling real matches
 - Record cycle times with millisecond precision
 - Graph runs to watch improvement over time
 - Designed to work regardless of the season's game
 ## Extra features
-- Label runs with custom identifiable names
-- View advanced statistics including mean cycle time and scoring rate
+- Label runs with custom identifiable names and tags
+- View advanced statistics including scoring rate and trends in cycle times
 - Play real FTC match sounds
-- Show a warning when starting early or ending matches late
+- Track starting matches too early or ending late
 - Synchronize with multiple devices
-- Multiple layouts to suit your needs
+
 - Record videos of your runs with live stats
 
 # Installation
@@ -27,7 +27,7 @@ Developed by 22817 KNOTbot
 2. Add `maven { url 'https://jitpack.io' }` at the bottom of the `repositories` section
 ```groovy
 repositories {
-	// ...
+	// ... other repositories
 
 	maven { url 'https://jitpack.io' }
 }
@@ -35,9 +35,9 @@ repositories {
 3. Add the practice app in the `dependencies` section
 ```groovy
 depdencies {
-	// ...
+	// ... other dependencies
 
-	implementation 'com.github.22817-KNOTbot:ftc-practice-app:v0.1.0'
+	implementation 'com.github.22817-KNOTbot:ftc-practice-app:v1.0.0'
 }
 ```
 
@@ -56,15 +56,15 @@ import com.knotbot.practiceapp.Practice;
 When you start the match period, run the respective method
 - `startAuto()` for Auto
 - `startTransition()` for transition between Auto and TeleOp
-- `startTeleOp()` for TeleOp
+- `startTeloOp()` for TeleOp
 
 ```java
 // This example is for a LinearOpMode, but the same functions can be used similarly in an OpMode
 @Override
 public void runOpMode() {
-  waitForStart();
-  Practice.startAuto(); // If it is an Autonomous program, run this
-  // Practice.startTeleop(); // If it is a TeleOp program, run this instead
+	waitForStart();
+	Practice.startAuto(); // If it is an Autonomous program, run this
+	// Practice.startTeleop(); // If it is a TeleOp program, run this instead
 }
 ```
 
@@ -73,9 +73,9 @@ For certain use cases, you may also want to call it during the init process
 ```java
 @Override
 public void runOpMode() {
-  Practice.startTransition(); // Start the transition timer between Auto and TeleOp
-  waitForStart();
-  Practice.startTeleop(); // Start the TeleOp timer after pressing start
+	Practice.startTransition(); // Start the transition timer between Auto and TeleOp
+	waitForStart();
+	Practice.startTeleop(); // Start the TeleOp timer after pressing start
 }
 ```
 
@@ -85,26 +85,20 @@ When scoring points, call the `addScore(score, name)` method, where score is the
 ```java
 // When scoring a point, call the method
 
-// Hang a specimen
+// Shoot an artifact
 if (gamepad1.aWasPressed()) {
-	openClaw(); // Include any code necessary to hang the specimen
-	Practice.addScore(10, "Specimen"); // Add points for a high-rung specimen
+	shootArtifact(); // Include any code necessary to shoot an Artifact
+	Practice.addScore(30, "Artifact"); // Add points for a classified Artifact
 }
 
-// Release a sample
-// ...
-if (gamepad1.bWasPressed()) {
-	openClaw(); // Include any code necessary to deposit the sample
-	Practice.addScore(8, "Sample"); // Add points for a high-basket sample
-}
 ```
 
-For autonomous points that should count again when starting TeleOp, just double the point value. This is to distinguish between other point types that should not double
+For autonomous points that should count again when starting TeleOp, just double the point value. This is to distinguish between other point types that should not double. The following example references the Into The Deep season, but can be adapted for any future season with similar scoring rules.
 
 ```java
 // Hang a specimen
 if (gamepad1.aWasPressed()) {
-	openClaw(); // Include any code necessary to hang the specimen
+	openClaw(); // Include any code necessary to hang the specimen (from the Into The Deep season)
 	Practice.addScore(20, "Specimen"); // Doubled to account for recount during TeleOp
 }
 
@@ -118,52 +112,23 @@ if (gamepad1.xWasPressed()) { // You can use more complex logic such as odometry
 By default, the run will automatically end when you end the OpMode. If you want to run another OpMode, (for example, a TeleOp program after Auto,) you will need to disable auto end with the `setAutoEnd(autoEnd)` method. (Note that this value resets every time the robot restarts, so make sure to call this method each time)
 
 ```java
+// This would be best to have in the init section of an Autonomous OpMode, though it can be put anywhere
 Practice.setAutoEnd(false); // Disables auto ending
 ```
 
-To end the run, use the `runEnd()` method. This can be called in either Auto or TeleOp regardless of whether auto end is enabled or not.
+To end the run, use the `endRun()` method. This can be called in either Auto or TeleOp regardless of whether auto end is enabled or not.
 
 ```java
 Practice.endRun(); // Ends the run
 ```
 
 &nbsp;
-### Additional methods
-Here are some additional methods. You likely will not need these, but they are available if you wish.
-
-Abort the run which will end the run without a save prompt
-
-```java
-Practice.abort(); // Aborts the run
-```
-
-Use `setScore(score)` to set the score
-
-```java
-Practice.setScore(0) // Sets the score to 0
-```
-
-Play sounds using `playsound(sound)` to play one of the supported match sounds. (Note that normal match sounds will automatically play, you do not need to use this method)
-
-```java
-/*
-Available sounds:
-"abort"
-"autobegin"
-"autoend"
-"countdown"
-"endgame"
-"endmatch"
-"teleopbegin"
-"pickupcontrollers"
-"results"
-*/
-Practice.playsound("endgame");
-```
+### JavaDocs
+All of the previously stated information is summarized in the JavaDocs of their respective methods. In Android Studio, hover over the method name to view the information directly in your editor.
 
 &nbsp;
 ## Web interface
-To access the web app, connect to the robot wifi and go to http://192.168.43.1:8080/practice
+To access the web app, connect to the robot wifi and go to [http://192.168.43.1:8080/practice](http://192.168.43.1:8080/practice)
 
 ### Main page
 
@@ -183,7 +148,7 @@ The bottom left box will show changes in points and some other information. It w
 
 #### <ins>Ending a run</ins>
 
-When the run ends, you will be shown a prompt to save the run. It includes all the run data that will be stored and a text box to input a name. The name will only be used for future identification and can be anything you want. You can also edit the run to change what will be saved. For example, you can remove a scoring element that missed.
+When the run ends, you will be shown a prompt to save the run. It includes all the run data that will be stored and a text box to input a name. The name will only be used for future identification and can be anything you want. You can also add tags, which let you filter runs later. If necessary, edit the run here to change what will be saved. For example, you can remove a scoring element that missed.
 
 ![Screenshot showing the save prompt](docs/images/save-prompt.gif)
 
@@ -201,6 +166,10 @@ From here, you can also edit the data if necessary
 
 ![Video showing the run data modal and editing a run](docs/images/run-edit.gif)
 
+#### <ins>Filtering</ins>
+
+Filter runs by their tags in the filter box. Use this to see how different drivers, subsystems, or software systems compare.
+
 ### Settings
 
 On this page, there are a number of things you can configure
@@ -213,16 +182,56 @@ Make sure to save changes by clicking the "Save Changes" button on the top right
 #### <ins>Layouts</ins>
 You can choose between the 3 layouts: Modern, Chroma Key, and Classic.
 
-| Modern | Chroma Key | Classic |
-| ------ | ---------- | ------- |
-| A minimalist design with an emphasis on only the most important information | Similar to the Modern design but includes a large frame for chroma keying (commonly known as green screen), allowing you to insert live video streams of your runs | A classic layout with all information presented in a straightforward manner |
-| ![Screenshot showing the modern layout](docs/images/modern.png) | ![Screenshot showing the chroma key layout](docs/images/chromaKey.png) | ![Screenshot showing the modern layout](docs/images/classic.png)
+| Modern | Chroma Key |
+| ------ | ---------- |
+| A minimalist design with an emphasis on only the most important information | Similar to the Modern design but includes a large frame for chroma keying (commonly known as green screen), allowing you to insert live video streams of your runs |
+| ![Screenshot showing the modern layout](docs/images/modern.png) | ![Screenshot showing the chroma key layout](docs/images/chromaKey.png) |
+For instructions on chroma keying, check the wiki (coming soon).
+
+#### <ins>Saving</ins>
+Choose your own default name and tags that automatically apply to each run. You can still edit them on the normal save screen if necessary. The default name supports [date variables](https://cplusplus.com/reference/ctime/strftime/#:~:text=format,-C), which automatically use the current date and time.
 
 #### <ins>Timer Settings</ins>
 Customize the times for the timer here. Use this if the season's rules change the length of periods, or just to experiment with different times.
 
+#### <ins>Mode</ins>
+Change between the view and edit mode.
+
+View: The default mode, allowing you to view the current run and live cycles as they happen\
+Edit: A secondary mode which lets you edit the current run while it's still running. Use this to fix mistakes live or score anything that cannot be scored automatically.
+
+#### <ins>Cycle Stats</ins>
+Choose which stats you want to see while inspecting a run. You can find them on the run info screen on the stats page.
+
+Available stats:
+- Min
+- Max
+- Mean
+- Median
+- Secs/Point
+- Points/Sec
+- Std Dev
+- Best 25% (cycle time)
+- Worst 25% (cycle time)
+- Best 10% (cycle time)
+- Worst 10% (cycle time)
+
 #### <ins>Danger Zone</ins>
 This area contains buttons that make **permanent** changes. Pressing a button shows a confirmation box. After pressing confirm, you **cannot undo the action!**
+
+### Edit Mode
+This page lets you edit the current run as it's still running.\
+The suggested usage is to have one device with a large display for the main timer page, visible to the drive team. A secondary device (such as a phone or another computer) would be on the edit mode to quickly make adjustments.
+
+#### <ins>Enabling the Mode</ins>
+The mode can be enabled/disabled in the settings page, under the Mode section.
+
+#### <ins>Editing Current Run</ins>
+The top table can be used to edit the current run while it is active. You can edit, remove, or insert a cycle. Make sure to press save at the bottom.
+
+#### <ins>Manual Scoring</ins>
+The bottom table can be used to manually score elements. Use this for anything that cannot be automatically scored. Enter the cycle information and press send. The information will stay on that device, even after reloads.\
+Another possible use case is to put a negative score value, which could be used to remove the points of a missed scoring element
 
 # Contributing
 Feel free to contribute by making issues or pull requests.

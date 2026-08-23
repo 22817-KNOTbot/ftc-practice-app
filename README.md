@@ -44,12 +44,12 @@ depdencies {
 &nbsp;
 # Usage
 ## Programming
-All the functions you will need are static methods from the `RobotEvent` class.
+All the functions you will need are static methods from the `Practice` class.
 
 Start by importing the class:
 
 ```java
-import com.knotbot.practiceapp.RobotEvent;
+import com.knotbot.practiceapp.Practice;
 ```
 
 &nbsp;\
@@ -63,8 +63,8 @@ When you start the match period, run the respective method
 @Override
 public void runOpMode() {
   waitForStart();
-  RobotEvent.startAuto(); // If it is an Autonomous program, run this
-  // RobotEvent.startTeleop(); // If it is a TeleOp program, run this instead
+  Practice.startAuto(); // If it is an Autonomous program, run this
+  // Practice.startTeleop(); // If it is a TeleOp program, run this instead
 }
 ```
 
@@ -73,9 +73,9 @@ For certain use cases, you may also want to call it during the init process
 ```java
 @Override
 public void runOpMode() {
-  RobotEvent.startTransition(); // Start the transition timer between Auto and TeleOp
+  Practice.startTransition(); // Start the transition timer between Auto and TeleOp
   waitForStart();
-  RobotEvent.startTeleop(); // Start the TeleOp timer after pressing start
+  Practice.startTeleop(); // Start the TeleOp timer after pressing start
 }
 ```
 
@@ -88,14 +88,14 @@ When scoring points, call the `addScore(score, name)` method, where score is the
 // Hang a specimen
 if (gamepad1.aWasPressed()) {
 	openClaw(); // Include any code necessary to hang the specimen
-	RobotEvent.addScore(10, "Specimen"); // Add points for a high-rung specimen
+	Practice.addScore(10, "Specimen"); // Add points for a high-rung specimen
 }
 
 // Release a sample
 // ...
 if (gamepad1.bWasPressed()) {
 	openClaw(); // Include any code necessary to deposit the sample
-	RobotEvent.addScore(8, "Sample"); // Add points for a high-basket sample
+	Practice.addScore(8, "Sample"); // Add points for a high-basket sample
 }
 ```
 
@@ -105,12 +105,12 @@ For autonomous points that should count again when starting TeleOp, just double 
 // Hang a specimen
 if (gamepad1.aWasPressed()) {
 	openClaw(); // Include any code necessary to hang the specimen
-	RobotEvent.addScore(20, "Specimen"); // Doubled to account for recount during TeleOp
+	Practice.addScore(20, "Specimen"); // Doubled to account for recount during TeleOp
 }
 
 // Park
 if (gamepad1.xWasPressed()) { // You can use more complex logic such as odometry or timers instead
-	RobotEvent.addScore(3, "Park"); // Not doubled because parking points do not double
+	Practice.addScore(3, "Park"); // Not doubled because parking points do not double
 }
 ```
 
@@ -118,13 +118,13 @@ if (gamepad1.xWasPressed()) { // You can use more complex logic such as odometry
 By default, the run will automatically end when you end the OpMode. If you want to run another OpMode, (for example, a TeleOp program after Auto,) you will need to disable auto end with the `setAutoEnd(autoEnd)` method. (Note that this value resets every time the robot restarts, so make sure to call this method each time)
 
 ```java
-RobotEvent.setAutoEnd(false); // Disables auto ending
+Practice.setAutoEnd(false); // Disables auto ending
 ```
 
 To end the run, use the `runEnd()` method. This can be called in either Auto or TeleOp regardless of whether auto end is enabled or not.
 
 ```java
-RobotEvent.runEnd(); // Ends the run
+Practice.endRun(); // Ends the run
 ```
 
 &nbsp;
@@ -134,13 +134,13 @@ Here are some additional methods. You likely will not need these, but they are a
 Abort the run which will end the run without a save prompt
 
 ```java
-RobotEvent.abort(); // Aborts the run
+Practice.abort(); // Aborts the run
 ```
 
 Use `setScore(score)` to set the score
 
 ```java
-RobotEvent.setScore(0) // Sets the score to 0
+Practice.setScore(0) // Sets the score to 0
 ```
 
 Play sounds using `playsound(sound)` to play one of the supported match sounds. (Note that normal match sounds will automatically play, you do not need to use this method)
@@ -158,7 +158,7 @@ Available sounds:
 "pickupcontrollers"
 "results"
 */
-RobotEvent.playsound("endgame");
+Practice.playsound("endgame");
 ```
 
 &nbsp;

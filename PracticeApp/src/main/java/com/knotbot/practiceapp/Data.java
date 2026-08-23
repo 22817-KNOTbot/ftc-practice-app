@@ -191,7 +191,7 @@ public class Data {
 		}
 	}
 
-	protected static class Cycle {
+	public static class Cycle {
 		public float time;
 		public String type;
 		public int score;

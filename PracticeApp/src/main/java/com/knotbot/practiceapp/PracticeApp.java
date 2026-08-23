@@ -57,8 +57,8 @@ public class PracticeApp {
 	public static void start(Context context) {
 		if (instance == null)
 			instance = new PracticeApp();
-		if (RobotEvent.instance == null)
-			RobotEvent.instance = new RobotEvent();
+		if (Practice.instance == null)
+			Practice.instance = new Practice();
 		Log.i(TAG, "STARTED");
 		DataStorage.refreshMain();
 	}
@@ -66,8 +66,8 @@ public class PracticeApp {
 	@OnCreateEventLoop
 	public static void registerOpModeNotifications(Context context, FtcEventLoop eventLoop) {
 		OpModeManagerImpl opModeManager = eventLoop.getOpModeManager();
-		opModeManager.unregisterListener(RobotEvent.instance);
-		opModeManager.registerListener(RobotEvent.instance);
+		opModeManager.unregisterListener(Practice.instance);
+		opModeManager.registerListener(Practice.instance);
 	}
 
 	/*
@@ -411,7 +411,7 @@ public class PracticeApp {
 
 		public void register(Socket socket) {
 			this.sockets.add(socket);
-			RobotEvent.registerWsHandler(this);
+			Practice.registerWsHandler(this);
 		}
 
 		public void onOpen() {
@@ -422,7 +422,7 @@ public class PracticeApp {
 		public void onClose(Socket socket) {
 			this.sockets.remove(socket);
 			if (sockets.isEmpty()) {
-				RobotEvent.unregisterWsHandler();
+				Practice.unregisterWsHandler();
 				open = false;
 			}
 			Log.d(TAG, "WS Closed");
@@ -456,14 +456,14 @@ public class PracticeApp {
 						return;
 					}
 					DataStorage.saveRun(Data.RunData.toData(message.name));
-					RobotEvent.runData = null;
+					Practice.runData = null;
 					break;
 				case "editRun":
 					if (message.name == null || message.name == "") {
 						Log.e(TAG, "Malformed edit. Given data \"" + json + "\"");
 						return;
 					}
-					RobotEvent.editCycles(Data.RunData.toData(message.name).cycles);
+					Practice.editCycles(Data.RunData.toData(message.name).cycles);
 
 					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
 					Log.v(TAG, "Sent run state in response to editRun");
@@ -473,7 +473,7 @@ public class PracticeApp {
 						Log.e(TAG, "Malformed addCycle message. Given data \"" + json + "\"");
 						return;
 					}
-					RobotEvent.addCycle(Data.Cycle.toData(message.name));
+					Practice.addCycle(Data.Cycle.toData(message.name));
 
 					break;
 				default:
@@ -483,36 +483,36 @@ public class PracticeApp {
 
 		private RunState getRunState() {
 			Data.RunState runState;
-			float runTime = (float) RobotEvent.runTimer.time();
+			float runTime = (float) Practice.runTimer.time();
 
-			if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
+			if (Practice.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
 				if (runTime >= 30 && runTime < 38) {
-					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
-					RobotEvent.periodTimerOffset = runTime - 30;
-					RobotEvent.periodTimer.reset();
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+					Practice.periodTimerOffset = runTime - 30;
+					Practice.periodTimer.reset();
 				} else if (runTime >= 38) {
-					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-					RobotEvent.periodTimerOffset = runTime - 38;
-					RobotEvent.periodTimer.reset();
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					Practice.periodTimerOffset = runTime - 38;
+					Practice.periodTimer.reset();
 				}
-			} else if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
+			} else if (Practice.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
 				if (runTime >= 8) {
-					RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-					RobotEvent.periodTimerOffset = runTime - 8;
-					RobotEvent.periodTimer.reset();
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					Practice.periodTimerOffset = runTime - 8;
+					Practice.periodTimer.reset();
 				}
 			}
 
-			if (!RobotEvent.running || RobotEvent.runData == null) {
+			if (!Practice.running || Practice.runData == null) {
 				runState = new Data.RunState(false);
 			} else {
 				runState = new Data.RunState(
-						RobotEvent.running,
-						RobotEvent.matchPeriod,
-						(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
-						RobotEvent.score,
-						RobotEvent.runData.cycles,
-						(float) RobotEvent.cycleTimer.time());
+						Practice.running,
+						Practice.matchPeriod,
+						(float) (Practice.periodTimer.time() + Practice.periodTimerOffset),
+						Practice.score,
+						Practice.runData.cycles,
+						(float) Practice.cycleTimer.time());
 			}
 
 			return runState;

@@ -63,8 +63,9 @@ export function displayInfo(element: HTMLElement, info: string) {
 	updateTextSize({
 		innerEl: newChange,
 		containerEl: newChange.parentElement!,
-		mode: "boxoneline",
+		mode: "oneline",
 	});
+	newChange.style.fontSize = `min(1em, ${newChange.style.fontSize})`;
 
 	shiftChanges(element);
 }
@@ -83,8 +84,9 @@ export function displayInfoColor(
 	updateTextSize({
 		innerEl: newChange,
 		containerEl: newChange.parentElement!,
-		mode: "boxoneline",
+		mode: "oneline",
 	});
+	newChange.style.fontSize = `min(1em, ${newChange.style.fontSize})`;
 
 	shiftChanges(element);
 }
@@ -104,7 +106,8 @@ export function updateChangesTextSize() {
 		updateTextSize({
 			innerEl: change,
 			containerEl: change.parentElement!,
-			mode: "boxoneline",
+			mode: "oneline",
 		});
+		change.style.fontSize = `min(1em, ${change.style.fontSize})`;
 	}
 }

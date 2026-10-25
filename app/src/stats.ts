@@ -198,6 +198,7 @@ const generateChart = async (
 				{
 					label: "Score",
 					data: chartData.map((e) => e.value),
+					tension: 0.2,
 				},
 			],
 		},

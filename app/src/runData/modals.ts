@@ -520,15 +520,16 @@ export function updateLiveInfo(
 		const cycleTimes = data.cycles.map((cycle) => {
 			return cycle.time;
 		});
+		const nonZeroCycleTimes = cycleTimes.filter((time) => time > 0);
 		let minTime: number | undefined;
 		let maxTime: number | undefined;
 		let cycleTimeSum = 0;
-		cycleTimes.forEach((time) => {
+		nonZeroCycleTimes.forEach((time) => {
 			minTime = minTime == undefined ? time : Math.min(minTime, time);
 			maxTime = maxTime == undefined ? time : Math.max(maxTime, time);
 			cycleTimeSum += time;
 		});
-		const sortedCycleTimes = [...cycleTimes].sort((a, b) => a - b);
+		const sortedCycleTimes = [...nonZeroCycleTimes].sort((a, b) => a - b);
 
 		for (const cycleStat of cycleStats) {
 			let output: string = "Unknown";
@@ -540,7 +541,7 @@ export function updateLiveInfo(
 					output = `${maxTime!.toFixed(3)}s`;
 					break;
 				case CycleStat.MEAN:
-					output = `${(cycleTimeSum / cycleTimes.length).toFixed(3)}s`;
+					output = `${(cycleTimeSum / nonZeroCycleTimes.length).toFixed(3)}s`;
 					break;
 				case CycleStat.MEDIAN: {
 					const halfIndex = Math.floor(sortedCycleTimes.length / 2);
@@ -559,11 +560,11 @@ export function updateLiveInfo(
 					output = `${(data.score / cycleTimeSum).toFixed(3)}pts`;
 					break;
 				case CycleStat.STD_DEV: {
-					const mean = cycleTimeSum / cycleTimes.length;
+					const mean = cycleTimeSum / nonZeroCycleTimes.length;
 					const stdDev = Math.sqrt(
-						cycleTimes
+						nonZeroCycleTimes
 							.map((x) => (x - mean) * (x - mean))
-							.reduce((a, b) => a + b) / cycleTimes.length,
+							.reduce((a, b) => a + b) / nonZeroCycleTimes.length,
 					);
 					output = `${stdDev.toFixed(3)}s`;
 					break;

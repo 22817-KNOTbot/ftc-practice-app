@@ -2,13 +2,6 @@
 	grid-template-rows: 9fr 1fr;
 }
 
-#chroma-screen {
-	width: 85%;
-	height: 90%;
-	border-radius: 3vmax;
-	background-color: #f0f;
-}
-
 #bottom-section>* {
 	font-size: 2em;
 }

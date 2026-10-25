@@ -150,7 +150,7 @@ The bottom left box will show changes in points and some other information. It w
 
 When the run ends, you will be shown a prompt to save the run. It includes all the run data that will be stored and a text box to input a name. The name will only be used for future identification and can be anything you want. You can also add tags, which let you filter runs later. If necessary, edit the run here to change what will be saved. For example, you can remove a scoring element that missed.
 
-![Screenshot showing the save prompt](docs/images/save-prompt.gif)
+![Screenshot showing the save prompt](docs/images/save-prompt.png)
 
 ### Stats page
 

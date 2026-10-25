@@ -186,8 +186,8 @@ input.on("submit", (text) => {
 	const msg = JSON.stringify({
 		event: "addCycle",
 		name: JSON.stringify({
-			type: parts[1],
-			time: parseInt(parts[0]),
+			type: parts[1].replace("_", " "),
+			time: parseFloat(parts[0]),
 			score: parseInt(parts[2]),
 		}),
 	});

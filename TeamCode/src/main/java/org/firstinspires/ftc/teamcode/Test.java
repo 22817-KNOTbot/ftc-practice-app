@@ -1,14 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.knotbot.practiceapp.Practice;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import com.acmerobotics.dashboard.config.Config;
-
-import com.knotbot.practiceapp.Data;
-import com.knotbot.practiceapp.DataStorage;
-import com.knotbot.practiceapp.RobotEvent;
-import com.knotbot.practiceapp.PracticeApp;
 
 @TeleOp
 @Config
@@ -26,7 +22,6 @@ public class Test extends LinearOpMode {
 		ABORT,
 		ADD_SCORE,
 		ADD_DOUBLE_SCORE,
-		RESET_SCORE,
 		ERROR,
 		START_PERIOD,
 		LOG,
@@ -43,60 +38,54 @@ public class Test extends LinearOpMode {
 		waitForStart();
 		switch (period) {
 			case AUTO:
-				RobotEvent.startAuto();
+				Practice.startAuto();
 				break;
 			case TRANSITION:
-				RobotEvent.startTransition();
+				Practice.startTransition();
 				break;
 			case TELEOP:
-				RobotEvent.startTeleop();
+				Practice.startTeleop();
 				break;
 		}
 		while (opModeIsActive()) {
 			if (gamepad1.b) {
-				RobotEvent.abort();
+				Practice.abort();
 				break;
 			}
 			if (gamepad1.a) {
-				RobotEvent.addScore(1);
-			}
-			if (gamepad1.x) {
-				RobotEvent.setScore(0);
+				Practice.addScore(1);
 			}
 			if (send) {
 				switch (action) {
 					case START:
-						RobotEvent.start();
+						Practice.start();
 						break;
 					case ABORT:
-						RobotEvent.abort();
+						Practice.abort();
 						break;
 					case ADD_SCORE:
-						RobotEvent.addScore(value, name);
+						Practice.addScore(value, name);
 						break;
 					case ADD_DOUBLE_SCORE:
-						RobotEvent.addScore(value, name);
-						RobotEvent.addScore(value, name);
-						break;
-					case RESET_SCORE:
-						RobotEvent.setScore(0);
+						Practice.addScore(value, name);
+						Practice.addScore(value, name);
 						break;
 					case ERROR:
-						RobotEvent.error("Test error");
+						Practice.error("Test error");
 						break;
 					case LOG:
-						System.out.println(RobotEvent.runData);
+						System.out.println(Practice.runData);
 						break;
 					case START_PERIOD:
 						switch (period) {
 							case AUTO:
-								RobotEvent.startAuto();
+								Practice.startAuto();
 								break;
 							case TRANSITION:
-								RobotEvent.startTransition();
+								Practice.startTransition();
 								break;
 							case TELEOP:
-								RobotEvent.startTeleop();
+								Practice.startTeleop();
 								break;
 						}
 						break;

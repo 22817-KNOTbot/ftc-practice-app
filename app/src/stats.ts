@@ -6,11 +6,12 @@ import {
 	TimeSeriesScale,
 	LinearScale,
 	Tooltip,
+	LegendOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { getData, getRunData } from "./stats/data";
 import "./style.css";
-import { Cycle, Data, RunData } from "./types";
+import { Data, RunData } from "./types";
 import { updateTextSize } from "auto-text-size";
 import {
 	hideLoadingIndicator,
@@ -20,15 +21,8 @@ import {
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
 import { getSetting } from "./settingsManager";
-
-let data: Data["data"];
-
-const showChart = () => {
-	getData().then((d) => {
-		data = d.data;
-		generateChart(document.getElementById("chart")! as HTMLCanvasElement);
-	});
-};
+import { showEditModal, updateLiveInfo } from "./runData/modals";
+import Choices from "choices.js";
 
 const chosenLayout = getSetting("layout");
 const layout = getLayout(chosenLayout);
@@ -45,7 +39,110 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML =
 	styleTags + layoutData.html.stats;
 
 registerNavbar(document.querySelector("nav")!);
-showChart();
+
+let data: Data["data"] = [];
+let filteredData: Data["data"] = [];
+let chart: Chart | undefined;
+
+const showChart = (graphValues?: number[]) => {
+	getData().then((d) => {
+		data = d.data;
+		filteredData = d.data;
+		generateChart(
+			document.getElementById("chart")! as HTMLCanvasElement,
+			data,
+			graphValues,
+		);
+	});
+};
+
+let graphValueLabel: string;
+let graphValues: number[];
+let filters: string[];
+
+const updateChart = (
+	graphValueLabelParam?: string,
+	graphValuesParam?: number[],
+	filtersParam?: string[],
+) => {
+	if (graphValueLabelParam != undefined)
+		graphValueLabel = graphValueLabelParam;
+	if (graphValuesParam != undefined) graphValues = graphValuesParam;
+	if (filtersParam != undefined) filters = filtersParam;
+	if (chart) {
+		graphValueLabel ??= "Score";
+		graphValues ??= data.map((e) => e.score);
+		filters ??= [];
+		if (chart.options.scales?.y) {
+			(chart.options.scales.y as LegendOptions<"line">).title.text =
+				graphValueLabel;
+		}
+		chart.data.datasets[0].label = graphValueLabel;
+		chart.data.datasets[0].data = [...graphValues];
+
+		filteredData = [...data];
+		// Iterate backwards to prevent indexes shifting
+		for (let i = data.length - 1; i >= 0; i--) {
+			const pass = filters.every((tag) => data[i].tags?.includes(tag));
+
+			if (!pass) {
+				chart.data.datasets[0].data.splice(i, 1);
+				filteredData.splice(i, 1);
+			}
+		}
+
+		chart.update();
+	}
+};
+
+const chartTypeDropdown = <HTMLSelectElement>(
+	document.getElementById("chart-type-dropdown")
+);
+const chartTypeCallback = () => {
+	const value = chartTypeDropdown.value;
+	switch (value) {
+		case "score":
+			updateChart(
+				"Score",
+				data.map((e) => e.score),
+			);
+			break;
+		case "meanCycleTime":
+			updateChart(
+				"Mean cycle time (s)",
+				data.map((e) => {
+					return e.meanCycleTime ?? 0;
+				}),
+			);
+			break;
+		case "pointsPerSecond":
+			updateChart(
+				"Points/second",
+				data.map((e) => {
+					return e.pointsPerSecond ?? 0;
+				}),
+			);
+			break;
+	}
+};
+chartTypeDropdown?.addEventListener("change", chartTypeCallback);
+
+const chartFilterInputElement = <HTMLInputElement>(
+	document.getElementById("chart-filter-input")
+);
+const chartFilterInput = new Choices(chartFilterInputElement, {
+	removeItemButton: true,
+	duplicateItemsAllowed: false,
+	placeholderValue: "Filter Tags",
+});
+
+chartFilterInputElement.addEventListener("change", () => {
+	updateChart(
+		undefined,
+		undefined,
+		<string[]>chartFilterInput.getValue(true),
+	);
+});
 
 Chart.register(
 	LineController,
@@ -53,7 +150,7 @@ Chart.register(
 	PointElement,
 	TimeSeriesScale,
 	LinearScale,
-	Tooltip
+	Tooltip,
 );
 
 const textColor = window
@@ -67,27 +164,41 @@ const fontFamily = window
 Chart.defaults.color = textColor;
 Chart.defaults.font.family = fontFamily;
 
-const generateChart = async (chartCanvas: HTMLCanvasElement) => {
-	const chartData: { name: string; time: number; score: number }[] = [];
-	data.sort((a, b) => {
-		return a.timestamp - b.timestamp;
-	});
-	data.forEach((e) => {
+// Graph values is the number used for the y-axis. Order should match the data argument to link
+const generateChart = async (
+	chartCanvas: HTMLCanvasElement,
+	data: Data["data"],
+	graphValues?: number[],
+) => {
+	graphValues ??= data.map((e) => e.score);
+	const chartData: {
+		name: string;
+		time: number;
+		score: number;
+		value: number;
+	}[] = [];
+	for (let i = 0; i < data.length; i++) {
+		const e = data[i];
 		chartData.push({
 			name: e.name,
 			time: e.timestamp * 1000,
 			score: e.score,
+			value: graphValues[i],
 		});
+	}
+	chartData.sort((a, b) => {
+		return a.time - b.time;
 	});
 
-	new Chart(chartCanvas, {
+	chart = new Chart(chartCanvas, {
 		type: "line",
 		data: {
 			labels: chartData.map((e) => e.time),
 			datasets: [
 				{
 					label: "Score",
-					data: chartData.map((e) => e.score),
+					data: chartData.map((e) => e.value),
+					tension: 0.2,
 				},
 			],
 		},
@@ -111,7 +222,8 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 							let text = "";
 							if (context[0] != null) {
 								const timestamp =
-									data[context[0].dataIndex].timestamp * 1000;
+									filteredData[context[0].dataIndex]
+										.timestamp * 1000;
 								const date: Date = new Date(timestamp);
 								text = date.toLocaleString(undefined, {
 									month: "short",
@@ -120,6 +232,17 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 									hour: "numeric",
 									minute: "2-digit",
 								});
+							}
+
+							return text;
+						},
+						afterBody: (context) => {
+							let text = "";
+							if (context[0] != null) {
+								const tagList =
+									filteredData[context[0].dataIndex]?.tags ??
+									[];
+								text = `Tags: ${tagList.length > 0 ? tagList.join(", ") : "None"}`;
 							}
 
 							return text;
@@ -198,7 +321,7 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 					title: {
 						display: true,
 						align: "center",
-						text: "Points",
+						text: "Score",
 						font: {
 							size: 15,
 						},
@@ -222,13 +345,13 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 						.then((runData) => {
 							showRunData(
 								runData,
-								data[elements[0].index].filename
+								data[elements[0].index].filename,
 							);
 						})
 						.catch((reason) => {
 							showRunError(
 								data[elements[0].index].filename,
-								reason
+								reason,
 							);
 						})
 						.finally(() => {
@@ -245,6 +368,8 @@ const generateChart = async (chartCanvas: HTMLCanvasElement) => {
 		},
 	});
 };
+
+showChart();
 
 function showRunData(data: RunData, filename?: string) {
 	filename ??= data.timestamp + ".json";
@@ -265,14 +390,27 @@ function showRunData(data: RunData, filename?: string) {
 	});
 
 	let infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader = infoHeader.appendChild(document.createElement("u"));
 	infoHeader.textContent = "Info";
 
-	const subtitle = content.appendChild(document.createElement("h3"));
-	subtitle.className = "modalContentSubtitle";
+	const tagsTitle = content.appendChild(document.createElement("h3"));
+	tagsTitle.className = "modalContentSubtitle";
+	tagsTitle.textContent = "Tags:";
+	const tagsContainer = content.appendChild(document.createElement("div"));
+	tagsContainer.id = "modalRunTagContainer";
+	data.tags?.forEach((tag) => {
+		const tagsText = tagsContainer.appendChild(
+			document.createElement("span"),
+		);
+		tagsText.className = "modalRunTag";
+		tagsText.textContent = tag;
+	});
+
+	const dateText = content.appendChild(document.createElement("h3"));
+	dateText.className = "modalContentSubtitle";
 	const date: Date = new Date(data.timestamp * 1000);
 	const formatDate = date.toLocaleString(undefined, {
 		month: "short",
@@ -281,14 +419,9 @@ function showRunData(data: RunData, filename?: string) {
 		hour: "numeric",
 		minute: "2-digit",
 	});
-	subtitle.textContent = `Date: ${formatDate}`;
+	dateText.textContent = `Date: ${formatDate}`;
 
 	const infoList = content.appendChild(document.createElement("ul"));
-
-	for (const type in data.info) {
-		const li = infoList.appendChild(document.createElement("li"));
-		li.textContent = `${type}: ${data.info[type]}`;
-	}
 
 	if (data.cycles.length > 0) {
 		const cycleHeader = content
@@ -299,7 +432,7 @@ function showRunData(data: RunData, filename?: string) {
 		const cycleTable = content.appendChild(document.createElement("table"));
 		cycleTable.id = "cycleTable";
 		const tableHeaderRow = cycleTable.appendChild(
-			document.createElement("tr")
+			document.createElement("tr"),
 		);
 		let header = tableHeaderRow.appendChild(document.createElement("th"));
 		header.textContent = "Time (s)";
@@ -321,38 +454,14 @@ function showRunData(data: RunData, filename?: string) {
 		}
 
 		const cycleInfoSubtitle = content.appendChild(
-			document.createElement("h3")
+			document.createElement("h3"),
 		);
 		cycleInfoSubtitle.className = "modalContentSubtitle";
 		cycleInfoSubtitle.textContent = "Statistics";
 
 		const cycleInfoList = content.appendChild(document.createElement("ul"));
-		const cycleTimes = data.cycles.map((cycle) => {
-			return cycle.time;
-		});
 
-		const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-		const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-		const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
-		const averageTime = cycleTimeSum / cycleTimes.length;
-		const secsPerPoint = cycleTimeSum / data.score;
-		const pointsPerSec = data.score / cycleTimeSum;
-
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Min: ${minTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Max: ${maxTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Mean: ${averageTime.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
-		cycleInfoList.appendChild(
-			document.createElement("li")
-		).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
+		updateLiveInfo({ infoList, cycleInfoList }, data);
 	}
 
 	if (
@@ -366,7 +475,7 @@ function showRunData(data: RunData, filename?: string) {
 		teleopTimesHeader.textContent = "TeleOp Times";
 
 		const teleopTimesStart = content.appendChild(
-			document.createElement("div")
+			document.createElement("div"),
 		);
 		if (data.teleopTimes[0] != undefined) {
 			teleopTimesStart.textContent =
@@ -375,13 +484,13 @@ function showRunData(data: RunData, filename?: string) {
 					data.teleopTimes[0] == 0
 						? ""
 						: data.teleopTimes[0] > 0
-						? "late"
-						: "early"
+							? "late"
+							: "early"
 				}`;
 		}
 
 		const teleopTimesEnd = content.appendChild(
-			document.createElement("div")
+			document.createElement("div"),
 		);
 		if (data.teleopTimes[1] != undefined) {
 			teleopTimesEnd.textContent =
@@ -390,8 +499,8 @@ function showRunData(data: RunData, filename?: string) {
 					data.teleopTimes[1] == 0
 						? ""
 						: data.teleopTimes[1] > 0
-						? "late"
-						: "early"
+							? "late"
+							: "early"
 				}`;
 		}
 	}
@@ -406,7 +515,7 @@ function showRunData(data: RunData, filename?: string) {
 
 	const downloadLink = content.appendChild(document.createElement("a"));
 	const downloadButton = downloadLink.appendChild(
-		document.createElement("button")
+		document.createElement("button"),
 	);
 	downloadLink.id = "downloadRun";
 	downloadLink.href = `/practice/data/${filename}`;
@@ -436,7 +545,7 @@ function showRunData(data: RunData, filename?: string) {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");
@@ -509,385 +618,8 @@ function showRunError(filename: string, reason?: string) {
 function showRunEditModal(data: RunData, filename?: string) {
 	filename ??= data.timestamp + ".json";
 	const modal = document.getElementById("runModal")!;
-	const title = document.getElementById("modalHeader")!;
-	const content = document.getElementById("modalContent")!;
-	modal.className = "modal shownModal editModal";
 
-	content.scrollTop = 0;
-	content.innerHTML = "";
-
-	title.textContent = "";
-	const titleInput = title.appendChild(document.createElement("input"));
-	titleInput.classList.add("editModalInput", "editModalTitle");
-	titleInput.value = data.name;
-	titleInput.placeholder = data.name;
-
-	titleInput.addEventListener("focusout", () => {
-		const value = titleInput.value;
-		if (value.trim().length == 0 && value.length > 0) {
-			titleInput.classList.add("invalid");
-		} else {
-			titleInput.classList.remove("invalid");
-		}
-	});
-
-	// Updaters
-	const updateData = (): RunData => {
-		let titleValue = titleInput.value;
-		if (titleValue.trim().length == 0 && titleValue.length > 0) {
-			titleValue = titleInput.placeholder;
-		}
-
-		const dateNum = subtitleInput.valueAsNumber;
-		let date: Date;
-		if (isNaN(dateNum)) {
-			date = new Date(subtitleInput.placeholder);
-		} else {
-			date = new Date(dateNum + rawDate.getTimezoneOffset() * 60 * 1000);
-		}
-
-		let score = 0;
-		const info: RunData["info"] = {};
-		const cycles: Cycle[] = [];
-		for (let i = 0; i < timeInputs.length; i++) {
-			const timeInput = timeInputs[i];
-			const typeInput = typeInputs[i];
-			const scoreInput = scoreInputs[i];
-
-			if (
-				(timeInput.value.trim().length <= 0 &&
-					timeInput.placeholder.trim().length <= 0) ||
-				(typeInput.value.trim().length <= 0 &&
-					typeInput.placeholder.trim().length <= 0) ||
-				(scoreInput.value.trim().length <= 0 &&
-					scoreInput.placeholder.trim().length <= 0)
-			)
-				continue;
-
-			let timeValue = Number(timeInput.value);
-			let typeValue = typeInput.value;
-			let scoreValue = Number(scoreInput.value);
-
-			if (isNaN(timeValue) || !isFinite(timeValue) || timeValue <= 0) {
-				timeValue = Number(timeInput.placeholder);
-			}
-			if (typeValue.trim().length == 0) {
-				typeValue = typeInput.placeholder;
-			}
-			if (
-				isNaN(scoreValue) ||
-				!isFinite(scoreValue) ||
-				!Number.isInteger(scoreValue)
-			) {
-				scoreValue = Number(scoreInput.placeholder);
-			}
-
-			score += scoreValue;
-			info[typeValue] = (info[typeValue] ?? 0) + 1;
-
-			cycles.push({
-				time: timeValue,
-				type: typeValue,
-				score: scoreValue,
-			});
-		}
-
-		let teleopTimes: RunData["teleopTimes"] = [];
-		let teleopTimesStartValue = Number(teleopTimesStartInput.value);
-		let teleopTimesEndValue = Number(teleopTimesEndInput.value);
-		if (isNaN(teleopTimesStartValue) || !isFinite(teleopTimesStartValue)) {
-			teleopTimesStartValue = Number(teleopTimesStartInput.placeholder);
-		}
-		if (isNaN(teleopTimesEndValue) || !isFinite(teleopTimesEndValue)) {
-			teleopTimesEndValue = Number(teleopTimesEndInput.placeholder);
-		}
-		if (teleopTimesEndInput.value.trim().length != 0) {
-			teleopTimes = [
-				Math.floor(
-					(isNaN(teleopTimesStartValue) ? 0 : teleopTimesStartValue) *
-						1000
-				),
-				Math.floor(teleopTimesEndValue * 1000),
-			];
-		} else if (teleopTimesStartInput.value.trim().length != 0) {
-			teleopTimes = [Math.floor(teleopTimesStartValue) * 1000];
-		}
-
-		return {
-			name: titleValue,
-			timestamp: Math.floor(date.getTime() / 1000),
-			score: score,
-			info: info,
-			cycles: cycles,
-			teleopTimes: teleopTimes,
-			startingMatchPeriod: data.startingMatchPeriod,
-		};
-	};
-
-	const updateLiveInfo = (data: RunData) => {
-		infoList.textContent = "";
-		for (const type in data.info) {
-			const li = infoList.appendChild(document.createElement("li"));
-			li.textContent = `${type}: ${data.info[type]}`;
-		}
-
-		cycleInfoList.textContent = "";
-		if (data.cycles.length > 0) {
-			const cycleTimes = data.cycles.map((cycle) => {
-				return cycle.time;
-			});
-			const minTime = cycleTimes.reduce((a, b) => Math.min(a, b));
-			const maxTime = cycleTimes.reduce((a, b) => Math.max(a, b));
-			const cycleTimeSum = cycleTimes.reduce((a, b) => a + b);
-			const averageTime = cycleTimeSum / cycleTimes.length;
-			const secsPerPoint = cycleTimeSum / data.score;
-			const pointsPerSec = data.score / cycleTimeSum;
-
-			cycleInfoList.appendChild(
-				document.createElement("li")
-			).textContent = `Min: ${minTime.toFixed(3)}s`;
-			cycleInfoList.appendChild(
-				document.createElement("li")
-			).textContent = `Max: ${maxTime.toFixed(3)}s`;
-			cycleInfoList.appendChild(
-				document.createElement("li")
-			).textContent = `Mean: ${averageTime.toFixed(3)}s`;
-			cycleInfoList.appendChild(
-				document.createElement("li")
-			).textContent = `Secs/point: ${secsPerPoint.toFixed(3)}s`;
-			cycleInfoList.appendChild(
-				document.createElement("li")
-			).textContent = `Points/sec: ${pointsPerSec.toFixed(3)}`;
-		}
-	};
-
-	let infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
-	);
-	infoHeader.className = "firstModalHeader";
-	infoHeader = infoHeader.appendChild(document.createElement("u"));
-	infoHeader.textContent = "Info";
-
-	const subtitleDiv = content.appendChild(document.createElement("div"));
-	const subtitle = subtitleDiv.appendChild(document.createElement("h3"));
-	const subtitleInput = subtitleDiv.appendChild<HTMLInputElement>(
-		document.createElement("input")
-	);
-	subtitle.className = "modalContentSubtitle editModalSubtitle";
-	subtitleInput.type = "datetime-local";
-	subtitleInput.id = "editModalDate";
-	subtitleInput.classList.add("editModalInput");
-	const rawDate: Date = new Date(data.timestamp * 1000);
-	// Date inputs don't use time zones. Manually adjusting for time zones before passing it as input
-	subtitle.textContent = "Date: ";
-	subtitleInput.valueAsNumber =
-		rawDate.getTime() - rawDate.getTimezoneOffset() * 60 * 1000;
-	subtitleInput.placeholder = rawDate.toString();
-	subtitleInput.addEventListener("focusout", () => {
-		const date = subtitleInput.valueAsNumber;
-		if (isNaN(date)) {
-			subtitleInput.classList.add("invalid");
-		} else {
-			subtitleInput.classList.remove("invalid");
-		}
-	});
-
-	const infoList = content.appendChild(document.createElement("ul"));
-
-	const cycleHeader = content
-		.appendChild(document.createElement("h2"))
-		.appendChild(document.createElement("u"));
-	cycleHeader.textContent = "Cycles";
-
-	const cycleTable = content.appendChild(document.createElement("table"));
-	cycleTable.id = "cycleTable";
-	cycleTable.className = "editCycleTable";
-	const tableHeaderRow = cycleTable.appendChild(document.createElement("tr"));
-	let header = tableHeaderRow.appendChild(document.createElement("th"));
-	header = tableHeaderRow.appendChild(document.createElement("th"));
-	header.textContent = "Time (s)";
-	header = tableHeaderRow.appendChild(document.createElement("th"));
-	header.textContent = "Type";
-	header = tableHeaderRow.appendChild(document.createElement("th"));
-	header.textContent = "Score";
-
-	const timeInputs: HTMLInputElement[] = [];
-	const typeInputs: HTMLInputElement[] = [];
-	const scoreInputs: HTMLInputElement[] = [];
-
-	const addRow = (cycle?: Cycle) => {
-		const row = cycleTable.appendChild(document.createElement("tr"));
-		let tableData = row.appendChild(document.createElement("td"));
-		const deleteButton = tableData.appendChild(
-			document.createElement("button")
-		);
-		deleteButton.classList.add("editModalDeleteButton");
-
-		tableData = row.appendChild(document.createElement("td"));
-		const timeInput = tableData.appendChild(
-			document.createElement("input")
-		);
-		timeInput.classList.add("editModalInput", "editModalTableInput");
-		timeInputs.push(timeInput);
-		timeInput.value = cycle?.time.toString() ?? "";
-		timeInput.placeholder = cycle?.time.toString() ?? "";
-
-		tableData = row.appendChild(document.createElement("td"));
-		const typeInput = tableData.appendChild(
-			document.createElement("input")
-		);
-		typeInput.classList.add("editModalInput", "editModalTableInput");
-		typeInputs.push(typeInput);
-		typeInput.value = cycle?.type ?? "";
-		typeInput.placeholder = cycle?.type ?? "";
-
-		tableData = row.appendChild(document.createElement("td"));
-		const scoreInput = tableData.appendChild(
-			document.createElement("input")
-		);
-		scoreInput.classList.add("editModalInput", "editModalTableInput");
-		scoreInputs.push(scoreInput);
-		scoreInput.value = cycle?.score.toString() ?? "";
-		scoreInput.placeholder = cycle?.score.toString() ?? "";
-
-		// Event listeners
-		deleteButton.addEventListener("click", () => {
-			cycleTable.removeChild(row);
-			timeInputs.splice(timeInputs.indexOf(timeInput), 1);
-			typeInputs.splice(typeInputs.indexOf(typeInput), 1);
-			scoreInputs.splice(scoreInputs.indexOf(scoreInput), 1);
-			updateLiveInfo(updateData());
-		});
-
-		timeInput.addEventListener("focusout", () => {
-			const parsedValue = Number(timeInput.value);
-			if (
-				(isNaN(parsedValue) ||
-					!isFinite(parsedValue) ||
-					parsedValue <= 0) &&
-				timeInput.value.length > 0
-			) {
-				timeInput.classList.add("invalid");
-			} else {
-				timeInput.classList.remove("invalid");
-			}
-			updateLiveInfo(updateData());
-		});
-
-		typeInput.addEventListener("focusout", () => {
-			const value = typeInput.value;
-			if (value.trim().length == 0 && value.length > 0) {
-				typeInput.classList.add("invalid");
-			} else {
-				typeInput.classList.remove("invalid");
-			}
-			updateLiveInfo(updateData());
-		});
-
-		scoreInput.addEventListener("focusout", () => {
-			const parsedValue = Number(scoreInput.value);
-			if (
-				(isNaN(parsedValue) ||
-					!isFinite(parsedValue) ||
-					!Number.isInteger(parsedValue)) &&
-				scoreInput.value.length > 0
-			) {
-				scoreInput.classList.add("invalid");
-			} else {
-				scoreInput.classList.remove("invalid");
-			}
-			updateLiveInfo(updateData());
-		});
-	};
-
-	for (const cycle of data.cycles) {
-		addRow(cycle);
-	}
-
-	const row = cycleTable.appendChild(document.createElement("tr"));
-	const tableData = row.appendChild(document.createElement("td"));
-	const addButton = tableData.appendChild(document.createElement("button"));
-	addButton.classList.add("editModalAddButton");
-	addButton.addEventListener("click", () => {
-		cycleTable.removeChild(row);
-		addRow();
-		cycleTable.appendChild(row);
-		updateLiveInfo(updateData());
-	});
-
-	const cycleInfoSubtitle = content.appendChild(document.createElement("h3"));
-	cycleInfoSubtitle.className = "modalContentSubtitle";
-	cycleInfoSubtitle.textContent = "Statistics";
-
-	const cycleInfoList = content.appendChild(document.createElement("ul"));
-
-	// TeleOp Times
-	const teleopTimesHeader = content
-		.appendChild(document.createElement("h2"))
-		.appendChild(document.createElement("u"));
-	teleopTimesHeader.textContent = "TeleOp Times";
-
-	const teleopTimesStart = content.appendChild(document.createElement("div"));
-	teleopTimesStart.classList.add("editModalTeleopLine");
-	teleopTimesStart.textContent = "TeleOp start: ";
-	const teleopTimesStartInput = teleopTimesStart.appendChild(
-		document.createElement("input")
-	);
-	teleopTimesStartInput.classList.add("editModalInput");
-
-	data.teleopTimes ??= [];
-	const teleopStartTime = data.teleopTimes[0]
-		? (data.teleopTimes[0] / 1e3).toString()
-		: "";
-	teleopTimesStartInput.value = teleopStartTime;
-	teleopTimesStartInput.placeholder = teleopStartTime;
-
-	teleopTimesStartInput.addEventListener("focusout", () => {
-		const parsedValue = Number(teleopTimesStartInput.value);
-		if (
-			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
-			teleopTimesStartInput.value.trim().length > 0
-		) {
-			teleopTimesStartInput.classList.add("invalid");
-		} else {
-			teleopTimesStartInput.classList.remove("invalid");
-		}
-	});
-
-	const teleopTimesEnd = content.appendChild(document.createElement("div"));
-	teleopTimesEnd.classList.add("editModalTeleopLine");
-	teleopTimesEnd.textContent = "TeleOp end: ";
-	const teleopTimesEndInput = teleopTimesEnd.appendChild(
-		document.createElement("input")
-	);
-	teleopTimesEndInput.classList.add("editModalInput");
-
-	const teleopEndTime = data.teleopTimes[1]
-		? (data.teleopTimes[1] / 1e3).toString()
-		: "";
-	teleopTimesEndInput.value = teleopEndTime;
-	teleopTimesEndInput.placeholder = teleopEndTime;
-
-	teleopTimesEndInput.addEventListener("focusout", () => {
-		const parsedValue = Number(teleopTimesEndInput.value);
-		if (
-			(isNaN(parsedValue) || !isFinite(parsedValue)) &&
-			teleopTimesEndInput.value.trim().length > 0
-		) {
-			teleopTimesEndInput.classList.add("invalid");
-		} else {
-			teleopTimesEndInput.classList.remove("invalid");
-		}
-	});
-
-	// Buttons
-	const saveButton = content.appendChild(document.createElement("button"));
-	saveButton.id = "saveEdit";
-	saveButton.textContent = "Save Edits";
-	saveButton.classList.add("modalButton");
-	saveButton.addEventListener("click", () => {
-		const editedRunData: RunData = updateData();
-
+	showEditModal(modal, data, (editedRunData: RunData) => {
 		fetch("/practice/data/edit", {
 			headers: {
 				filename: filename,
@@ -898,7 +630,7 @@ function showRunEditModal(data: RunData, filename?: string) {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");
@@ -912,16 +644,6 @@ function showRunEditModal(data: RunData, filename?: string) {
 				showRunError(filename, err.message);
 			});
 	});
-
-	const discardButton = content.appendChild(document.createElement("button"));
-	discardButton.id = "discardEdit";
-	discardButton.textContent = "Discard Edits";
-	discardButton.classList.add("modalButton");
-	discardButton.addEventListener("click", () => {
-		modal.classList.remove("shownModal");
-	});
-
-	updateLiveInfo(updateData());
 }
 
 window.addEventListener("mousedown", (event) => {

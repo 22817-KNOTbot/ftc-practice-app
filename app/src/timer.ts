@@ -1,6 +1,5 @@
-import { getSetting } from "./settingsManager";
+import { getSetting, Settings } from "./settingsManager";
 import { Sounds } from "./sfx";
-import { Settings } from "./types";
 
 const timerValues: Settings["timerValues"] = getSetting("timerValues");
 
@@ -33,7 +32,7 @@ export class Timer {
 		const timerLoopFunction = (loopHandler?: (time: number) => void) => {
 			const remainingTime = Math.max(
 				0,
-				Math.round((this.startTime - Date.now()) / 1000 + time)
+				Math.round((this.startTime - Date.now()) / 1000 + time),
 			);
 			if (remainingTime <= 0) {
 				this.stopTimer();
@@ -58,7 +57,7 @@ export class Timer {
 			interval ??= this.interval;
 			this.updateTimer = setTimeout(
 				() => timerLoopFunction(loopHandler),
-				interval
+				interval,
 			);
 		};
 

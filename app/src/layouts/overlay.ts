@@ -1,12 +1,26 @@
 import { LayoutData } from "../types";
 import { getLayoutData as getModernLayoutData } from "./modern";
-import faviconUrl from "../assets/images/favicon.ico";
+import faviconUrl from "../assets/images/favicon.svg";
+import { getSetting } from "../settingsManager";
+
+const mode = getSetting("mode");
 
 const nav = `
 <nav class="collapsed">
+${
+	mode == "view"
+		? `
 	<a href="/practice" class="navbar-img"><img src="${faviconUrl}"></a>
 	<a href="/practice">Timer</a>
 	<a href="/practice/stats">Stats</a>
+	`
+		: mode == "edit"
+			? `
+	<a href="/practice/edit" class="navbar-img"><img src="${faviconUrl}"></a>
+	<a href="/practice/edit">Edit</a>
+	`
+			: ""
+}
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
 </nav>
@@ -18,14 +32,13 @@ export function getLayoutData(): LayoutData {
 	return {
 		stylePath: [
 			"/practice/assets/layouts/modern.css",
-			"/practice/assets/layouts/chromaKey.css",
+			"/practice/assets/layouts/overlay.css",
 		],
 		html: {
 			timer: `
 ${nav}
 <div id="timer-container">
 	<div id="timer-section">
-		<div id="chroma-screen"></div>
 	</div>
 	<div id="bottom-section">
 		<div id="timer-box">
@@ -57,6 +70,7 @@ ${nav}
 			stats: modernLayoutData.html.stats,
 			settings: modernLayoutData.html.settings,
 			about: modernLayoutData.html.about,
+			edit: modernLayoutData.html.edit,
 		},
 	};
 }

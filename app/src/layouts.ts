@@ -1,6 +1,5 @@
-import { getLayoutData as getClassicLayoutData } from "./layouts/classic";
 import { getLayoutData as getModernLayoutData } from "./layouts/modern";
-import { getLayoutData as getChromaKeyScreenLayoutData } from "./layouts/chromaKey";
+import { getLayoutData as getOverlayLayoutData } from "./layouts/overlay";
 import { Layout } from "./types";
 
 const layouts: Layout[] = [
@@ -10,14 +9,9 @@ const layouts: Layout[] = [
 		layoutDataGetter: getModernLayoutData,
 	},
 	{
-		name: "Chroma Key",
-		imagePath: "/practice/assets/layouts/chromaKey.jpg",
-		layoutDataGetter: getChromaKeyScreenLayoutData,
-	},
-	{
-		name: "Classic",
-		imagePath: "/practice/assets/layouts/classic.jpg",
-		layoutDataGetter: getClassicLayoutData,
+		name: "Overlay",
+		imagePath: "/practice/assets/layouts/overlay.jpg",
+		layoutDataGetter: getOverlayLayoutData,
 	},
 ];
 

@@ -1,15 +1,16 @@
 import { getLayout } from "./layouts";
 import { registerNavbar } from "./navbar";
-import { getSetting, saveSettings } from "./settingsManager";
+import {
+	CycleStat,
+	DEFAULT_SETTINGS,
+	getSetting,
+	getSettings,
+	saveSettings,
+} from "./settingsManager";
 import { getData } from "./stats/data";
-import { Settings } from "./types";
-
-const DEFAULT_TIMER_TIMES: { [key: string]: number } = {
-	auto: 30,
-	transition: 8,
-	teleop: 120,
-	endgame: 20,
-};
+import { Settings } from "./settingsManager";
+import Choices from "choices.js";
+import "choices.js/public/assets/styles/choices.css";
 
 let runCount = 0;
 getData().then((d) => {
@@ -17,7 +18,6 @@ getData().then((d) => {
 });
 
 const chosenLayout = getSetting("layout");
-const storedTimerValues = getSetting("timerValues");
 const layout = getLayout(chosenLayout);
 const layoutData = layout.layoutDataGetter();
 let styleTags = "";
@@ -43,17 +43,14 @@ const updateSelectedLayout = (selectedLayout: string) => {
 	}
 
 	const newlySelected = document.querySelector<HTMLDivElement>(
-		`.settings-layout[data-layout="${selectedLayout}"`
+		`.settings-layout[data-layout="${selectedLayout}"`,
 	);
 	newlySelected?.classList.add("selected");
 };
 
 updateSelectedLayout(chosenLayout);
 
-const currentSettings: Settings = {
-	layout: chosenLayout,
-	timerValues: storedTimerValues,
-};
+const currentSettings = getSettings();
 
 for (const option of layoutSettingsOptions) {
 	option.addEventListener("click", (e) => {
@@ -69,17 +66,33 @@ for (const option of layoutSettingsOptions) {
 	});
 }
 
+const nameInputElement = document.getElementById(
+	"settings-saving-name",
+) as HTMLInputElement;
+nameInputElement.value = getSetting("defaultName");
+
+const tagInputElement = document.getElementById(
+	"settings-saving-tags",
+) as HTMLInputElement;
+
+const tagInput = new Choices(tagInputElement, {
+	removeItemButton: true,
+	duplicateItemsAllowed: false,
+	items: getSetting("defaultTags"),
+});
+
 const timerSettingsInputs = document.querySelectorAll<HTMLInputElement>(
-	".settings-timer-value>input"
+	".settings-timer-value>input",
 );
 
 for (const input of timerSettingsInputs) {
 	const period = input.dataset["timerPeriod"];
 	if (period) {
 		input.value =
-			currentSettings.timerValues[period]?.toString() ??
-			DEFAULT_TIMER_TIMES[period] ??
-			0;
+			(
+				currentSettings.timerValues[period] ??
+				DEFAULT_SETTINGS.timerValues[period]
+			).toString() ?? 0;
 	}
 	input.addEventListener("focusout", (e) => {
 		const targetElement = e.target as HTMLInputElement;
@@ -96,7 +109,41 @@ for (const input of timerSettingsInputs) {
 	});
 }
 
+const modeSettingsInput = document.getElementById(
+	"settings-mode-dropdown",
+) as HTMLSelectElement;
+
+modeSettingsInput.value = currentSettings.mode;
+
+modeSettingsInput?.addEventListener("change", () => {
+	const modeValue = modeSettingsInput.value;
+	currentSettings.mode = modeValue as Settings["mode"];
+});
+
+const statsInputElement = <HTMLSelectElement>(
+	document.getElementById("settings-stats-input")
+);
+for (const stat of Object.values(CycleStat)) {
+	statsInputElement.add(
+		new Option(
+			stat,
+			stat,
+			false,
+			currentSettings.cycleStats.includes(stat),
+		),
+	);
+}
+
+const statsInput = new Choices(statsInputElement, {
+	removeItemButton: true,
+	shouldSort: false,
+	searchEnabled: true,
+});
+
 const saveChanges = (settings: Settings) => {
+	settings.defaultName = nameInputElement.value;
+	settings.defaultTags = <string[]>tagInput.getValue(true);
+
 	const newTimerValues: { [key: string]: number } = {};
 	for (const input of timerSettingsInputs) {
 		const period = input.dataset["timerPeriod"];
@@ -112,12 +159,14 @@ const saveChanges = (settings: Settings) => {
 	}
 	settings.timerValues = newTimerValues;
 
-	saveSettings(currentSettings);
+	settings.cycleStats = <CycleStat[]>statsInput.getValue(true);
+
+	saveSettings(settings);
 	document.location.reload();
 };
 
 const submitButtonList = document.querySelectorAll<HTMLElement>(
-	"#settings-save-button"
+	"#settings-save-button",
 );
 for (const submitButton of submitButtonList) {
 	submitButton.addEventListener("click", () => saveChanges(currentSettings));
@@ -144,7 +193,7 @@ const showResetConfirmationModal = () => {
 	title.textContent = "Reset all settings";
 
 	const infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader.textContent = "Are you sure you want to reset all settings?";
@@ -183,7 +232,7 @@ const showDeleteRunsConfirmationModal = () => {
 	title.textContent = "Delete all runs";
 
 	const infoHeader: HTMLElement = content.appendChild(
-		document.createElement("h2")
+		document.createElement("h2"),
 	);
 	infoHeader.className = "firstModalHeader";
 	infoHeader.textContent = "Are you sure you want to delete all runs?";
@@ -223,7 +272,7 @@ const showDeleteRunsConfirmationModal = () => {
 			}).then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`${response.status} ${response.statusText}`
+						`${response.status} ${response.statusText}`,
 					);
 				}
 				modal.classList.remove("shownModal");

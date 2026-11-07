@@ -30,6 +30,9 @@ export type Data = {
 		timestamp: number;
 		score: number;
 		filename: string;
+		meanCycleTime?: number;
+		pointsPerSecond?: number;
+		tags?: string[];
 	}[];
 };
 
@@ -43,6 +46,7 @@ export interface RunData {
 	cycles: Cycle[];
 	teleopTimes: (number | null)[];
 	startingMatchPeriod: MatchPeriod;
+	tags?: string[];
 }
 
 export interface SaveRunData extends RunData {
@@ -68,12 +72,6 @@ export type LayoutData = {
 		stats: string;
 		settings: string;
 		about: string;
-	};
-};
-
-export type Settings = {
-	layout: string;
-	timerValues: {
-		[key: string]: number;
+		edit: string;
 	};
 };

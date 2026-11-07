@@ -1,5 +1,6 @@
 package com.knotbot.practiceapp;
 
+import com.knotbot.practiceapp.Data.RunState;
 import com.qualcomm.ftccommon.FtcEventLoop;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.WebHandlerManager;
@@ -21,7 +22,6 @@ import com.squareup.moshi.JsonDataException;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 public class PracticeApp {
@@ -58,8 +57,8 @@ public class PracticeApp {
 	public static void start(Context context) {
 		if (instance == null)
 			instance = new PracticeApp();
-		if (RobotEvent.instance == null)
-			RobotEvent.instance = new RobotEvent();
+		if (Practice.instance == null)
+			Practice.instance = new Practice();
 		Log.i(TAG, "STARTED");
 		DataStorage.refreshMain();
 	}
@@ -67,14 +66,8 @@ public class PracticeApp {
 	@OnCreateEventLoop
 	public static void registerOpModeNotifications(Context context, FtcEventLoop eventLoop) {
 		OpModeManagerImpl opModeManager = eventLoop.getOpModeManager();
-		if (RobotEvent.opModeManager != null) {
-			opModeManager.unregisterListener(RobotEvent.instance);
-		}
-		RobotEvent.opModeManager = opModeManager;
-
-		if (RobotEvent.opModeManager != null) {
-			opModeManager.registerListener(RobotEvent.instance);
-		}
+		opModeManager.unregisterListener(Practice.instance);
+		opModeManager.registerListener(Practice.instance);
 	}
 
 	/*
@@ -99,6 +92,7 @@ public class PracticeApp {
 		manager.register(WEB_PATH + "/stats", createWebHandler("practice/stats.html"));
 		manager.register(WEB_PATH + "/settings", createWebHandler("practice/settings.html"));
 		manager.register(WEB_PATH + "/about", createWebHandler("practice/about.html"));
+		manager.register(WEB_PATH + "/edit", createWebHandler("practice/edit.html"));
 	}
 
 	private void attachAssetWebHandlers(WebHandlerManager manager, String path) {
@@ -405,6 +399,10 @@ public class PracticeApp {
 				RobotLog.logStackTrace(err);
 			}
 		}
+
+		public void receive() {
+
+		}
 	}
 
 	protected static class WsHandler {
@@ -413,7 +411,7 @@ public class PracticeApp {
 
 		public void register(Socket socket) {
 			this.sockets.add(socket);
-			RobotEvent.registerWsHandler(this);
+			Practice.registerWsHandler(this);
 		}
 
 		public void onOpen() {
@@ -424,7 +422,7 @@ public class PracticeApp {
 		public void onClose(Socket socket) {
 			this.sockets.remove(socket);
 			if (sockets.isEmpty()) {
-				RobotEvent.unregisterWsHandler();
+				Practice.unregisterWsHandler();
 				open = false;
 			}
 			Log.d(TAG, "WS Closed");
@@ -449,42 +447,8 @@ public class PracticeApp {
 
 			switch (message.event) {
 				case "getState":
-					Data.RunState runState;
-					float runTime = (float) RobotEvent.runTimer.time();
-
-					if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
-						if (runTime >= 30 && runTime < 38) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
-							RobotEvent.periodTimerOffset = runTime - 30;
-							RobotEvent.periodTimer.reset();
-						} else if (runTime >= 38) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-							RobotEvent.periodTimerOffset = runTime - 38;
-							RobotEvent.periodTimer.reset();
-						}
-					} else if (RobotEvent.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
-						if (runTime >= 8) {
-							RobotEvent.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
-							RobotEvent.periodTimerOffset = runTime - 8;
-							RobotEvent.periodTimer.reset();
-						}
-					}
-
-					if (!RobotEvent.running || RobotEvent.runData == null) {
-						runState = new Data.RunState(false);
-					} else {
-						runState = new Data.RunState(
-								RobotEvent.running,
-								RobotEvent.matchPeriod,
-								(float) (RobotEvent.periodTimer.time() + RobotEvent.periodTimerOffset),
-								RobotEvent.score,
-								RobotEvent.runData.cycles,
-								(float) RobotEvent.cycleTimer.time());
-					}
-
-					String runStateJson = Data.RunState.toJson(runState);
-					sendMessage(new Message("setState", runStateJson));
-					Log.v(TAG, "Sent run state: \"" + runStateJson + "\"");
+					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
+					Log.v(TAG, "Sent run state in response to getState");
 					break;
 				case "saveRun":
 					if (message.name == null || message.name == "") {
@@ -492,11 +456,66 @@ public class PracticeApp {
 						return;
 					}
 					DataStorage.saveRun(Data.RunData.toData(message.name));
-					RobotEvent.runData = null;
+					Practice.runData = null;
+					break;
+				case "editRun":
+					if (message.name == null || message.name == "") {
+						Log.e(TAG, "Malformed edit. Given data \"" + json + "\"");
+						return;
+					}
+					Practice.editCycles(Data.RunData.toData(message.name).cycles);
+
+					sendMessage(new Message("setState", Data.RunState.toJson(getRunState())));
+					Log.v(TAG, "Sent run state in response to editRun");
+					break;
+				case "addCycle":
+					if (message.name == null || message.name == "") {
+						Log.e(TAG, "Malformed addCycle message. Given data \"" + json + "\"");
+						return;
+					}
+					Practice.addCycle(Data.Cycle.toData(message.name));
+
 					break;
 				default:
 					break;
 			}
+		}
+
+		private RunState getRunState() {
+			Data.RunState runState;
+			float runTime = (float) Practice.runTimer.time();
+
+			if (Practice.startingMatchPeriod == Data.RunState.MatchPeriod.AUTO) {
+				if (runTime >= 30 && runTime < 38) {
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TRANSITION;
+					Practice.periodTimerOffset = runTime - 30;
+					Practice.periodTimer.reset();
+				} else if (runTime >= 38) {
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					Practice.periodTimerOffset = runTime - 38;
+					Practice.periodTimer.reset();
+				}
+			} else if (Practice.startingMatchPeriod == Data.RunState.MatchPeriod.TRANSITION) {
+				if (runTime >= 8) {
+					Practice.matchPeriod = Data.RunState.MatchPeriod.TELEOP;
+					Practice.periodTimerOffset = runTime - 8;
+					Practice.periodTimer.reset();
+				}
+			}
+
+			if (!Practice.running || Practice.runData == null) {
+				runState = new Data.RunState(false);
+			} else {
+				runState = new Data.RunState(
+						Practice.running,
+						Practice.matchPeriod,
+						(float) (Practice.periodTimer.time() + Practice.periodTimerOffset),
+						Practice.score,
+						Practice.runData.cycles,
+						(float) Practice.cycleTimer.time());
+			}
+
+			return runState;
 		}
 
 		public void sendMessage(Message message) {

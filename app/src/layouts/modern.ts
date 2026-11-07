@@ -1,11 +1,25 @@
 import { getLayouts } from "../layouts";
 import { LayoutData } from "../types";
-import faviconUrl from "../assets/images/favicon.ico";
+import faviconUrl from "../assets/images/favicon.svg";
+import { getSetting } from "../settingsManager";
+
+const mode = getSetting("mode");
 
 const nav = `
 <nav class="collapsed">
-	<a href="/practice" class="navbar-img"><img src="${faviconUrl}"></a>
-	<a href="/practice">Timer</a>
+${
+	mode == "view"
+		? `
+			<a href="/practice" class="navbar-img"><img src="${faviconUrl}"></a>
+			<a href="/practice">Timer</a>
+		`
+		: mode == "edit"
+			? `
+				<a href="/practice/edit" class="navbar-img"><img src="${faviconUrl}"></a>
+				<a href="/practice/edit">Edit</a>
+			`
+			: ""
+}
 	<a href="/practice/stats">Stats</a>
 	<a href="/practice/settings">Settings</a>
 	<a href="/practice/about">About</a>
@@ -49,7 +63,17 @@ ${nav}
 			stats: `
 ${nav}
 <div id="chart-div">
-	<canvas id="chart"></canvas>
+	<div id="chart-options-container">
+		<input type="text" id="chart-filter-input">
+		<select id="chart-type-dropdown">
+			<option value="score">Score</option>
+			<option value="meanCycleTime">Mean cycle time</option>
+			<option value="pointsPerSecond">Points/second</option>
+		</select>
+	</div>
+	<div id="chart-container">
+		<canvas id="chart"></canvas>
+	</div>
 </div>
 <div id="runModal" class="modal">
 	<div id="modalHeaderContainer"><h1 id="modalHeader">Modal</h1></div>
@@ -81,6 +105,19 @@ ${nav}
 				</div>
 			</div>
 		</div>
+		<div id="settings-saving-container" class="settings-section-container">
+			<h1>Saving</h1>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-name">Default Name</label>
+				<input type="text" id="settings-saving-name">
+				<p><a href="https://cplusplus.com/reference/ctime/strftime/#:~:text=format,-C" target="_blank"
+					rel="noopener noreferrer">Date variables allowed</a></p>
+			</div>
+			<div class="settings-saving-setting">
+				<label for="settings-saving-tags">Default Tags</label>
+				<input type="text" id="settings-saving-tags">
+			</div>
+		</div>
 		<div id="settings-save-container" class="settings-section-container">
 			<div class="settings-section settings-save-section">
 				<input id="settings-save-button" class="settings-button" type="submit" value="Save Changes">
@@ -103,6 +140,19 @@ ${nav}
 			<div class="settings-timer-line">
 				<label for="settings-timer-endgame">Endgame Length</label>
 				<span class="settings-timer-value"><input type="number" id="settings-timer-endgame" data-timer-period="endgame">s</span>
+			</div>
+		</div>
+		<div id="settings-mode-container" class="settings-section-container">
+			<div>
+				<h1>Mode</h1>
+				<select id="settings-mode-dropdown" class="settings-dropdown">
+					<option value="view">View</option>
+					<option value="edit">Edit</option>
+				</select>
+			</div>
+			<div id="settings-stats-container">
+				<h1>Cycle Stats</h1>
+				<select id="settings-stats-input" multiple></select>
 			</div>
 		</div>
 		<div id="settings-danger-container" class="settings-section-container">
@@ -149,6 +199,41 @@ ${nav}
 		<p class="text-center">FTC Practice App is open source and licensed under the <a
 				href="https://github.com/22817-KNOTbot/ftc-practice-app/blob/main/LICENSE" target="_blank">MIT License</a>.
 		</p>
+	</div>
+</div>
+`,
+			edit: `
+${nav}
+<div id="edit-container">
+	<div id="edit-scores-container" class="edit-page-container">
+		<h1>Edit Current Run</h1>
+		<table id="edit-scores-table" class="edit-page-table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Time (s)</th>
+					<th>Type</th>
+					<th>Score</th>
+				</tr>
+			</thead>
+			<tbody id="edit-table-body"></tbody>
+		</table>
+		<button id="edit-table-save-button" class="edit-table-button">Save</button>
+	</div>
+	<div id="manual-scoring-container" class="edit-page-container">
+		<h1>Manual Scoring</h1>
+		<table id="manual-scoring-table" class="edit-page-table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Time (s)</th>
+					<th>Type</th>
+					<th>Score</th>
+					<th>Send</th>
+				</tr>
+			</thead>
+			<tbody id="manual-scoring-table-body"></tbody>
+		</table>
 	</div>
 </div>
 `,
